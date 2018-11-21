@@ -25,3 +25,4 @@
 
 * [QRCode Wiki](https://en.wikipedia.org/wiki/QR_code)
 * [二维码详解（QR Code）](https://zhuanlan.zhihu.com/p/21463650)
+* [数据编码](https://zhuanlan.zhihu.com/p/25432676)

@@ -4,10 +4,8 @@ import (
 	"fmt"
 
 	"github.com/skip2/go-qrcode/bitset"
-	"github.com/yeqown/go-qrcode/matrix"
-	"github.com/yeqown/go-qrcode/version"
-
 	"github.com/skip2/go-qrcode/reedsolomon"
+	"github.com/yeqown/go-qrcode/matrix"
 )
 
 // New generate a QRCode struct to create or
@@ -27,12 +25,12 @@ func New(text string) (*QRCode, error) {
 // 2. mask info
 // etc.
 type QRCode struct {
-	content   string                // input text content
-	rawData   []byte                // raw Data to transfer
-	stream    *bitset.Bitset        // bit stream of encode data
-	mat       *matrix.Matrix        // matrix grid to store final bitmap
-	v         version.QRVersion     // version means the size
-	recoverLv version.RecoveryLevel // recoveryLevel
+	content   string         // input text content
+	rawData   []byte         // raw Data to transfer
+	stream    *bitset.Bitset // bit stream of encode data
+	mat       *matrix.Matrix // matrix grid to store final bitmap
+	v         Version        // version means the size
+	recoverLv RecoveryLevel  // recoveryLevel
 	encoder   Encoder
 }
 
@@ -41,10 +39,9 @@ func (q *QRCode) init() error {
 		return fmt.Errorf("could not analyze the data: %v", err)
 	}
 	// version initial
-	q.v.Init(q.recoverLv)
 
 	q.rawData = []byte(q.content)
-	q.mat = matrix.NewMatrix(q.v.Dimension(), q.v.Dimension())
+	q.mat = matrix.NewMatrix(q.v.Dimension, q.v.Dimension)
 	// TODO: choose encoder by what?
 	q.encoder = Encoder{
 		version: q.v,
@@ -63,7 +60,7 @@ func (q *QRCode) init() error {
 
 // analyze choose version and encoder
 func (q *QRCode) analyze() error {
-	q.v = version.Analyze(q.content)
+	q.v = Analyze(q.content)
 	return nil
 }
 
@@ -78,5 +75,5 @@ func (q *QRCode) draw(saveToPath string) error {
 }
 
 func (q *QRCode) encode() {
-	reedsolomon.Encode()
+	reedsolomon.Encode(q.stream, q.v.ECBytes)
 }

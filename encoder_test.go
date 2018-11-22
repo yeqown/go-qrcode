@@ -2,14 +2,16 @@ package qrcode
 
 import (
 	"testing"
-
-	"github.com/yeqown/go-qrcode/version"
 )
+
+// func TestInit() {
+// 	load(defaultPathToCfg)
+// }
 
 func TestEncodeNum(t *testing.T) {
 	enc := Encoder{
 		mode:    EncModeNumeric,
-		version: &version.Version1{},
+		version: loadVersion(1, L),
 	}
 
 	b, err := enc.Encode([]byte("12312312"))
@@ -23,7 +25,7 @@ func TestEncodeNum(t *testing.T) {
 func TestEncodeAlphanum(t *testing.T) {
 	enc := Encoder{
 		mode:    EncModeAlphanumeric,
-		version: &version.Version1{},
+		version: loadVersion(1, L),
 	}
 
 	b, err := enc.Encode([]byte("AKJA*:/"))
@@ -37,7 +39,7 @@ func TestEncodeAlphanum(t *testing.T) {
 func TestEncodeByte(t *testing.T) {
 	enc := Encoder{
 		mode:    EncModeByte,
-		version: &version.Version1{},
+		version: loadVersion(1, L),
 	}
 
 	b, err := enc.Encode([]byte("helloworld"))

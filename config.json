@@ -1,0 +1,74 @@
+[
+    {
+        "vname": 1,
+        "recovery_level": "L",
+        "dimension": 21,
+        "cap": {
+            "numeric": 41,
+            "alphanumeric": 25,
+            "byte": 17,
+            "jp": 10 
+        },
+        "block": [
+            {
+                "nbs": 1,
+                "ncs": 26,
+                "ndcs": 19
+            }
+        ]
+    },
+    {
+        "vname": 1,
+        "recovery_level": "M",
+        "dimension": 25,
+        "cap": {
+            "numeric": 34,
+            "alphanumeric": 20,
+            "byte": 14,
+            "jp": 8 
+        },
+        "blocks": [
+            {
+                "nbs": 1,
+                "ncs": 26,
+                "ndcs": 16
+            }
+        ]
+    },
+    {
+        "vname": 1,
+        "recovery_level": "Q",
+        "dimension": 29,
+        "cap": {
+            "numeric": 27,
+            "alphanumeric": 16,
+            "byte": 11,
+            "jp": 7 
+        },
+        "blocks": [
+            {
+                "nbs": 1,
+                "ncs": 26,
+                "ndcs": 13
+            }
+        ]
+    },
+    {
+        "vname": 1,
+        "recovery_level": "H",
+        "dimension": 33,
+        "cap": {
+            "numeric": 17,
+            "alphanumeric": 10,
+            "byte": 7,
+            "jp": 4 
+        },
+        "blocks": [
+            {
+                "nbs": 1,
+                "ncs": 26,
+                "ndcs": 9
+            }
+        ]
+    }
+]

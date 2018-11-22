@@ -7,7 +7,6 @@ import (
 	"log"
 
 	"github.com/skip2/go-qrcode/bitset"
-	"github.com/yeqown/go-qrcode/version"
 )
 
 // EncMode ...
@@ -24,6 +23,11 @@ const (
 	EncModeByte
 	// EncModeJP mode ...
 	EncModeJP
+)
+
+var (
+	paddingByte1 = bitset.NewFromBase2String("11101100")
+	paddingByte2 = bitset.NewFromBase2String("00010001")
 )
 
 // GetEncModeName ...
@@ -65,8 +69,8 @@ type Encoder struct {
 	dst *bitset.Bitset
 	// raw input data
 	data    []byte
-	version version.QRVersion // QR verison ref
-	mode    EncMode           // encode mode
+	version Version // QR verison ref
+	mode    EncMode // encode mode
 }
 
 // Encode ...
@@ -97,7 +101,27 @@ func (e *Encoder) Encode(byts []byte) (*bitset.Bitset, error) {
 	case EncModeJP:
 		panic("this has not been finished")
 	}
-	// 添加补齐码（如果必要）
+	// 添加结束码，补齐码
+	// 结束码
+	if mod := e.dst.Len() % 8; mod != 0 {
+		e.dst.AppendNumBools(8-mod, false)
+	}
+	// 补齐码（padding bytes）
+	// padding byte 11101100 00010001
+	// TODO: 完成版本和纠错级别对应的最大比特数
+	if n := e.version.ECBytes*8 - e.dst.Len(); n > 0 {
+		for i := 1; i <= n; i++ {
+			if i%2 == 1 {
+				e.dst.Append(paddingByte1)
+			} else {
+				e.dst.Append(paddingByte2)
+			}
+		}
+	}
+
+	// TODO: 生成纠错码
+
+	// TODO: 最终排放
 
 	return e.dst, nil
 }
@@ -176,7 +200,7 @@ var charCountMap = map[string]int{
 
 func (e *Encoder) charCountBits() int {
 	var lv int
-	if v := e.version.Version(); v <= 9 {
+	if v := e.version.VerName; v <= 9 {
 		lv = 9
 	} else if v <= 26 {
 		lv = 26

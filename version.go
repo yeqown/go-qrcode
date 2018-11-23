@@ -24,9 +24,6 @@ const (
 	// Highest :Level H: 30% error recovery.
 	Highest
 
-	// 默认版本信息定义路径
-	defaultPathToCfg = "./versionCfg.json"
-
 	// 格式化信息Bit位数
 	formatInfoLengthBits = 15
 
@@ -35,6 +32,8 @@ const (
 )
 
 var (
+	// 默认版本信息定义路径
+	defaultVersionCfg     = "./versionCfg.json"
 	errMissMatchedVersion = errors.New("could not match version! check the versionCfg.json file")
 	versions              []Version
 	// Each QR Code contains a 15-bit Format Information value.  The 15 bits
@@ -143,15 +142,10 @@ var (
 	}
 )
 
-func init() {
-	versions = make([]Version, 4*40)
-	if err := load(defaultPathToCfg); err != nil {
-		panic(err)
-	}
-}
-
 // load versions config into `versions`
 func load(pathToCfg string) error {
+	versions = make([]Version, 4*40)
+
 	fd, err := os.OpenFile(pathToCfg, os.O_RDONLY, 0644)
 	if err != nil {
 		return fmt.Errorf("could not open config file: %v", err)
@@ -287,4 +281,9 @@ func loadVersion(lv int, ecLv ECLevel) Version {
 // ref to: http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
 func Analyze(text string) Version {
 	return loadVersion(1, Low)
+}
+
+// SetVersionCfgFile set custom version config file
+func SetVersionCfgFile(fp string) {
+	defaultVersionCfg = fp
 }

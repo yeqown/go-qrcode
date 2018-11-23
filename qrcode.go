@@ -3,6 +3,7 @@ package qrcode
 import (
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/skip2/go-qrcode/bitset"
 	"github.com/skip2/go-qrcode/reedsolomon"
@@ -12,6 +13,8 @@ import (
 var (
 	// DEBUG mode flag
 	DEBUG = true
+
+	once sync.Once
 )
 
 // NewQRCode generate a QRCode struct to create or
@@ -32,8 +35,8 @@ type QRCode struct {
 	rawData []byte // raw Data to transfer
 
 	dataBSet *bitset.Bitset // final data bit stream of encode data
-	ecBSet   *bitset.Bitset // final error correction bitset
 	mat      *matrix.Matrix // matrix grid to store final bitmap
+	ecBSet   *bitset.Bitset // final error correction bitset
 
 	v         Version  // version means the size
 	ver       int      // version num
@@ -43,6 +46,12 @@ type QRCode struct {
 }
 
 func (q *QRCode) init() error {
+	once.Do(func() {
+		if err := load(defaultVersionCfg); err != nil {
+			panic(err)
+		}
+	})
+
 	if err := q.analyze(); err != nil {
 		return fmt.Errorf("could not analyze the data: %v", err)
 	}
@@ -71,7 +80,14 @@ func (q *QRCode) init() error {
 		return err
 	}
 
+	// 交替排列
 	q.arrarngeBits(dataBlocks, ecBlocks)
+
+	// append ec after data
+	q.dataBSet.Append(q.ecBSet)
+
+	// append remainder bits
+	q.dataBSet.AppendNumBools(q.v.RemainderBits, false)
 
 	return nil
 }
@@ -95,14 +111,16 @@ func (q *QRCode) analyze() error {
 // dataEncoding ref to:
 // https://www.thonky.com/qr-code-tutorial/data-encoding
 func (q *QRCode) dataEncoding() (blocks []dataBlock, err error) {
-	// var bset *bitset.Bitset
-	blocks = make([]dataBlock, q.v.TotalNumBlocks())
-
-	_, err = q.encoder.Encode(q.rawData)
+	var (
+		bset *bitset.Bitset
+	)
+	bset, err = q.encoder.Encode(q.rawData)
 	if err != nil {
 		err = fmt.Errorf("could not encode data: %v", err)
 		return
 	}
+
+	blocks = make([]dataBlock, q.v.TotalNumBlocks())
 
 	// split bset into data Block
 	start, end, blockID := 0, 0, 0
@@ -111,7 +129,7 @@ func (q *QRCode) dataEncoding() (blocks []dataBlock, err error) {
 			start = end
 			end = start + g.NumDataCodewords*8
 
-			blocks[blockID].Data = q.dataBSet.Substr(start, end)
+			blocks[blockID].Data = bset.Substr(start, end)
 			blocks[blockID].StartOffset = end - start
 			blocks[blockID].NumECBlock = g.ECBlockwordsPerBlock
 
@@ -165,9 +183,10 @@ func (q *QRCode) errorCorrectionEncoding(dataBlocks []dataBlock) (blocks []ecBlo
 	// return
 }
 
-// arrarngeBits ...
+// arrarngeBits ... and save into dataBSet
 func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 	if DEBUG {
+		log.Println("before arrange")
 		for i := 0; i < len(ecBlocks); i++ {
 			debugLogf("ec block_%d: %v", i, ecBlocks[i])
 		}
@@ -176,22 +195,118 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 			debugLogf("data block_%d: %v", i, dataBlocks[i])
 		}
 	}
-	// TODO: arrange data & EC blocks into bitsets
+	// arrange data blocks
+	var (
+		overflowCnt = 0
+		endFlag     = false
+		curIdx      = 0
+	)
+
+	// check if bitsets initialized, or initial them
+	if q.dataBSet == nil {
+		q.dataBSet = bitset.New()
+	}
+	if q.ecBSet == nil {
+		q.ecBSet = bitset.New()
+	}
+
+	for !endFlag {
+
+		for _, block := range dataBlocks {
+			start := curIdx * 8
+			end := start + 8
+
+			// debugLogf("arrange data blocks info: start: %d, end: %d, len: %d, overflowCnt: %d, curIdx: %d",
+			// 	start, end, block.Data.Len(), overflowCnt, curIdx,
+			// )
+
+			if start >= block.Data.Len() {
+				overflowCnt++
+				continue
+			}
+			q.dataBSet.Append(block.Data.Substr(start, end))
+		}
+		curIdx = curIdx + 1
+
+		if overflowCnt >= len(dataBlocks) {
+			endFlag = true
+		}
+	}
+
+	// arrange ec blocks, and reinitial
+	endFlag = false
+	overflowCnt = 0
+	curIdx = 0
+
+	for !endFlag {
+		for _, block := range ecBlocks {
+			start := curIdx * 8
+			end := start + 8
+
+			if start >= block.Data.Len() {
+				overflowCnt++
+				continue
+			}
+			q.ecBSet.Append(block.Data.Substr(start, end))
+		}
+		curIdx++
+
+		if overflowCnt >= len(ecBlocks) {
+			endFlag = true
+		}
+	}
+
+	if DEBUG {
+		if DEBUG {
+			log.Println("after arrange")
+			debugLogf("data bitsets: %s", q.dataBSet.String())
+			debugLogf("ec bitsets: %s", q.ecBSet.String())
+		}
+	}
 }
 
-// Append remainder bits.
-func (q *QRCode) appendRemainderBits() {
+// InitMatrix with version info: ref to:
+// http://www.thonky.com/qr-code-tutorial/module-placement-matrix
+func (q *QRCode) initMatrix() {
+
+}
+
+// fillIntoMatrix fill dataset into q.mat
+// TODO: finish
+func (q *QRCode) fillIntoMatrix() {
+
+}
+
+// all mask patter and check the score choose the the lowest mask result
+// TODO: finish
+func (q *QRCode) maskWithModulo(mod MaskPatterModulo) {
+
+}
+
+// fillVersionInfo ref to: http://www.thonky.com/qr-code-tutorial/module-placement-matrix
+// TODO: finish
+func (q *QRCode) fillVersionInfo() {
+
+}
+
+// fill format info ref to: http://www.thonky.com/qr-code-tutorial/module-placement-matrix
+// TODO: finish
+func (q *QRCode) fillFormatInfo() {
 
 }
 
 // Save QRCode image into saveToPath
 func (q *QRCode) Save(saveToPath string) error {
 	// TODO: valid  saveToPath
-	return q.draw(saveToPath)
+	return draw(saveToPath, *q.mat)
 }
 
-func (q *QRCode) draw(saveToPath string) error {
-	return draw(saveToPath, *q.mat)
+// Draw ... Draw with bitset
+func (q *QRCode) Draw() {
+	q.initMatrix()
+	q.fillIntoMatrix()
+	q.fillFormatInfo()
+	q.fillVersionInfo()
 }
 
 func debugLogf(fmt string, v ...interface{}) {

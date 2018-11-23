@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/skip2/go-qrcode/bitset"
 	"github.com/skip2/go-qrcode/reedsolomon"
@@ -17,8 +18,8 @@ var (
 	once sync.Once
 )
 
-// NewQRCode generate a QRCode struct to create or
-func NewQRCode(text string) (*QRCode, error) {
+// New generate a QRCode struct to create or
+func New(text string) (*QRCode, error) {
 	qrc := &QRCode{
 		content: text,
 	}
@@ -57,7 +58,7 @@ func (q *QRCode) init() error {
 	}
 
 	q.rawData = []byte(q.content)
-	q.mat = matrix.NewMatrix(q.v.Dimension(), q.v.Dimension())
+	q.mat = matrix.New(q.v.Dimension(), q.v.Dimension())
 	q.encoder = &Encoder{
 		mode:    q.mode,
 		ecLv:    q.recoverLv,
@@ -158,9 +159,10 @@ type ecBlock struct {
 func (q *QRCode) errorCorrectionEncoding(dataBlocks []dataBlock) (blocks []ecBlock, err error) {
 	// start, end, blockID := 0, 0, 0
 	blocks = make([]ecBlock, q.v.TotalNumBlocks())
-
 	for idx, b := range dataBlocks {
-		blocks[idx].Data = reedsolomon.Encode(b.Data, b.NumECBlock)
+		debugLogf("numOfECBlock: %d", b.NumECBlock)
+		bset := reedsolomon.Encode(b.Data, b.NumECBlock)
+		blocks[idx].Data = bset.Substr(b.StartOffset, bset.Len())
 		blocks[idx].StartOffset = b.StartOffset
 	}
 
@@ -268,13 +270,269 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 // InitMatrix with version info: ref to:
 // http://www.thonky.com/qr-code-tutorial/module-placement-matrix
 func (q *QRCode) initMatrix() {
+	dimension := q.v.Dimension()
+	if q.mat == nil {
+		q.mat = matrix.New(dimension, dimension)
+	}
+
+	// add finder left-top
+	addFinder(q.mat, 0, 0)
+	addSpliter(q.mat, 7, 7, dimension)
+	debugLogf("finish left-top finder")
+	// add finder right-top
+	addFinder(q.mat, dimension-7, 0)
+	addSpliter(q.mat, dimension-8, 7, dimension)
+	debugLogf("finish right-top finder")
+	// add finder left-bottom
+	addFinder(q.mat, 0, dimension-7)
+	addSpliter(q.mat, 7, dimension-8, dimension)
+	debugLogf("finish left-bottom finder")
+
+	// 版本大于1
+	if q.v.Ver > 1 {
+		// add align-mode related to version cfg
+		for _, loc := range loadAlignmentPatternLoc(q.v.Ver) {
+			addAlign(q.mat, loc.X, loc.Y)
+		}
+		debugLogf("finish align")
+	}
+	// add timing line
+	addTimingLine(q.mat, dimension)
+	// add darkBlock always be position (4*ver+9, 8)
+	addDarkBlock(q.mat, 8, 4*q.v.Ver+9)
+	// presistBlock for version and format info
+	presistBlock(q.mat, dimension)
+}
+
+func addFinder(m *matrix.Matrix, top, left int) {
+	// black outer
+	x, y := top, left
+	for i := 0; i < 24; i++ {
+		m.Set(x, y, matrix.StateTrue)
+		if i < 6 {
+			x = x + 1
+		} else if i < 12 {
+			y = y + 1
+		} else if i < 18 {
+			x = x - 1
+		} else {
+			y = y - 1
+		}
+	}
+
+	// white inner
+	x, y = top+1, left+1
+	for i := 0; i < 16; i++ {
+		m.Set(x, y, matrix.StateFalse)
+		if i < 4 {
+			x = x + 1
+		} else if i < 8 {
+			y = y + 1
+		} else if i < 12 {
+			x = x - 1
+		} else {
+			y = y - 1
+		}
+	}
+
+	// black inner
+	for x := left + 2; x < left+5; x++ {
+		for y := top + 2; y < top+5; y++ {
+			m.Set(x, y, matrix.StateTrue)
+		}
+	}
+}
+
+func addSpliter(m *matrix.Matrix, x, y, dimension int) {
+	// top-left
+	if x == 7 && y == 7 {
+		for pos := 0; pos < 8; pos++ {
+			m.Set(x, pos, matrix.StateFalse)
+			m.Set(pos, y, matrix.StateFalse)
+		}
+		return
+	}
+
+	// top-ritgh
+	if x == dimension-8 && y == 7 {
+		for pos := 0; pos < 8; pos++ {
+			m.Set(x, y-pos, matrix.StateFalse)
+			m.Set(x+pos, y, matrix.StateFalse)
+		}
+		return
+	}
+
+	// bottom-left
+	if x == 7 && y == dimension-8 {
+		for pos := 0; pos < 8; pos++ {
+			m.Set(x, y+pos, matrix.StateFalse)
+			m.Set(x-pos, y, matrix.StateFalse)
+		}
+		return
+	}
 
 }
 
-// fillIntoMatrix fill dataset into q.mat
-// TODO: finish
-func (q *QRCode) fillIntoMatrix() {
+// add matrix align
+func addAlign(m *matrix.Matrix, centerX, centerY int) {
+	m.Set(centerX, centerY, matrix.StateTrue)
+	// black
+	x, y := centerX-2, centerY-2
+	for i := 0; i < 16; i++ {
+		m.Set(x, y, matrix.StateTrue)
+		if i < 4 {
+			x = x + 1
+		} else if i < 8 {
+			y = y + 1
+		} else if i < 12 {
+			x = x - 1
+		} else {
+			y = y - 1
+		}
+	}
+	// white
+	x, y = centerX-1, centerY-1
+	for i := 0; i < 8; i++ {
+		m.Set(x, y, matrix.StateFalse)
+		if i < 2 {
+			x = x + 1
+		} else if i < 4 {
+			y = y + 1
+		} else if i < 6 {
+			x = x - 1
+		} else {
+			y = y - 1
+		}
+	}
+}
 
+// addTimingLine ...
+func addTimingLine(m *matrix.Matrix, dimension int) {
+	for pos := 8; pos < dimension-8; pos++ {
+		if pos%2 == 0 {
+			m.Set(6, pos, matrix.StateTrue)
+			m.Set(pos, 6, matrix.StateTrue)
+		} else {
+			m.Set(6, pos, matrix.StateFalse)
+			m.Set(pos, 6, matrix.StateFalse)
+		}
+	}
+}
+
+// addDarkBlock ...
+func addDarkBlock(m *matrix.Matrix, x, y int) {
+	m.Set(x, y, matrix.StateTrue)
+}
+
+// 为版本信息和格式化信息保留模块
+func presistBlock(m *matrix.Matrix, dimension int) {
+
+	// format-info
+	for pos := 0; pos < 9; pos++ {
+		// skip timing line
+		if pos == 6 {
+			m.Set(8, dimension-pos, matrix.StateFormat)
+			m.Set(dimension-pos, 8, matrix.StateFormat)
+			continue
+		}
+		// skip dark block
+		if pos == 8 {
+			m.Set(8, pos, matrix.StateFormat)           // top-left-column
+			m.Set(pos, 8, matrix.StateFormat)           // top-left-row
+			m.Set(dimension-pos, 8, matrix.StateFormat) // top-right-row
+			continue
+		}
+		m.Set(8, pos, matrix.StateFormat)           // top-left-column
+		m.Set(pos, 8, matrix.StateFormat)           // top-left-row
+		m.Set(dimension-pos, 8, matrix.StateFormat) // top-right-row
+		m.Set(8, dimension-pos, matrix.StateFormat) // bottom-left-column
+	}
+
+	// version info
+	for i := 1; i <= 3; i++ {
+		for pos := 0; pos < 6; pos++ {
+			m.Set(dimension-8-i, pos, matrix.StateVersion)
+			m.Set(pos, dimension-8-i, matrix.StateVersion)
+		}
+	}
+}
+
+// fillIntoMatrix fill q.dataBSet bitset stream into q.mat, ref to:
+// http://www.thonky.com/qr-code-tutorial/module-placement-matrix
+func (q *QRCode) fillIntoMatrix(dimension int) {
+	var (
+		x, y            = dimension - 1, dimension - 1
+		l               = q.dataBSet.Len()
+		upForward       = true
+		mod2            int
+		setState, state matrix.State
+		// turn      = false // if last loop, changed forward, this is true
+		// downFoward = false
+	)
+
+	debugLogf("fillIntoMatrix: dimension: %d, len: %d", dimension, l)
+
+	// TOFIX1: i can not loop change
+	// TOFIX2: while encountering column timing line bug
+	for i := 0; i < l; i++ {
+		// only for debug Mode
+		// if x <= 10 {
+		// 	q.debugDraw()
+		// }
+
+		state, _ = q.mat.Get(x, y)
+		if q.dataBSet.At(i) {
+			setState = matrix.StateTrue
+		} else {
+			setState = matrix.StateFalse
+		}
+
+		if state == matrix.StateInit {
+			q.mat.Set(x, y, setState)
+			// i = i + 1
+			debugLogf("normal set turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
+		} else if state == matrix.StateFormat || state == matrix.ZERO {
+			// TODO turn toward
+			// turn forward and the new forward's block fisrt pos as value
+			if upForward {
+				x = x - 2
+				y = y + 1
+			} else {
+				x = x - 2
+				y = y - 1
+			}
+
+			upForward = !upForward
+			// debugLogf("unnormal state turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
+			if s, _ := q.mat.Get(x, y); s == matrix.StateInit {
+				q.mat.Set(x, y, setState)
+				// i = i + 1
+			}
+		}
+
+		// DO NOT CHANGE FOLLOWING CODE FOR NOW !!!
+		// change x, y
+		mod2 = i % 2
+
+		// in one 8bit block
+		if upForward {
+			if mod2 == 0 {
+				x = x - 1
+			} else {
+				y = y - 1
+				x = x + 1
+			}
+		} else {
+			if mod2 == 0 {
+				x = x - 1
+			} else {
+				y = y + 1
+				x = x + 1
+			}
+		}
+	}
+
+	debugLogf("fillDone and x: %d, y: %d", x, y)
 }
 
 // all mask patter and check the score choose the the lowest mask result
@@ -298,15 +556,33 @@ func (q *QRCode) fillFormatInfo() {
 // Save QRCode image into saveToPath
 func (q *QRCode) Save(saveToPath string) error {
 	// TODO: valid  saveToPath
+	q.Draw()
 	return draw(saveToPath, *q.mat)
 }
 
 // Draw ... Draw with bitset
 func (q *QRCode) Draw() {
+	// 初始化二位矩阵
 	q.initMatrix()
-	q.fillIntoMatrix()
+	// save current q.matrix copy
+	// cpyMat := q.mat.Copy()
+
+	// fill bitset into matrix
+	q.fillIntoMatrix(q.v.Dimension())
+
+	// TODO:
 	q.fillFormatInfo()
+
+	// TODO:
 	q.fillVersionInfo()
+}
+
+func (q *QRCode) debugDraw() {
+	if !DEBUG {
+		return
+	}
+	draw("./testdata/qrtest_loop.jpeg", *q.mat)
+	time.Sleep(time.Millisecond * 100)
 }
 
 func debugLogf(fmt string, v ...interface{}) {

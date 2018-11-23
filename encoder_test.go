@@ -4,10 +4,6 @@ import (
 	"testing"
 )
 
-// func TestInit() {
-// 	load(defaultPathToCfg)
-// }
-
 func TestEncodeNum(t *testing.T) {
 	enc := Encoder{
 		ecLv:    Low,
@@ -42,10 +38,10 @@ func TestEncodeByte(t *testing.T) {
 	enc := Encoder{
 		ecLv:    Quart,
 		mode:    EncModeByte,
-		version: loadVersion(1, Quart),
+		version: loadVersion(5, Quart),
 	}
 
-	b, err := enc.Encode([]byte("helloworld"))
+	b, err := enc.Encode([]byte("http://baidu.com?keyword=123123"))
 	if err != nil {
 		t.Errorf("could not encode: %v", err)
 		t.Fail()

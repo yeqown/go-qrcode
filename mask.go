@@ -30,9 +30,9 @@ type Mask struct {
 	mat *matrix.Matrix
 }
 
-// New Mask ...
-func New(w, h int) *Mask {
+// NewMask ...
+func NewMask(w, h int) *Mask {
 	return &Mask{
-		mat: matrix.NewMatrix(w, h),
+		mat: matrix.New(w, h),
 	}
 }

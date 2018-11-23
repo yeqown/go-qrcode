@@ -7,10 +7,10 @@ import (
 )
 
 func Test_image_draw(t *testing.T) {
-	m := matrix.NewMatrix(20, 20)
+	m := matrix.New(20, 20)
 	// set all 3rd column as black else be white
 	for x := 0; x < m.Width(); x++ {
-		m.Set(x, 3)
+		m.Set(x, 3, matrix.StateTrue)
 	}
 
 	if err := draw("./testdata/default.jpeg", *m); err != nil {

@@ -4,3 +4,4 @@ example/
 *.png
 *.jpeg
 # *.json
+*.log

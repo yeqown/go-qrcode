@@ -3,7 +3,6 @@ package qrcode
 import (
 	"fmt"
 	"image"
-	"image/color"
 	"image/jpeg"
 	"os"
 
@@ -16,6 +15,7 @@ import (
 var (
 	defaultExpandPixel = 20
 	defaultFilename    = "default.jpeg"
+	padding            = 20
 )
 
 // SetExpandPixel set defaultExpandPixel, default is 20
@@ -44,11 +44,13 @@ func draw(name string, m matrix.Matrix) error {
 	// draw into image
 	var (
 		gray16 = image.NewGray16(image.Rect(0, 0, w, h))
-		c      color.Gray16
 	)
 
+	// TODO: add padding of the image
+	//
+
 	// iter the matrix to draw each pixel
-	m.Iter(matrix.ROW, func(x int, y int, b bool) {
+	m.Iter(matrix.ROW, func(x int, y int, v matrix.State) {
 		xStart := x * defaultExpandPixel
 		yStart := y * defaultExpandPixel
 		xEnd := (x + 1) * defaultExpandPixel
@@ -57,11 +59,11 @@ func draw(name string, m matrix.Matrix) error {
 		// true for black, false for white
 		for posX := xStart; posX < xEnd; posX++ {
 			for posY := yStart; posY < yEnd; posY++ {
-				c = color.White
-				if b {
-					c = color.Black
+				if posX == xStart || posY == yStart {
+					gray16.SetGray16(posX, posY, matrix.LoadGray16(matrix.BORDER))
+					continue
 				}
-				gray16.SetGray16(posX, posY, c)
+				gray16.SetGray16(posX, posY, matrix.LoadGray16(v))
 			}
 		}
 	})

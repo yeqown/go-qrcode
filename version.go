@@ -142,6 +142,18 @@ var (
 	}
 )
 
+func init() {
+	if DEBUG {
+		if err := load(defaultVersionCfg); err != nil {
+			panic(err)
+		}
+	}
+
+	for ver := 1; ver <= 40; ver++ {
+		loadAlignmentPatternLoc(ver)
+	}
+}
+
 // load versions config into `versions`
 func load(pathToCfg string) error {
 	versions = make([]Version, 4*40)
@@ -286,4 +298,60 @@ func Analyze(text string) Version {
 // SetVersionCfgFile set custom version config file
 func SetVersionCfgFile(fp string) {
 	defaultVersionCfg = fp
+}
+
+var (
+	alignPatternLocation = map[int][]int{
+		2: []int{6, 18},
+		3: []int{6, 22},
+		4: []int{6, 26},
+		5: []int{6, 30},
+		6: []int{6, 34},
+	}
+
+	alignPatternCache = map[int][]loc{}
+)
+
+type loc struct {
+	X int
+	Y int
+}
+
+func loadAlignmentPatternLoc(ver int) (locs []loc) {
+	var ok bool
+	if locs, ok = alignPatternCache[ver]; ok {
+		return
+	}
+
+	dimension := ver*4 + 17
+	positions := alignPatternLocation[ver]
+
+	for _, pos1 := range positions {
+		for _, pos2 := range positions {
+			if !valid(pos1, pos2, dimension) {
+				continue
+			}
+			locs = append(locs, loc{X: pos1, Y: pos2})
+		}
+	}
+	alignPatternCache[ver] = locs
+	return
+}
+
+// x, y center position x,y so
+func valid(x, y, dimension int) bool {
+	// valid left-top
+	if (x-2) < 7 && (y-2) < 7 {
+		return false
+	}
+	// valid right-top
+	if (x+2) > dimension-7 && (y-2) < 7 {
+		return false
+	}
+	// valid left-bottom
+	if (x-2) < 7 && (y+2) > dimension-7 {
+		return false
+	}
+
+	return true
 }

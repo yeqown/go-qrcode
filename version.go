@@ -2,6 +2,8 @@ package qrcode
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -9,27 +11,32 @@ import (
 	"github.com/skip2/go-qrcode/bitset"
 )
 
-// RecoveryLevel ...
-type RecoveryLevel string
+// ECLevel 错误回复级别定义
+type ECLevel int
 
 const (
-	// L :Level L: 7% error recovery.
-	L RecoveryLevel = "L"
-	// M :Level M: 15% error recovery. Good default choice.
-	M RecoveryLevel = "M"
-	// Q :Level Q: 25% error recovery.
-	Q RecoveryLevel = "Q"
-	// H :Level H: 30% error recovery.
-	H RecoveryLevel = "H"
+	// Low :Level L: 7% error recovery.
+	Low ECLevel = iota
+	// Meddium :Level M: 15% error recovery. Good default choice.
+	Meddium
+	// Quart :Level Q: 25% error recovery.
+	Quart
+	// Highest :Level H: 30% error recovery.
+	Highest
 
-	defaultPathToCfg = "./config.json"
+	// 默认版本信息定义路径
+	defaultPathToCfg = "./versionCfg.json"
 
-	formatInfoLengthBits  = 15
+	// 格式化信息Bit位数
+	formatInfoLengthBits = 15
+
+	// 版本信息bit位数
 	versionInfoLengthBits = 18
 )
 
 var (
-	versions []Version
+	errMissMatchedVersion = errors.New("could not match version! check the versionCfg.json file")
+	versions              []Version
 	// Each QR Code contains a 15-bit Format Information value.  The 15 bits
 	// consist of 5 data bits concatenated with 10 error correction bits.
 	//
@@ -147,52 +154,93 @@ func init() {
 func load(pathToCfg string) error {
 	fd, err := os.OpenFile(pathToCfg, os.O_RDONLY, 0644)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not open config file: %v", err)
 	}
 
 	b, err := ioutil.ReadAll(fd)
 	if err != nil {
-		return err
+		return fmt.Errorf("could not read file: %v", err)
 	}
 
 	return json.Unmarshal(b, &versions)
 }
 
 type capacity struct {
-	Numeric      int `json:"numeric"`      // 版本对应的数字容量
-	AlphaNumeric int `json:"alphanumeric"` // 字符
-	Byte         int `json:"byte"`         // 字节
-	JP           int `json:"jp"`           // 日文
+	Numeric      int `json:"n"` // 版本对应的数字容量
+	AlphaNumeric int `json:"a"` // 字符
+	Byte         int `json:"b"` // 字节
+	JP           int `json:"j"` // 日文
 }
 
-type block struct {
-	NumBlocks        int `json:"nbs"`
-	NumCodewords     int `json:"ncs"`  // Total codewords (numCodewords == numErrorCodewords+numDataCodewords).
-	NumDataCodewords int `json:"ndcs"` // Number of data codewords.
+// 这些值可用于确定给定Reed-Solomon块需要多少数据字节和纠错字节。
+type group struct {
+	// 分块数 num of blocks
+	NumBlocks int `json:"nbs"`
+
+	// 数据代码字数 Number of data codewords.
+	NumDataCodewords int `json:"ndcs"`
+
+	// 每一个块的EC代码字数
+	ECBlockwordsPerBlock int `json:"ecbs_pb"`
 }
 
 // Version ...
 type Version struct {
-	VerName       int           `json:"vname"`
-	RecoveryLv    RecoveryLevel `json:"recovery_level"`
-	Cap           capacity      `json:"cap"`
-	RemainderBits int           `json:"remainder_bites"` // 剩余位
-	Blocks        []block       `json:"blocks"`          // 生成纠错码需要的分块信息
+	// 版本号 int 1-40
+	Ver int `json:"ver"`
+
+	// 错误恢复级别 0, 1, 2, 3
+	ECLevel ECLevel `json:"eclv"`
+
+	// ref to: https://www.thonky.com/qr-code-tutorial/character-capacities
+	// 每一个版本 & 回复级别 对应的最大bit容量
+	Cap capacity `json:"cap"`
+
+	// RemainderBits 对应版本需要补充的剩余位bit数
+	RemainderBits int `json:"rembits"`
+
+	// Blocks 生成纠错码需要的分组分块信息
+	// ref to: https://www.thonky.com/qr-code-tutorial/error-correction-table
+	// numGroup = len(Groups)
+	Groups []group `json:"groups"`
 }
 
 // Dimension ...
-func (v Version) dimension() int {
-	return v.VerName*4 + 17
+func (v Version) Dimension() int {
+	return v.Ver*4 + 17
+}
+
+// NumTotalCodewrods 总的数据代码字数
+func (v Version) NumTotalCodewrods() int {
+	var total int
+	for _, g := range v.Groups {
+		total = total + (g.NumBlocks * g.NumDataCodewords)
+	}
+	return total
+}
+
+// NumGroups ... 分组数
+func (v Version) NumGroups() int {
+	return len(v.Groups)
+}
+
+// TotalNumBlocks ...总的分块数
+func (v Version) TotalNumBlocks() int {
+	var total int
+	for _, g := range v.Groups {
+		total = total + g.NumBlocks
+	}
+	return total
 }
 
 // VerInfo Version info bitset
 func (v Version) verInfo() *bitset.Bitset {
-	if v.VerName < 7 {
+	if v.Ver < 7 {
 		return nil
 	}
 
 	result := bitset.New()
-	result.AppendUint32(versionBitSequence[v.VerName], 18)
+	result.AppendUint32(versionBitSequence[v.Ver], 18)
 
 	return result
 }
@@ -202,17 +250,17 @@ func (v Version) verInfo() *bitset.Bitset {
 func (v Version) formatInfo(maskPattern int) *bitset.Bitset {
 	formatID := 0
 
-	switch v.RecoveryLv {
-	case L:
+	switch v.ECLevel {
+	case Low:
 		formatID = 0x08 // 0b01000
-	case M:
+	case Meddium:
 		formatID = 0x00 // 0b00000
-	case Q:
+	case Quart:
 		formatID = 0x18 // 0b11000
-	case H:
+	case Highest:
 		formatID = 0x10 // 0b10000
 	default:
-		log.Panicf("Invalid level %d", v.RecoveryLv)
+		log.Panicf("Invalid level %d", v.ECLevel)
 	}
 
 	if maskPattern < 0 || maskPattern > 7 {
@@ -225,30 +273,18 @@ func (v Version) formatInfo(maskPattern int) *bitset.Bitset {
 	return result
 }
 
-// numDataBits returns the data capacity in bits.
-func (v Version) numDataBits() int {
-	numDataBits := 0
-	for _, b := range v.Blocks {
-		numDataBits += 8 * b.NumBlocks * b.NumDataCodewords // 8 bits in a byte
-	}
-
-	return numDataBits
-}
-
 // loadVersion get version config from config
-func loadVersion(lv int, recoveryLv RecoveryLevel) Version {
-	var target Version
+func loadVersion(lv int, ecLv ECLevel) Version {
 	for _, v := range versions {
-		if v.VerName == lv && v.RecoveryLv == recoveryLv {
-			target = v
-			break
+		if v.Ver == lv && v.ECLevel == ecLv {
+			return v
 		}
 	}
-	return target
+	panic(errMissMatchedVersion)
 }
 
 // Analyze the text, and decide which version should be choose
 // ref to: http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
 func Analyze(text string) Version {
-	return loadVersion(1, L)
+	return loadVersion(1, Low)
 }

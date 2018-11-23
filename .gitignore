@@ -1,3 +1,6 @@
 testdata/
 vendor/
 example/
+*.png
+*.jpeg
+# *.json

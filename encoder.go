@@ -66,11 +66,16 @@ func getEncodeModeIndicator(mode EncMode) *bitset.Bitset {
 
 // Encoder ... data to bit stream ...
 type Encoder struct {
-	dst *bitset.Bitset
-	// raw input data
-	data    []byte
+	// self init
+	dst  *bitset.Bitset
+	data []byte // raw input data
+
+	// initial params
+	mode EncMode // encode mode
+	ecLv ECLevel // error correction level
+
+	// self load
 	version Version // QR verison ref
-	mode    EncMode // encode mode
 }
 
 // Encode ...
@@ -80,9 +85,6 @@ type Encoder struct {
 func (e *Encoder) Encode(byts []byte) (*bitset.Bitset, error) {
 	e.dst = bitset.New()
 	e.data = byts
-	// 选择版本时候完成
-	// 选择错误矫正级别
-	// 确定版本
 
 	// 增加模式指示符
 	indicator := getEncodeModeIndicator(e.mode)
@@ -101,27 +103,9 @@ func (e *Encoder) Encode(byts []byte) (*bitset.Bitset, error) {
 	case EncModeJP:
 		panic("this has not been finished")
 	}
-	// 添加结束码，补齐码
-	// 结束码
-	if mod := e.dst.Len() % 8; mod != 0 {
-		e.dst.AppendNumBools(8-mod, false)
-	}
-	// 补齐码（padding bytes）
-	// padding byte 11101100 00010001
-	// TODO: 完成版本和纠错级别对应的最大比特数
-	if n := e.version.ECBytes*8 - e.dst.Len(); n > 0 {
-		for i := 1; i <= n; i++ {
-			if i%2 == 1 {
-				e.dst.Append(paddingByte1)
-			} else {
-				e.dst.Append(paddingByte2)
-			}
-		}
-	}
 
-	// TODO: 生成纠错码
-
-	// TODO: 最终排放
+	// 补齐 填充
+	e.breakUpInto8bit()
 
 	return e.dst, nil
 }
@@ -182,6 +166,38 @@ func (e *Encoder) encodeByte() {
 	}
 }
 
+// Break Up into 8-bit Codewords and Add Pad Bytes if Necessary
+func (e *Encoder) breakUpInto8bit() {
+	// 此版本和EC级别的数据代码字总数
+	// 添加结束码
+	maxCap := e.version.NumTotalCodewrods() * 8
+	if less := maxCap - e.dst.Len(); less < 0 {
+		panic("could not contain all char with wrong version cap")
+	} else if less < 4 {
+		e.dst.AppendNumBools(less, false)
+	} else {
+		e.dst.AppendNumBools(4, false)
+	}
+
+	// 补齐八倍数
+	if mod := e.dst.Len() % 8; mod != 0 {
+		e.dst.AppendNumBools(8-mod, false)
+	}
+
+	// 补齐码（padding bytes）
+	// padding byte 11101100 00010001
+	if n := maxCap - e.dst.Len(); n > 0 {
+		debugLogf("maxCap: %d, len: %d, less: %d", maxCap, e.dst.Len(), n)
+		for i := 1; i <= (n / 8); i++ {
+			if i%2 == 1 {
+				e.dst.Append(paddingByte1)
+			} else {
+				e.dst.Append(paddingByte2)
+			}
+		}
+	}
+}
+
 // 字符计数指示符位长字典
 var charCountMap = map[string]int{
 	"9_numeric":       10,
@@ -198,9 +214,10 @@ var charCountMap = map[string]int{
 	"40_japan":        12,
 }
 
+// charCountBits
 func (e *Encoder) charCountBits() int {
 	var lv int
-	if v := e.version.VerName; v <= 9 {
+	if v := e.version.Ver; v <= 9 {
 		lv = 9
 	} else if v <= 26 {
 		lv = 26

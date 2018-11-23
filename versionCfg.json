@@ -1,0 +1,372 @@
+[
+    {
+        "ver": 1,
+        "eclv": 0,
+        "cap": {
+            "n": 41,
+            "a": 25,
+            "b": 17,
+            "j": 10
+        },
+        "rembits": 0,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 19,
+                "ecbs_pb": 7
+            }
+        ]
+    },
+    {
+        "ver": 1,
+        "eclv": 1,
+        "cap": {
+            "n": 34,
+            "a": 20,
+            "b": 14,
+            "j": 8
+        },
+        "rembits": 0,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 16,
+                "ecbs_pb": 10
+            }
+        ]
+    },
+    {
+        "ver": 1,
+        "eclv": 2,
+        "cap": {
+            "n": 27,
+            "a": 16,
+            "b": 11,
+            "j": 7
+        },
+        "rembits": 0,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 13,
+                "ecbs_pb": 13
+            }
+        ]
+    },
+    {
+        "ver": 1,
+        "eclv": 3,
+        "cap": {
+            "n": 17,
+            "a": 10,
+            "b": 7,
+            "j": 4
+        },
+        "rembits": 0,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 9,
+                "ecbs_pb": 17
+            }
+        ]
+    },
+    {
+        "ver": 2,
+        "eclv": 0,
+        "cap": {
+            "n": 77,
+            "a": 47,
+            "b": 32,
+            "j": 20
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 34,
+                "ecbs_pb": 10
+            }
+        ]
+    },
+    {
+        "ver": 2,
+        "eclv": 1,
+        "cap": {
+            "n": 63,
+            "a": 38,
+            "b": 26,
+            "j": 16
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 34,
+                "ecbs_pb": 16
+            }
+        ]
+    },
+    {
+        "ver": 2,
+        "eclv": 2,
+        "cap": {
+            "n": 48,
+            "a": 29,
+            "b": 20,
+            "j": 12
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 22,
+                "ecbs_pb": 22
+            }
+        ]
+    },
+    {
+        "ver": 2,
+        "eclv": 3,
+        "cap": {
+            "n": 34,
+            "a": 20,
+            "b": 14,
+            "j": 8
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 16,
+                "ecbs_pb": 28
+            }
+        ]
+    },
+    {
+        "ver": 3,
+        "eclv": 0,
+        "cap": {
+            "n": 127,
+            "a": 77,
+            "b": 53,
+            "j": 32
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 55,
+                "ecbs_pb": 15
+            }
+        ]
+    },
+    {
+        "ver": 3,
+        "eclv": 1,
+        "cap": {
+            "n": 101,
+            "a": 61,
+            "b": 42,
+            "j": 26
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 44,
+                "ecbs_pb": 26
+            }
+        ]
+    },
+    {
+        "ver": 3,
+        "eclv": 2,
+        "cap": {
+            "n": 77,
+            "a": 47,
+            "b": 32,
+            "j": 20
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 2,
+                "ndcs": 17,
+                "ecbs_pb": 18
+            }
+        ]
+    },
+    {
+        "ver": 3,
+        "eclv": 3,
+        "cap": {
+            "n": 58,
+            "a": 35,
+            "b": 24,
+            "j": 15
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 2,
+                "ndcs": 13,
+                "ecbs_pb": 22
+            }
+        ]
+    },
+    {
+        "ver": 4,
+        "eclv": 0,
+        "cap": {
+            "n": 187,
+            "a": 114,
+            "b": 78,
+            "j": 48
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 80,
+                "ecbs_pb": 20
+            }
+        ]
+    },
+    {
+        "ver": 4,
+        "eclv": 1,
+        "cap": {
+            "n": 149,
+            "a": 90,
+            "b": 62,
+            "j": 38
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 2,
+                "ndcs": 32,
+                "ecbs_pb": 18
+            }
+        ]
+    },
+    {
+        "ver": 4,
+        "eclv": 2,
+        "cap": {
+            "n": 111,
+            "a": 67,
+            "b": 46,
+            "j": 28
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 2,
+                "ndcs": 24,
+                "ecbs_pb": 26
+            }
+        ]
+    },
+    {
+        "ver": 4,
+        "eclv": 3,
+        "cap": {
+            "n": 82,
+            "a": 50,
+            "b": 34,
+            "j": 21
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 4,
+                "ndcs": 9,
+                "ecbs_pb": 16
+            }
+        ]
+    },
+    {
+        "ver": 5,
+        "eclv": 0,
+        "cap": {
+            "n": 255,
+            "a": 154,
+            "b": 106,
+            "j": 65
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 1,
+                "ndcs": 108,
+                "ecbs_pb": 26
+            }
+        ]
+    },
+    {
+        "ver": 5,
+        "eclv": 1,
+        "cap": {
+            "n": 202,
+            "a": 122,
+            "b": 84,
+            "j": 52
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 2,
+                "ndcs": 43,
+                "ecbs_pb": 24
+            }
+        ]
+    },
+    {
+        "ver": 5,
+        "eclv": 2,
+        "cap": {
+            "n": 144,
+            "a": 87,
+            "b": 60,
+            "j": 37
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 2,
+                "ndcs": 15,
+                "ecbs_pb": 18
+            },
+            {
+                "nbs": 2,
+                "ndcs": 16,
+                "ecbs_pb": 18
+            }
+        ]
+    },
+    {
+        "ver": 5,
+        "eclv": 3,
+        "cap": {
+            "n": 106,
+            "a": 64,
+            "b": 44,
+            "j": 27
+        },
+        "rembits": 7,
+        "groups": [
+            {
+                "nbs": 2,
+                "ndcs": 11,
+                "ecbs_pb": 22
+            },
+            {
+                "nbs": 2,
+                "ndcs": 12,
+                "ecbs_pb": 22
+            }
+        ]
+    }
+]

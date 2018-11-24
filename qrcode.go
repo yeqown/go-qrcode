@@ -552,12 +552,12 @@ func (q *QRCode) fillIntoMatrix(dimension int) {
 // Save QRCode image into saveToPath
 func (q *QRCode) Save(saveToPath string) error {
 	// TODO: valid  saveToPath
-	q.Draw()
+	q.draw()
 	return drawAndSaveToFile(saveToPath, *q.mat)
 }
 
-// Draw ... Draw with bitset
-func (q *QRCode) Draw() {
+// draw ... draw with bitset
+func (q *QRCode) draw() {
 	dimension := q.v.Dimension()
 
 	// 初始化二位矩阵

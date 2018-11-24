@@ -6,23 +6,28 @@ import (
 	"image/color"
 )
 
-// DIRECTION scan matrix driection
-type DIRECTION uint
+// ScanDirection scan matrix driection
+type ScanDirection uint
 
 // State value of matrix map[][]
 type State uint16
 
 const (
 	// ROW for row first
-	ROW DIRECTION = 1
+	ROW ScanDirection = 1
+
 	// COLUMN for column first
-	COLUMN DIRECTION = 2
+	COLUMN ScanDirection = 2
 
 	// StateFalse 0xffff FLASE
 	StateFalse State = 0xffff
 
 	// ZERO 0x0 FALSE
 	ZERO State = 0xeeee
+
+	// BORDER ... gray color
+	BORDER State = 0x3333
+
 	// StateTrue 0x0 TRUE
 	StateTrue State = 0x0
 
@@ -32,12 +37,13 @@ const (
 	// StateVersion 0x4444
 	StateVersion State = 0x4444
 
-	// StateFormat 0x1234 for presisted state
+	// StateFormat 0x7777 for presisted state
 	StateFormat State = 0x7777
-
-	// BORDER ... gray color
-	BORDER State = 0x3333
 )
+
+func (s State) String() string {
+	return fmt.Sprintf("0x%X", uint16(s))
+}
 
 // LoadGray16 load color by value State
 func LoadGray16(v State) color.Gray16 {
@@ -110,14 +116,12 @@ func (m *Matrix) init() {
 
 // Print to stdout
 func (m *Matrix) print() {
-	fmt.Println("====== matrix =======")
-	for h := 0; h < m.height; h++ {
-		for w := 0; w < m.width; w++ {
-			fmt.Printf("%v ", m.mat[w][h])
+	m.Iter(ROW, func(x, y int, s State) {
+		fmt.Printf("(%2d,%2d)%s ", x, y, s)
+		if (x + 1) == m.width {
+			fmt.Println()
 		}
-		fmt.Println()
-	}
-	fmt.Println()
+	})
 }
 
 // Copy matrix into a new Matrix
@@ -158,12 +162,7 @@ func (m *Matrix) Set(w, h int, c State) error {
 	return nil
 }
 
-// Reset [w][h] as false
-func (m *Matrix) Reset(w, h int) error {
-	return m.Set(w, h, ZERO)
-}
-
-// Get ... from mat
+// Get state value from matrix with postion (x, y)
 func (m *Matrix) Get(w, h int) (State, error) {
 	if w >= m.width || w < 0 {
 		return ZERO, ErrorOutRangeOfW
@@ -177,9 +176,9 @@ func (m *Matrix) Get(w, h int) (State, error) {
 // IterFunc ...
 type IterFunc func(int, int, State)
 
-// Iter the Matrix
-func (m *Matrix) Iter(dir DIRECTION, f IterFunc) {
-	// row first 行优先
+// Iter the Matrix with loop direction ROW major or COLUMN major
+func (m *Matrix) Iter(dir ScanDirection, f IterFunc) {
+	// row direction first
 	if dir == ROW {
 		for h := 0; h < m.height; h++ {
 			for w := 0; w < m.width; w++ {
@@ -189,7 +188,7 @@ func (m *Matrix) Iter(dir DIRECTION, f IterFunc) {
 		return
 	}
 
-	// column first 列优先
+	// column direction first
 	if dir == COLUMN {
 		for w := 0; w < m.width; w++ {
 			for h := 0; h < m.height; h++ {

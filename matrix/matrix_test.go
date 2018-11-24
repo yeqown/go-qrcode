@@ -15,10 +15,10 @@ func TestMatrix(t *testing.T) {
 		t.Fail()
 	}
 
-	if err := m.Reset(2, 4); err == nil {
-		t.Errorf("want err, got nil")
-		t.Fail()
-	}
+	// if err := m.Reset(2, 4); err == nil {
+	// 	t.Errorf("want err, got nil")
+	// 	t.Fail()
+	// }
 
 	if err := m.Set(2, 2, StateInit); err != nil {
 		t.Errorf("want nil, got err: %v", err)
@@ -31,7 +31,7 @@ func TestMatrix(t *testing.T) {
 	}
 
 	m.print()
-	m.Reset(2, 2)
+	// m.Reset(2, 2)
 }
 
 func Test_loadGray16(t *testing.T) {
@@ -53,6 +53,26 @@ func Test_loadGray16(t *testing.T) {
 			name: "case 2",
 			args: args{v: StateInit},
 			want: color.Gray16{Y: uint16(StateInit)},
+		},
+		{
+			name: "case 3",
+			args: args{v: StateTrue},
+			want: color.Gray16{Y: uint16(StateTrue)},
+		},
+		{
+			name: "case 4",
+			args: args{v: StateFormat},
+			want: color.Gray16{Y: uint16(StateFormat)},
+		},
+		{
+			name: "case 5",
+			args: args{v: StateVersion},
+			want: color.Gray16{Y: uint16(StateVersion)},
+		},
+		{
+			name: "case 6",
+			args: args{v: State(0x6767)},
+			want: color.Gray16{Y: uint16(0x6767)},
 		},
 	}
 	for _, tt := range tests {
@@ -98,5 +118,64 @@ func TestXOR(t *testing.T) {
 				t.Errorf("XOR() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestState_String(t *testing.T) {
+	tests := []struct {
+		name string
+		s    State
+		want string
+	}{
+		// TODO: Add test cases.
+		{
+			name: "case 1",
+			s:    StateFalse,
+			want: "0xFFFF",
+		},
+		{
+			name: "case 2",
+			s:    StateTrue,
+			want: "0x0",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.s.String(); got != tt.want {
+				t.Errorf("State.String() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMatrix_Copy(t *testing.T) {
+	// pre
+	var (
+		m1 = New(3, 3)
+		m2 = New(3, 3)
+	)
+	m1.Set(1, 1, StateFalse)
+	m1.Set(0, 0, StateFalse)
+	m2.Set(1, 1, StateFalse)
+	m2.Set(0, 0, StateFalse)
+
+	// do copy
+	got := m1.Copy()
+
+	// change origin
+	m1.Set(2, 2, StateTrue)
+
+	// cmpare copy of the matrix
+	if !reflect.DeepEqual(got, m2) {
+		t.Errorf("Matrix.Copy() = %v, want %v", got, m2)
+		t.Fail()
+	}
+
+	if s, err := m1.Get(2, 2); err != nil {
+		t.Errorf("Matrix.Get() = %v, want %v", StateTrue, s)
+		t.Fail()
+	} else if s != StateTrue {
+		t.Errorf("Matrix.Copy() = %v, want %v", StateTrue, s)
+		t.Fail()
 	}
 }

@@ -28,8 +28,7 @@ func main() {
 }
 ```
 
-![repo-qrcode.jpeg](./testdata/repo-qrcode.jpeg)
-
+<img src="./testdata/repo-qrcode.jpeg" width="200px"/>
 
 ### QRCode原理
 

@@ -3,6 +3,7 @@ package qrcode
 import (
 	"fmt"
 	"log"
+	"io"
 	"sync"
 	"time"
 
@@ -15,16 +16,37 @@ var (
 	// DEBUG mode flag
 	DEBUG = false
 
+	// once to load versions config file
 	once sync.Once
 )
 
-// New generate a QRCode struct to create or
+// New generate a QRCode struct to create
 func New(text string) (*QRCode, error) {
 	qrc := &QRCode{
 		content: text,
+		mode: EncModeByte,
+		needAnalyze: true,
 	}
 
-	// initialize
+	// initialize QRCode instance
+	if err := qrc.init(); err != nil {
+		return nil, err
+	}
+
+	return qrc, nil
+}
+
+// NewWithSpecV generate a QRCode struct with 
+// specified `ver`(QR version) and `ecLv`(Error Correction level)
+func NewWithSpecV(text string, ver int, ecLv ECLevel) (*QRCode, error) {
+	qrc := &QRCode{
+		content: text,
+		ver: ver,
+		mode: EncModeByte,
+		recoverLv: ecLv,
+		needAnalyze: false,
+	}
+	// initialize QRCode instance
 	if err := qrc.init(); err != nil {
 		return nil, err
 	}
@@ -46,18 +68,29 @@ type QRCode struct {
 	recoverLv ECLevel  // recoveryLevel
 	mode      EncMode  // EncMode
 	encoder   *Encoder // encoder ptr to call it's methods ~
+
+	needAnalyze bool // auto analyze form content or specified `mode, recoverLv, ver`
 }
 
 func (q *QRCode) init() error {
+	
 	once.Do(func() {
+		// once load versions config file into memory
 		if err := load(defaultVersionCfg); err != nil {
 			panic(err)
 		}
 	})
 
-	if err := q.analyze(); err != nil {
-		return fmt.Errorf("could not analyze the data: %v", err)
-	}
+	if q.needAnalyze {
+		// analyze the input data to choose adapt version
+		if err := q.analyze(); err != nil {
+			return fmt.Errorf("could not analyze the data: %v", err)
+		}
+	} 
+	// else check need params
+	
+	// choose version
+	q.v = loadVersion(q.ver, q.recoverLv)
 
 	q.rawData = []byte(q.content)
 	q.mat = matrix.New(q.v.Dimension(), q.v.Dimension())
@@ -68,9 +101,9 @@ func (q *QRCode) init() error {
 	}
 
 	var (
-		dataBlocks []dataBlock
-		ecBlocks   []ecBlock
-		err        error
+		dataBlocks []dataBlock // data encoding blocks
+		ecBlocks   []ecBlock // error correction blocks
+		err        error // global error var
 	)
 
 	// 数据编码
@@ -97,13 +130,10 @@ func (q *QRCode) init() error {
 
 // analyze choose version and encoder
 func (q *QRCode) analyze() error {
-	// TODO: 选择版本
+	// 选择版本
 	q.ver = 5
-
 	// 选择错误矫正级别
 	q.recoverLv = Quart
-	// 确定版本
-	q.v = loadVersion(q.ver, q.recoverLv)
 	// 确定模式
 	q.mode = EncModeByte
 
@@ -147,14 +177,14 @@ func (q *QRCode) dataEncoding() (blocks []dataBlock, err error) {
 // dataBlock ...
 type dataBlock struct {
 	Data        *bitset.Bitset
-	StartOffset int
-	NumECBlock  int
+	StartOffset int // length
+	NumECBlock  int // error correction codewrods num per data block
 }
 
 // ecBlock ...
 type ecBlock struct {
 	Data        *bitset.Bitset
-	StartOffset int
+	// StartOffset int // length
 }
 
 // errorCorrectionEncoding ref to:
@@ -166,26 +196,9 @@ func (q *QRCode) errorCorrectionEncoding(dataBlocks []dataBlock) (blocks []ecBlo
 		debugLogf("numOfECBlock: %d", b.NumECBlock)
 		bset := reedsolomon.Encode(b.Data, b.NumECBlock)
 		blocks[idx].Data = bset.Substr(b.StartOffset, bset.Len())
-		blocks[idx].StartOffset = b.StartOffset
+		// blocks[idx].StartOffset = b.StartOffset
 	}
-
 	return
-
-	// 分组，分块
-	// loop group
-	// for _, g := range q.v.Groups {
-	// 	// loop block
-	// 	for j := 0; j < g.NumBlocks; j++ {
-	// 		start = end
-	// 		end = start + g.NumDataCodewords*8
-
-	// 		blocks[blockID].Data = reedsolomon.Encode(q.dataBSet.Substr(start, end), g.ECBlockwordsPerBlock)
-	// 		blocks[blockID].StartOffset = end - start
-
-	// 		blockID++
-	// 	}
-	// }
-	// return
 }
 
 // arrarngeBits ... and save into dataBSet
@@ -205,6 +218,7 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 		overflowCnt = 0
 		endFlag     = false
 		curIdx      = 0
+		start, end int
 	)
 
 	// check if bitsets initialized, or initial them
@@ -215,23 +229,22 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 		q.ecBSet = bitset.New()
 	}
 
+
 	for !endFlag {
 		for _, block := range dataBlocks {
-			start := curIdx * 8
-			end := start + 8
-
-			// debugLogf("arrange data blocks info: start: %d, end: %d, len: %d, overflowCnt: %d, curIdx: %d",
-			// 	start, end, block.Data.Len(), overflowCnt, curIdx,
-			// )
-
+			start = curIdx * 8
+			end = start + 8
 			if start >= block.Data.Len() {
 				overflowCnt++
 				continue
 			}
 			q.dataBSet.Append(block.Data.Substr(start, end))
+			debugLogf("arrange data blocks info: start: %d, end: %d, len: %d, overflowCnt: %d, curIdx: %d",
+				start, end, block.Data.Len(), overflowCnt, curIdx,
+			)
 		}
-		curIdx = curIdx + 1
-
+		curIdx++
+		// loop finish check
 		if overflowCnt >= len(dataBlocks) {
 			endFlag = true
 		}
@@ -244,8 +257,8 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 
 	for !endFlag {
 		for _, block := range ecBlocks {
-			start := curIdx * 8
-			end := start + 8
+			start = curIdx * 8
+			end = start + 8
 
 			if start >= block.Data.Len() {
 				overflowCnt++
@@ -254,19 +267,15 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 			q.ecBSet.Append(block.Data.Substr(start, end))
 		}
 		curIdx++
-
+		// loop finish check
 		if overflowCnt >= len(ecBlocks) {
 			endFlag = true
 		}
 	}
 
-	if DEBUG {
-		if DEBUG {
-			log.Println("after arrange")
-			debugLogf("data bitsets: %s", q.dataBSet.String())
-			debugLogf("ec bitsets: %s", q.ecBSet.String())
-		}
-	}
+	debugLogf("after arrange")
+	debugLogf("data bitsets: %s", q.dataBSet.String())
+	debugLogf("ec bitsets: %s", q.ecBSet.String())
 }
 
 // InitMatrix with version info: ref to:
@@ -290,11 +299,11 @@ func (q *QRCode) initMatrix() {
 	addSpliter(q.mat, 7, dimension-8, dimension)
 	debugLogf("finish left-bottom finder")
 
-	// 版本大于1
+	// only version-1 QR code has no alignment module
 	if q.v.Ver > 1 {
 		// add align-mode related to version cfg
 		for _, loc := range loadAlignmentPatternLoc(q.v.Ver) {
-			addAlign(q.mat, loc.X, loc.Y)
+			addAlignment(q.mat, loc.X, loc.Y)
 		}
 		debugLogf("finish align")
 	}
@@ -302,15 +311,17 @@ func (q *QRCode) initMatrix() {
 	addTimingLine(q.mat, dimension)
 	// add darkBlock always be position (4*ver+9, 8)
 	addDarkBlock(q.mat, 8, 4*q.v.Ver+9)
-	// presistFormatBlock for version and format info
-	presistFormatBlock(q.mat, dimension)
+	// reserveFormatBlock for version and format info
+	reserveFormatBlock(q.mat, dimension)
 
-	// presistVersionBlock for version over 7
+	// reserveVersionBlock for version over 7
+	// only version 7 and larger version shoud add Version info
 	if q.v.Ver >= 7 {
-		presistVersionBlock(q.mat, dimension)
+		reserveVersionBlock(q.mat, dimension)
 	}
 }
 
+// add finder module
 func addFinder(m *matrix.Matrix, top, left int) {
 	// black outer
 	x, y := top, left
@@ -350,6 +361,7 @@ func addFinder(m *matrix.Matrix, top, left int) {
 	}
 }
 
+// add spliter module
 func addSpliter(m *matrix.Matrix, x, y, dimension int) {
 	// top-left
 	if x == 7 && y == 7 {
@@ -380,8 +392,8 @@ func addSpliter(m *matrix.Matrix, x, y, dimension int) {
 
 }
 
-// add matrix align
-func addAlign(m *matrix.Matrix, centerX, centerY int) {
+// add matrix align module
+func addAlignment(m *matrix.Matrix, centerX, centerY int) {
 	m.Set(centerX, centerY, matrix.StateTrue)
 	// black
 	x, y := centerX-2, centerY-2
@@ -431,10 +443,8 @@ func addDarkBlock(m *matrix.Matrix, x, y int) {
 	m.Set(x, y, matrix.StateTrue)
 }
 
-// 为格式化信息保留模块
-func presistFormatBlock(m *matrix.Matrix, dimension int) {
-
-	// format-info
+// reserveFormatBlock maitain the postion in matrix for format info
+func reserveFormatBlock(m *matrix.Matrix, dimension int) {
 	for pos := 0; pos < 9; pos++ {
 		// skip timing line
 		if pos == 6 {
@@ -442,7 +452,7 @@ func presistFormatBlock(m *matrix.Matrix, dimension int) {
 			m.Set(dimension-pos, 8, matrix.StateFormat)
 			continue
 		}
-		// skip dark block
+		// skip dark module
 		if pos == 8 {
 			m.Set(8, pos, matrix.StateFormat)           // top-left-column
 			m.Set(pos, 8, matrix.StateFormat)           // top-left-row
@@ -454,12 +464,11 @@ func presistFormatBlock(m *matrix.Matrix, dimension int) {
 		m.Set(dimension-pos, 8, matrix.StateFormat) // top-right-row
 		m.Set(8, dimension-pos, matrix.StateFormat) // bottom-left-column
 	}
-
 }
 
-// 为版本信息保留模块
-func presistVersionBlock(m *matrix.Matrix, dimension int) {
-	// version info
+// reserveVersionBlock maitain the postion in matrix for version info
+func reserveVersionBlock(m *matrix.Matrix, dimension int) {
+	// 3x6=18 cells
 	for i := 1; i <= 3; i++ {
 		for pos := 0; pos < 6; pos++ {
 			m.Set(dimension-8-i, pos, matrix.StateVersion)
@@ -556,11 +565,17 @@ func (q *QRCode) Save(saveToPath string) error {
 	return drawAndSaveToFile(saveToPath, *q.mat)
 }
 
+// SaveTo QRCode image into `w`(io.Writer)
+func (q *QRCode) SaveTo(w io.Writer) error {
+	q.draw()
+	return drawAndSave(w, *q.mat)
+}
+
 // draw ... draw with bitset
 func (q *QRCode) draw() {
 	dimension := q.v.Dimension()
 
-	// 初始化二位矩阵
+	// initial the 2d matrix
 	q.initMatrix()
 
 	// save current q.matrix copy
@@ -577,6 +592,7 @@ func (q *QRCode) draw() {
 	// fill format info
 	q.fillFormatInfo(Modulo0, dimension)
 
+	// verion7 and larger version has version info
 	if q.v.Ver >= 7 {
 		q.fillVersionInfo(dimension)
 	}

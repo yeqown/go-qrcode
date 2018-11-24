@@ -2,6 +2,6 @@
 vendor/
 # example/
 *.png
-*.jpeg
+# *.jpeg
 # *.json
 *.log

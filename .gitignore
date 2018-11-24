@@ -1,6 +1,6 @@
-testdata/
+# testdata/
 vendor/
-example/
+# example/
 *.png
 *.jpeg
 # *.json

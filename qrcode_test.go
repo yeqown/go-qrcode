@@ -6,7 +6,7 @@ import (
 )
 
 func TestQRCOde(t *testing.T) {
-	qrc, err := New("http://baidu.com")
+	qrc, err := New("花了三天终于完成了！！！")
 	if err != nil {
 		t.Errorf("could not generate QRCode: %v", err)
 		t.Fail()

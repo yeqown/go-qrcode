@@ -301,6 +301,7 @@ func SetVersionCfgFile(fp string) {
 }
 
 var (
+	// TODO: append more version
 	alignPatternLocation = map[int][]int{
 		2: []int{6, 18},
 		3: []int{6, 22},
@@ -312,12 +313,17 @@ var (
 	alignPatternCache = map[int][]loc{}
 )
 
+// loc point postion(x,y)
 type loc struct {
-	X int
-	Y int
+	X int // for width
+	Y int // for height
 }
 
+// loadAlignmentPatternLoc ...
 func loadAlignmentPatternLoc(ver int) (locs []loc) {
+	if ver < 2 {
+		return
+	}
 	var ok bool
 	if locs, ok = alignPatternCache[ver]; ok {
 		return

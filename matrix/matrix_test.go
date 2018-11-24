@@ -63,3 +63,40 @@ func Test_loadGray16(t *testing.T) {
 		})
 	}
 }
+
+func TestXOR(t *testing.T) {
+	type args struct {
+		s1 State
+		s2 State
+	}
+	tests := []struct {
+		name string
+		args args
+		want State
+	}{
+		// TODO: Add test cases.
+		{
+			name: "case1",
+			args: args{
+				s1: StateFalse,
+				s2: StateFalse,
+			},
+			want: StateFalse,
+		},
+		{
+			name: "case1",
+			args: args{
+				s1: StateTrue,
+				s2: StateFalse,
+			},
+			want: StateTrue,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := XOR(tt.args.s1, tt.args.s2); got != tt.want {
+				t.Errorf("XOR() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

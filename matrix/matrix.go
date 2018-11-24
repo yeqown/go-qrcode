@@ -120,12 +120,6 @@ func (m *Matrix) print() {
 	fmt.Println()
 }
 
-// XOR operation ...
-// TODO:
-func (m *Matrix) XOR() *Matrix {
-	return nil
-}
-
 // Copy matrix into a new Matrix
 func (m *Matrix) Copy() *Matrix {
 	newMat := make([][]State, m.width)

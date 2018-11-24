@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/color"
 	"image/jpeg"
+	"io"
 	"os"
 
 	"github.com/yeqown/go-qrcode/matrix"
@@ -19,7 +20,7 @@ var (
 	padding            = 40
 )
 
-// SetExpandPixel set defaultExpandPixel, default is 20
+// SetExpandPixel set defaultExpandPixel, default is 40
 func SetExpandPixel(n int) {
 	if n < 0 {
 		panic("could not set the negative interger")
@@ -27,21 +28,27 @@ func SetExpandPixel(n int) {
 	defaultExpandPixel = n
 }
 
-// draw image with matrix
-func draw(name string, m matrix.Matrix) error {
-	// w as image width, h as image height
-	w := m.Width()*defaultExpandPixel + 2*padding
-	h := w
-	// create file
-	if len(name) == 0 {
-		name = defaultFilename
-	}
-
+// drawAndSaveToFile image with matrix
+func drawAndSaveToFile(name string, m matrix.Matrix) error {
 	f, err := os.Create(name)
 	if err != nil {
 		return fmt.Errorf("could not create file: %v", err)
 	}
 	defer f.Close()
+
+	return drawAndSave(f, m)
+}
+
+// drawAndSave save image into io.Writer
+func drawAndSave(w io.Writer, m matrix.Matrix) error {
+	img := draw(m)
+	return save(w, img)
+}
+
+func draw(mat matrix.Matrix) image.Image {
+	// w as image width, h as image height
+	w := mat.Width()*defaultExpandPixel + 2*padding
+	h := w
 
 	// draw into image
 	var (
@@ -71,7 +78,7 @@ func draw(name string, m matrix.Matrix) error {
 	}
 
 	// iter the matrix to draw each pixel
-	m.Iter(matrix.ROW, func(x int, y int, v matrix.State) {
+	mat.Iter(matrix.ROW, func(x int, y int, v matrix.State) {
 		xStart := x*defaultExpandPixel + padding
 		yStart := y*defaultExpandPixel + padding
 		xEnd := (x+1)*defaultExpandPixel + padding
@@ -90,9 +97,15 @@ func draw(name string, m matrix.Matrix) error {
 		}
 	})
 
+	return gray16
+}
+
+func save(w io.Writer, img image.Image) error {
+
 	// save to file
-	if err := jpeg.Encode(f, gray16, nil); err != nil {
+	if err := jpeg.Encode(w, img, nil); err != nil {
 		return fmt.Errorf("could not save image into file with err: %v", err)
 	}
+
 	return nil
 }

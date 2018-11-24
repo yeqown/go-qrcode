@@ -2,13 +2,13 @@ package qrcode
 
 import "github.com/yeqown/go-qrcode/matrix"
 
-// MaskPatterModulo ...
+// MaskPatternModulo ...
 // Mask Pattern ref to: https://www.thonky.com/qr-code-tutorial/mask-patterns
-type MaskPatterModulo uint32
+type MaskPatternModulo uint32
 
 const (
 	// Modulo0 (x+y) mod 2 == 0
-	Modulo0 MaskPatterModulo = iota
+	Modulo0 MaskPatternModulo = iota
 	// Modulo1 (x) mod 2 == 0
 	Modulo1
 	// Modulo2 (y) mod 3 == 0
@@ -32,13 +32,13 @@ func CalculateScore(mat *matrix.Matrix) int {
 
 // Mask ...
 type Mask struct {
-	mat   *matrix.Matrix   // matrix
-	mode  MaskPatterModulo // mode
-	score int              // score 惩罚得分，分值越低说明越符合条件
+	mat   *matrix.Matrix    // matrix
+	mode  MaskPatternModulo // mode
+	score int               // score 惩罚得分，分值越低说明越符合条件
 }
 
 // NewMask ...
-func NewMask(m *matrix.Matrix, mode MaskPatterModulo) *Mask {
+func NewMask(m *matrix.Matrix, mode MaskPatternModulo) *Mask {
 	mask := &Mask{
 		mat:  m.Copy(),
 		mode: mode,

@@ -4,6 +4,10 @@ import (
 	"testing"
 )
 
+func init() {
+	load(defaultVersionCfg)
+}
+
 func TestEncodeNum(t *testing.T) {
 	enc := Encoder{
 		ecLv:    Low,

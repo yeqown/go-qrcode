@@ -25,7 +25,9 @@ func New(text string) (*QRCode, error) {
 	}
 
 	// initialize
-	qrc.init()
+	if err := qrc.init(); err != nil {
+		return nil, err
+	}
 
 	return qrc, nil
 }
@@ -95,8 +97,9 @@ func (q *QRCode) init() error {
 
 // analyze choose version and encoder
 func (q *QRCode) analyze() error {
-	// 选择版本
+	// TODO: 选择版本
 	q.ver = 5
+
 	// 选择错误矫正级别
 	q.recoverLv = Quart
 	// 确定版本
@@ -550,7 +553,7 @@ func (q *QRCode) fillIntoMatrix(dimension int) {
 func (q *QRCode) Save(saveToPath string) error {
 	// TODO: valid  saveToPath
 	q.Draw()
-	return draw(saveToPath, *q.mat)
+	return drawAndSaveToFile(saveToPath, *q.mat)
 }
 
 // Draw ... Draw with bitset
@@ -612,7 +615,7 @@ func (q *QRCode) fillVersionInfo(dimension int) {
 
 // fill format info ref to:
 // https://www.thonky.com/qr-code-tutorial/format-version-tables
-func (q *QRCode) fillFormatInfo(mode MaskPatterModulo, dimension int) {
+func (q *QRCode) fillFormatInfo(mode MaskPatternModulo, dimension int) {
 	fmtBSet := q.v.formatInfo(int(mode))
 	debugLogf("fmtBitSet: %s", fmtBSet.String())
 	var (
@@ -655,7 +658,7 @@ func (q *QRCode) debugDraw() {
 	if !DEBUG {
 		return
 	}
-	draw("./testdata/qrtest_loop.jpeg", *q.mat)
+	drawAndSaveToFile("./testdata/qrtest_loop.jpeg", *q.mat)
 	time.Sleep(time.Millisecond * 100)
 }
 

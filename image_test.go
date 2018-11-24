@@ -12,8 +12,7 @@ func Test_image_draw(t *testing.T) {
 	for x := 0; x < m.Width(); x++ {
 		m.Set(x, 3, matrix.StateTrue)
 	}
-
-	if err := draw("./testdata/default.jpeg", *m); err != nil {
+	if err := drawAndSaveToFile("./testdata/default.jpeg", *m); err != nil {
 		t.Errorf("want nil, but err: %v", err)
 		t.Fail()
 	}

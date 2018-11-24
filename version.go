@@ -11,28 +11,28 @@ import (
 	"github.com/skip2/go-qrcode/bitset"
 )
 
-// ECLevel 错误回复级别定义
+// ECLevel error correction level
 type ECLevel int
 
 const (
 	// Low :Level L: 7% error recovery.
 	Low ECLevel = iota
+
 	// Meddium :Level M: 15% error recovery. Good default choice.
 	Meddium
+
 	// Quart :Level Q: 25% error recovery.
 	Quart
+
 	// Highest :Level H: 30% error recovery.
 	Highest
 
-	// 格式化信息Bit位数
-	formatInfoLengthBits = 15
-
-	// 版本信息bit位数
-	versionInfoLengthBits = 18
+	formatInfoBitsNum = 15 // format info bits num
+	verInfoBitsNum    = 18 // version info length bits num
 )
 
 var (
-	// 默认版本信息定义路径
+	// default versions config file path
 	defaultVersionCfg     = "./versionCfg.json"
 	errMissMatchedVersion = errors.New("could not match version! check the versionCfg.json file")
 	versions              []Version
@@ -55,38 +55,14 @@ var (
 		regular uint32
 		micro   uint32
 	}{
-		{0x5412, 0x4445},
-		{0x5125, 0x4172},
-		{0x5e7c, 0x4e2b},
-		{0x5b4b, 0x4b1c},
-		{0x45f9, 0x55ae},
-		{0x40ce, 0x5099},
-		{0x4f97, 0x5fc0},
-		{0x4aa0, 0x5af7},
-		{0x77c4, 0x6793},
-		{0x72f3, 0x62a4},
-		{0x7daa, 0x6dfd},
-		{0x789d, 0x68ca},
-		{0x662f, 0x7678},
-		{0x6318, 0x734f},
-		{0x6c41, 0x7c16},
-		{0x6976, 0x7921},
-		{0x1689, 0x06de},
-		{0x13be, 0x03e9},
-		{0x1ce7, 0x0cb0},
-		{0x19d0, 0x0987},
-		{0x0762, 0x1735},
-		{0x0255, 0x1202},
-		{0x0d0c, 0x1d5b},
-		{0x083b, 0x186c},
-		{0x355f, 0x2508},
-		{0x3068, 0x203f},
-		{0x3f31, 0x2f66},
-		{0x3a06, 0x2a51},
-		{0x24b4, 0x34e3},
-		{0x2183, 0x31d4},
-		{0x2eda, 0x3e8d},
-		{0x2bed, 0x3bba},
+		{0x5412, 0x4445}, {0x5125, 0x4172}, {0x5e7c, 0x4e2b}, {0x5b4b, 0x4b1c},
+		{0x45f9, 0x55ae}, {0x40ce, 0x5099}, {0x4f97, 0x5fc0}, {0x4aa0, 0x5af7},
+		{0x77c4, 0x6793}, {0x72f3, 0x62a4}, {0x7daa, 0x6dfd}, {0x789d, 0x68ca},
+		{0x662f, 0x7678}, {0x6318, 0x734f}, {0x6c41, 0x7c16}, {0x6976, 0x7921},
+		{0x1689, 0x06de}, {0x13be, 0x03e9}, {0x1ce7, 0x0cb0}, {0x19d0, 0x0987},
+		{0x0762, 0x1735}, {0x0255, 0x1202}, {0x0d0c, 0x1d5b}, {0x083b, 0x186c},
+		{0x355f, 0x2508}, {0x3068, 0x203f}, {0x3f31, 0x2f66}, {0x3a06, 0x2a51},
+		{0x24b4, 0x34e3}, {0x2183, 0x31d4}, {0x2eda, 0x3e8d}, {0x2bed, 0x3bba},
 	}
 
 	// QR Codes version 7 and higher contain an 18-bit Version Information value,
@@ -98,47 +74,11 @@ var (
 	// For example, a QR code of version 7:
 	// versionBitSequence[0x7] = 0x07c94 = 000111110010010100
 	versionBitSequence = []uint32{
-		0x00000,
-		0x00000,
-		0x00000,
-		0x00000,
-		0x00000,
-		0x00000,
-		0x00000,
-		0x07c94,
-		0x085bc,
-		0x09a99,
-		0x0a4d3,
-		0x0bbf6,
-		0x0c762,
-		0x0d847,
-		0x0e60d,
-		0x0f928,
-		0x10b78,
-		0x1145d,
-		0x12a17,
-		0x13532,
-		0x149a6,
-		0x15683,
-		0x168c9,
-		0x177ec,
-		0x18ec4,
-		0x191e1,
-		0x1afab,
-		0x1b08e,
-		0x1cc1a,
-		0x1d33f,
-		0x1ed75,
-		0x1f250,
-		0x209d5,
-		0x216f0,
-		0x228ba,
-		0x2379f,
-		0x24b0b,
-		0x2542e,
-		0x26a64,
-		0x27541,
-		0x28c69,
+		0x00000, 0x00000, 0x00000, 0x00000, 0x00000, 0x00000, 0x00000, 0x07c94,
+		0x085bc, 0x09a99, 0x0a4d3, 0x0bbf6, 0x0c762, 0x0d847, 0x0e60d, 0x0f928,
+		0x10b78, 0x1145d, 0x12a17, 0x13532, 0x149a6, 0x15683, 0x168c9, 0x177ec,
+		0x18ec4, 0x191e1, 0x1afab, 0x1b08e, 0x1cc1a, 0x1d33f, 0x1ed75, 0x1f250,
+		0x209d5, 0x216f0, 0x228ba, 0x2379f, 0x24b0b, 0x2542e, 0x26a64, 0x27541, 0x28c69,
 	}
 )
 
@@ -154,7 +94,7 @@ func init() {
 	}
 }
 
-// load versions config into `versions`
+// load versionCfg.json (versions config file) into `[]versions`
 func load(pathToCfg string) error {
 	versions = make([]Version, 4*40)
 
@@ -171,41 +111,43 @@ func load(pathToCfg string) error {
 	return json.Unmarshal(b, &versions)
 }
 
+// capacity struct includes data type max capacity
 type capacity struct {
-	Numeric      int `json:"n"` // 版本对应的数字容量
-	AlphaNumeric int `json:"a"` // 字符
-	Byte         int `json:"b"` // 字节
-	JP           int `json:"j"` // 日文
+	Numeric      int `json:"n"` // num capcity
+	AlphaNumeric int `json:"a"` // char capcity
+	Byte         int `json:"b"` // byte capcity (utf-8 also)
+	JP           int `json:"j"` // Janpanese capcity
 }
 
-// 这些值可用于确定给定Reed-Solomon块需要多少数据字节和纠错字节。
+// group contains fields to generate ECBlocks
+// and append padding bit
 type group struct {
-	// 分块数 num of blocks
+	// NumBlocks num of blocks
 	NumBlocks int `json:"nbs"`
 
-	// 数据代码字数 Number of data codewords.
+	// NumDataCodewords Number of data codewords.
 	NumDataCodewords int `json:"ndcs"`
 
-	// 每一个块的EC代码字数
+	// ECBlockwordsPerBlock ...
 	ECBlockwordsPerBlock int `json:"ecbs_pb"`
 }
 
 // Version ...
 type Version struct {
-	// 版本号 int 1-40
+	// version code 1-40
 	Ver int `json:"ver"`
 
-	// 错误恢复级别 0, 1, 2, 3
+	// ECLevel error correction 0, 1, 2, 3
 	ECLevel ECLevel `json:"eclv"`
 
+	// Cap includes each type's max capcity (specified by `Ver` and `ECLevel`)
 	// ref to: https://www.thonky.com/qr-code-tutorial/character-capacities
-	// 每一个版本 & 回复级别 对应的最大bit容量
 	Cap capacity `json:"cap"`
 
-	// RemainderBits 对应版本需要补充的剩余位bit数
+	// RemainderBits remainder bits need to append finally
 	RemainderBits int `json:"rembits"`
 
-	// Blocks 生成纠错码需要的分组分块信息
+	// groups info to generate
 	// ref to: https://www.thonky.com/qr-code-tutorial/error-correction-table
 	// numGroup = len(Groups)
 	Groups []group `json:"groups"`
@@ -216,7 +158,7 @@ func (v Version) Dimension() int {
 	return v.Ver*4 + 17
 }
 
-// NumTotalCodewrods 总的数据代码字数
+// NumTotalCodewrods total data codewords
 func (v Version) NumTotalCodewrods() int {
 	var total int
 	for _, g := range v.Groups {
@@ -225,12 +167,12 @@ func (v Version) NumTotalCodewrods() int {
 	return total
 }
 
-// NumGroups ... 分组数
+// NumGroups ... need group num. ref to version config file
 func (v Version) NumGroups() int {
 	return len(v.Groups)
 }
 
-// TotalNumBlocks ...总的分块数
+// TotalNumBlocks ... total data blocks num, ref to version config file
 func (v Version) TotalNumBlocks() int {
 	var total int
 	for _, g := range v.Groups {
@@ -246,7 +188,7 @@ func (v Version) verInfo() *bitset.Bitset {
 	}
 
 	result := bitset.New()
-	result.AppendUint32(versionBitSequence[v.Ver], 18)
+	result.AppendUint32(versionBitSequence[v.Ver], verInfoBitsNum)
 
 	return result
 }
@@ -275,7 +217,7 @@ func (v Version) formatInfo(maskPattern int) *bitset.Bitset {
 
 	formatID |= maskPattern & 0x7
 	result := bitset.New()
-	result.AppendUint32(formatBitSequence[formatID].regular, formatInfoLengthBits)
+	result.AppendUint32(formatBitSequence[formatID].regular, formatInfoBitsNum)
 	return result
 }
 

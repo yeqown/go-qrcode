@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func TestQRCOde(t *testing.T) {
-	qrc, err := New("花了三天终于完成了！！！")
+func TestNew(t *testing.T) {
+	qrc, err := New("cost 3+ days to read docs and coding")
 	if err != nil {
 		t.Errorf("could not generate QRCode: %v", err)
 		t.Fail()
@@ -20,6 +20,27 @@ func TestQRCOde(t *testing.T) {
 
 	// check file existed
 	_, err = os.Stat("./testdata/qrtest.jpeg")
+	if err != nil {
+		t.Errorf("could not find image file: %v", err)
+		t.Fail()
+	}
+}
+
+func TestNewWithSpecV(t *testing.T) {
+	qrc, err := NewWithSpecV("TestNewWithSpecV", 4, Quart)
+	if err != nil {
+		t.Errorf("could not generate QRCode: %v", err)
+		t.Fail()
+	}
+
+	// save file
+	if err := qrc.Save("./testdata/qrtest_spec.jpeg"); err != nil {
+		t.Errorf("could not save image: %v", err)
+		t.Fail()
+	}
+
+	// check file existed
+	_, err = os.Stat("./testdata/qrtest_spec.jpeg")
 	if err != nil {
 		t.Errorf("could not find image file: %v", err)
 		t.Fail()

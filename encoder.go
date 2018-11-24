@@ -86,13 +86,13 @@ func (e *Encoder) Encode(byts []byte) (*bitset.Bitset, error) {
 	e.dst = bitset.New()
 	e.data = byts
 
-	// 增加模式指示符
+	// appedn mode indicator symbol
 	indicator := getEncodeModeIndicator(e.mode)
 	e.dst.Append(indicator)
-	// 增加字符计数指示符号
+	// append chars length counter bits symbol
 	e.dst.AppendUint32(uint32(len(byts)), e.charCountBits())
 
-	// 使用所选模式编码
+	// encode data with specified mode
 	switch e.mode {
 	case EncModeNumeric:
 		e.encodeNumeric()
@@ -104,7 +104,7 @@ func (e *Encoder) Encode(byts []byte) (*bitset.Bitset, error) {
 		panic("this has not been finished")
 	}
 
-	// 补齐 填充
+	// fill and padding bits
 	e.breakUpInto8bit()
 
 	return e.dst, nil
@@ -168,8 +168,8 @@ func (e *Encoder) encodeByte() {
 
 // Break Up into 8-bit Codewords and Add Pad Bytes if Necessary
 func (e *Encoder) breakUpInto8bit() {
-	// 此版本和EC级别的数据代码字总数
-	// 添加结束码
+	// fill ending code (max 4bit)
+	// depends on max capcity of current version and EC level
 	maxCap := e.version.NumTotalCodewrods() * 8
 	if less := maxCap - e.dst.Len(); less < 0 {
 		panic("could not contain all char with wrong version cap")
@@ -179,12 +179,12 @@ func (e *Encoder) breakUpInto8bit() {
 		e.dst.AppendNumBools(4, false)
 	}
 
-	// 补齐八倍数
+	// append `0` to be 8 times bits length
 	if mod := e.dst.Len() % 8; mod != 0 {
 		e.dst.AppendNumBools(8-mod, false)
 	}
 
-	// 补齐码（padding bytes）
+	// padding bytes
 	// padding byte 11101100 00010001
 	if n := maxCap - e.dst.Len(); n > 0 {
 		debugLogf("maxCap: %d, len: %d, less: %d", maxCap, e.dst.Len(), n)

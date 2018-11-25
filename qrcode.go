@@ -2,8 +2,9 @@ package qrcode
 
 import (
 	"fmt"
-	"log"
 	"io"
+	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -23,8 +24,8 @@ var (
 // New generate a QRCode struct to create
 func New(text string) (*QRCode, error) {
 	qrc := &QRCode{
-		content: text,
-		mode: EncModeByte,
+		content:     text,
+		mode:        EncModeByte,
 		needAnalyze: true,
 	}
 
@@ -36,14 +37,14 @@ func New(text string) (*QRCode, error) {
 	return qrc, nil
 }
 
-// NewWithSpecV generate a QRCode struct with 
+// NewWithSpecV generate a QRCode struct with
 // specified `ver`(QR version) and `ecLv`(Error Correction level)
 func NewWithSpecV(text string, ver int, ecLv ECLevel) (*QRCode, error) {
 	qrc := &QRCode{
-		content: text,
-		ver: ver,
-		mode: EncModeByte,
-		recoverLv: ecLv,
+		content:     text,
+		ver:         ver,
+		mode:        EncModeByte,
+		ecLv:        ecLv,
 		needAnalyze: false,
 	}
 	// initialize QRCode instance
@@ -63,63 +64,63 @@ type QRCode struct {
 	mat      *matrix.Matrix // matrix grid to store final bitmap
 	ecBSet   *bitset.Bitset // final error correction bitset
 
-	v         Version  // version means the size
-	ver       int      // version num
-	recoverLv ECLevel  // recoveryLevel
-	mode      EncMode  // EncMode
-	encoder   *Encoder // encoder ptr to call it's methods ~
+	v       Version  // version means the size
+	ver     int      // version num
+	ecLv    ECLevel  // recoveryLevel
+	mode    EncMode  // EncMode
+	encoder *Encoder // encoder ptr to call it's methods ~
 
 	needAnalyze bool // auto analyze form content or specified `mode, recoverLv, ver`
 }
 
 func (q *QRCode) init() error {
-	
 	once.Do(func() {
 		// once load versions config file into memory
 		if err := load(defaultVersionCfg); err != nil {
 			panic(err)
 		}
 	})
-
+	q.rawData = []byte(q.content)
 	if q.needAnalyze {
 		// analyze the input data to choose adapt version
 		if err := q.analyze(); err != nil {
 			return fmt.Errorf("could not analyze the data: %v", err)
 		}
-	} 
-	// else check need params
-	
-	// choose version
-	q.v = loadVersion(q.ver, q.recoverLv)
+	}
+	// or check need params
 
-	q.rawData = []byte(q.content)
+	// choose version without auto analyze
+	if !q.needAnalyze {
+		q.v = loadVersion(q.ver, q.ecLv)
+	}
+
 	q.mat = matrix.New(q.v.Dimension(), q.v.Dimension())
 	q.encoder = &Encoder{
 		mode:    q.mode,
-		ecLv:    q.recoverLv,
+		ecLv:    q.ecLv,
 		version: q.v,
 	}
 
 	var (
 		dataBlocks []dataBlock // data encoding blocks
-		ecBlocks   []ecBlock // error correction blocks
-		err        error // global error var
+		ecBlocks   []ecBlock   // error correction blocks
+		err        error       // global error var
 	)
 
-	// 数据编码
+	// data encoding, and be splited into blocks
 	if dataBlocks, err = q.dataEncoding(); err != nil {
 		return err
 	}
 
-	// 生成纠错码
+	// generate er bitsets, and alse be spilited into blocks
 	if ecBlocks, err = q.errorCorrectionEncoding(dataBlocks); err != nil {
 		return err
 	}
 
-	// 交替排列
+	// arrange datablocks and ecblocks
 	q.arrarngeBits(dataBlocks, ecBlocks)
 
-	// append ec after data
+	// append ec bits after data bits
 	q.dataBSet.Append(q.ecBSet)
 
 	// append remainder bits
@@ -130,15 +131,19 @@ func (q *QRCode) init() error {
 
 // analyze choose version and encoder
 func (q *QRCode) analyze() error {
-	// 选择版本
-	q.ver = 5
-	// 选择错误矫正级别
-	q.recoverLv = Quart
-	// 确定模式
-	q.mode = EncModeByte
+	// choose error correction level
+	q.ecLv = Quart
 
-	// TODO: analyze content to decide version and mode. etc.
-	// q.v = Analyze(q.content)
+	// choose encode mode (num, alphanum, byte, Japanese)
+	q.mode = anlayzeMode(q.rawData)
+
+	// analyze content to decide version etc.
+	analyzedV, err := analyzeVersion(q.rawData, q.ecLv, q.mode)
+	if err != nil {
+		return fmt.Errorf("could not analyzeVersion: %v", err)
+	}
+	q.v = *analyzedV
+	q.ver = (*analyzedV).Ver
 	return nil
 }
 
@@ -183,7 +188,7 @@ type dataBlock struct {
 
 // ecBlock ...
 type ecBlock struct {
-	Data        *bitset.Bitset
+	Data *bitset.Bitset
 	// StartOffset int // length
 }
 
@@ -218,7 +223,7 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 		overflowCnt = 0
 		endFlag     = false
 		curIdx      = 0
-		start, end int
+		start, end  int
 	)
 
 	// check if bitsets initialized, or initial them
@@ -228,7 +233,6 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 	if q.ecBSet == nil {
 		q.ecBSet = bitset.New()
 	}
-
 
 	for !endFlag {
 		for _, block := range dataBlocks {
@@ -560,7 +564,11 @@ func (q *QRCode) fillIntoMatrix(dimension int) {
 
 // Save QRCode image into saveToPath
 func (q *QRCode) Save(saveToPath string) error {
-	// TODO: valid  saveToPath
+	if _, err := os.Open(saveToPath); !os.IsExist(err) {
+		log.Printf("could not find path: %s, then save to %s",
+			saveToPath, defaultFilename)
+		saveToPath = defaultFilename
+	}
 	q.draw()
 	return drawAndSaveToFile(saveToPath, *q.mat)
 }

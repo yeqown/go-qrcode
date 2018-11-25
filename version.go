@@ -33,9 +33,10 @@ const (
 
 var (
 	// default versions config file path
-	defaultVersionCfg     = "./versionCfg.json"
-	errMissMatchedVersion = errors.New("could not match version! check the versionCfg.json file")
-	versions              []Version
+	defaultVersionCfg        = "./versionCfg.json"
+	errMissMatchedVersion    = errors.New("could not match version! check the versionCfg.json file")
+	errMissMatchedEncodeType = errors.New("could not match the encode type")
+	versions                 []Version
 	// Each QR Code contains a 15-bit Format Information value.  The 15 bits
 	// consist of 5 data bits concatenated with 10 error correction bits.
 	//
@@ -96,7 +97,7 @@ func init() {
 
 // load versionCfg.json (versions config file) into `[]versions`
 func load(pathToCfg string) error {
-	versions = make([]Version, 4*40)
+	versions = make([]Version, 0)
 
 	fd, err := os.OpenFile(pathToCfg, os.O_RDONLY, 0644)
 	if err != nil {
@@ -231,10 +232,40 @@ func loadVersion(lv int, ecLv ECLevel) Version {
 	panic(errMissMatchedVersion)
 }
 
-// Analyze the text, and decide which version should be choose
+// analyzeVersion the text, and decide which version should be choose
 // ref to: http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
-func Analyze(text string) Version {
-	return loadVersion(1, Low)
+func analyzeVersion(raw []byte, ecLv ECLevel, eMode EncMode) (*Version, error) {
+	if len(versions) == 0 {
+		panic("did not loaded the versions config success")
+	}
+	var (
+		// target    Version
+		lengthCnt = len(raw)
+		cap       int
+	)
+	for _, v := range versions {
+		if v.ECLevel == ecLv {
+			switch eMode {
+			case EncModeNumeric:
+				cap = v.Cap.Byte
+			case EncModeAlphanumeric:
+				cap = v.Cap.Byte
+			case EncModeByte:
+				cap = v.Cap.Byte
+			case EncModeJP:
+				cap = v.Cap.JP
+			default:
+				return nil, errMissMatchedEncodeType
+			}
+			// cap bigger than data length
+			if cap > lengthCnt {
+				return &v, nil
+			}
+		}
+	}
+
+	debugLogf("missmatched version, version's length: %d, ecLv: %v", len(versions), ecLv)
+	return nil, errMissMatchedVersion
 }
 
 // SetVersionCfgFile set custom version config file

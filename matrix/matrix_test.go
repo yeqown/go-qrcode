@@ -43,7 +43,6 @@ func Test_loadGray16(t *testing.T) {
 		args args
 		want color.Gray16
 	}{
-		// TODO: Add test cases.
 		{
 			name: "case 1",
 			args: args{v: StateFalse},
@@ -94,7 +93,6 @@ func TestXOR(t *testing.T) {
 		args args
 		want State
 	}{
-		// TODO: Add test cases.
 		{
 			name: "case1",
 			args: args{
@@ -127,7 +125,6 @@ func TestState_String(t *testing.T) {
 		s    State
 		want string
 	}{
-		// TODO: Add test cases.
 		{
 			name: "case 1",
 			s:    StateFalse,

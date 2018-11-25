@@ -12,6 +12,14 @@ func TestNew(t *testing.T) {
 		t.Fail()
 	}
 
+	t.Logf("analyzed version is: %d, len of data: %d, encMode: %v",
+		qrc.v, len(qrc.rawData), qrc.mode)
+
+	if qrc.mode != EncModeByte {
+		t.Error("could analyze error with encode type")
+		t.Fail()
+	}
+
 	// save file
 	if err := qrc.Save("./testdata/qrtest.jpeg"); err != nil {
 		t.Errorf("could not save image: %v", err)

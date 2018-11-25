@@ -16,7 +16,11 @@ func Test_load(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:    "case 0",
+			args:    args{pathToCfg: defaultVersionCfg},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -187,6 +191,7 @@ func TestVersion_formatInfo(t *testing.T) {
 }
 
 func Test_loadVersion(t *testing.T) {
+	load(defaultVersionCfg)
 	type args struct {
 		lv         int
 		recoveryLv ECLevel
@@ -196,7 +201,31 @@ func Test_loadVersion(t *testing.T) {
 		args args
 		want Version
 	}{
-		// TODO: Add test cases.
+		{
+			name: "case 0",
+			args: args{
+				lv:         1,
+				recoveryLv: Highest,
+			},
+			want: Version{
+				Ver:     1,
+				ECLevel: Highest,
+				Cap: capacity{
+					Numeric:      17,
+					AlphaNumeric: 10,
+					Byte:         7,
+					JP:           4,
+				},
+				RemainderBits: 0,
+				Groups: []group{
+					group{
+						NumBlocks:            1,
+						NumDataCodewords:     9,
+						ECBlockwordsPerBlock: 17,
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -207,21 +236,40 @@ func Test_loadVersion(t *testing.T) {
 	}
 }
 
-func TestAnalyze(t *testing.T) {
+func Test_analyzeVersion(t *testing.T) {
+	load(defaultVersionCfg)
+	v := loadVersion(1, Meddium)
 	type args struct {
-		text string
+		raw   []byte
+		ecLv  ECLevel
+		eMode EncMode
 	}
 	tests := []struct {
-		name string
-		args args
-		want Version
+		name    string
+		args    args
+		want    *Version
+		wantErr bool
 	}{
-		// TODO: Add test cases.
+		{
+			name: "case 0",
+			args: args{
+				raw:   []byte("TEXT"),
+				ecLv:  Meddium,
+				eMode: EncModeAlphanumeric,
+			},
+			want:    &v,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Analyze(tt.args.text); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Analyze() = %v, want %v", got, tt.want)
+			got, err := analyzeVersion(tt.args.raw, tt.args.ecLv, tt.args.eMode)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("analyzeVersion() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("analyzeVersion() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -172,7 +172,11 @@ func (e *Encoder) breakUpInto8bit() {
 	// depends on max capcity of current version and EC level
 	maxCap := e.version.NumTotalCodewrods() * 8
 	if less := maxCap - e.dst.Len(); less < 0 {
-		panic("could not contain all char with wrong version cap")
+		err := fmt.Errorf(
+			"wrong version(%d) cap(%d bits) and could not contain all bits: %d bits",
+			e.version.Ver, maxCap, e.dst.Len(),
+		)
+		panic(err)
 	} else if less < 4 {
 		e.dst.AppendNumBools(less, false)
 	} else {
@@ -265,9 +269,48 @@ func encodeAlphanumericCharacter(v byte) uint32 {
 	return 0
 }
 
+type analyzeEncFunc func(byte) bool
+
 // 如果输入字符串只包含数字（0-9），请使用数字编码模式。
 // 在数字编码模式不适用的情况下，如果可以在字符索引表的左列中找到输入字符串中的所有字符，请使用字符编码模式。注意：小写字母不能使用字符编码模式。
 // 在字符编码模式不适用的情况下，如果字符可以在ISO-8859-1字符集中找到，则使用字节编码模式。
-func chooseMode(raw []byte) EncMode {
-	return EncModeByte
+func anlayzeMode(raw []byte) EncMode {
+	var (
+		analyFunc analyzeEncFunc = analyzeNum
+		encMode                  = EncModeNumeric
+	)
+	// check
+	for _, byt := range raw {
+		switch encMode {
+		case EncModeNumeric:
+			if !analyFunc(byt) {
+				encMode = EncModeAlphanumeric
+				analyFunc = analyzeAlphanum
+			}
+		case EncModeAlphanumeric:
+			if !analyFunc(byt) {
+				encMode = EncModeByte
+			}
+		case EncModeByte:
+			return EncModeByte
+		}
+	}
+	return encMode
+}
+
+// analyzeNum ... is byt in num encMode
+func analyzeNum(byt byte) bool {
+	return byt >= '0' && byt <= '9'
+}
+
+// analyzeAlphanum ... is byt in alphanum
+func analyzeAlphanum(byt byte) bool {
+	if (byt >= '0' && byt <= '9') || (byt >= 'A' && byt <= 'Z') {
+		return true
+	}
+	switch byt {
+	case ' ', '$', '%', '*', '+', '-', '.', '/', ':':
+		return true
+	}
+	return false
 }

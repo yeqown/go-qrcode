@@ -76,9 +76,9 @@ type QRCode struct {
 func (q *QRCode) init() error {
 	once.Do(func() {
 		// once load versions config file into memory
-		if err := load(defaultVersionCfg); err != nil {
-			panic(err)
-		}
+		// if err := load(defaultVersionCfg); err != nil {
+		// 	panic(err)
+		// }
 	})
 	q.rawData = []byte(q.content)
 	if q.needAnalyze {

@@ -1,12 +1,8 @@
 package qrcode
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/skip2/go-qrcode/bitset"
 )
@@ -36,7 +32,7 @@ var (
 	defaultVersionCfg        = "./versionCfg.json"
 	errMissMatchedVersion    = errors.New("could not match version! check the versionCfg.json file")
 	errMissMatchedEncodeType = errors.New("could not match the encode type")
-	versions                 []Version
+	// versions                 []Version
 	// Each QR Code contains a 15-bit Format Information value.  The 15 bits
 	// consist of 5 data bits concatenated with 10 error correction bits.
 	//
@@ -84,11 +80,11 @@ var (
 )
 
 func init() {
-	if DEBUG {
-		if err := load(defaultVersionCfg); err != nil {
-			panic(err)
-		}
-	}
+	// if DEBUG {
+	// 	if err := load(defaultVersionCfg); err != nil {
+	// 		panic(err)
+	// 	}
+	// }
 
 	for ver := 1; ver <= 40; ver++ {
 		loadAlignmentPatternLoc(ver)
@@ -96,21 +92,21 @@ func init() {
 }
 
 // load versionCfg.json (versions config file) into `[]versions`
-func load(pathToCfg string) error {
-	versions = make([]Version, 0)
+// func load(pathToCfg string) error {
+// 	versions = make([]Version, 0)
 
-	fd, err := os.OpenFile(pathToCfg, os.O_RDONLY, 0644)
-	if err != nil {
-		return fmt.Errorf("could not open config file: %v", err)
-	}
+// 	fd, err := os.OpenFile(pathToCfg, os.O_RDONLY, 0644)
+// 	if err != nil {
+// 		return fmt.Errorf("could not open config file: %v", err)
+// 	}
 
-	b, err := ioutil.ReadAll(fd)
-	if err != nil {
-		return fmt.Errorf("could not read file: %v", err)
-	}
+// 	b, err := ioutil.ReadAll(fd)
+// 	if err != nil {
+// 		return fmt.Errorf("could not read file: %v", err)
+// 	}
 
-	return json.Unmarshal(b, &versions)
-}
+// 	return json.Unmarshal(b, &versions)
+// }
 
 // capacity struct includes data type max capacity
 type capacity struct {

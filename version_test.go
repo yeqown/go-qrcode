@@ -7,29 +7,29 @@ import (
 	"github.com/skip2/go-qrcode/bitset"
 )
 
-func Test_load(t *testing.T) {
-	type args struct {
-		pathToCfg string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name:    "case 0",
-			args:    args{pathToCfg: defaultVersionCfg},
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := load(tt.args.pathToCfg); (err != nil) != tt.wantErr {
-				t.Errorf("load() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
+// func Test_load(t *testing.T) {
+// 	type args struct {
+// 		pathToCfg string
+// 	}
+// 	tests := []struct {
+// 		name    string
+// 		args    args
+// 		wantErr bool
+// 	}{
+// 		{
+// 			name:    "case 0",
+// 			args:    args{pathToCfg: defaultVersionCfg},
+// 			wantErr: false,
+// 		},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			if err := load(tt.args.pathToCfg); (err != nil) != tt.wantErr {
+// 				t.Errorf("load() error = %v, wantErr %v", err, tt.wantErr)
+// 			}
+// 		})
+// 	}
+// }
 
 func TestVersion_Dimension(t *testing.T) {
 	type fields struct {
@@ -191,7 +191,7 @@ func TestVersion_formatInfo(t *testing.T) {
 }
 
 func Test_loadVersion(t *testing.T) {
-	load(defaultVersionCfg)
+	// load(defaultVersionCfg)
 	type args struct {
 		lv         int
 		recoveryLv ECLevel
@@ -237,7 +237,7 @@ func Test_loadVersion(t *testing.T) {
 }
 
 func Test_analyzeVersion(t *testing.T) {
-	load(defaultVersionCfg)
+	// load(defaultVersionCfg)
 	v := loadVersion(1, Meddium)
 	type args struct {
 		raw   []byte

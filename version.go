@@ -29,7 +29,7 @@ const (
 
 var (
 	// default versions config file path
-	defaultVersionCfg        = "./versionCfg.json"
+	// defaultVersionCfg        = "./versionCfg.json"
 	errMissMatchedVersion    = errors.New("could not match version! check the versionCfg.json file")
 	errMissMatchedEncodeType = errors.New("could not match the encode type")
 	// versions                 []Version
@@ -264,10 +264,10 @@ func analyzeVersion(raw []byte, ecLv ECLevel, eMode EncMode) (*Version, error) {
 	return nil, errMissMatchedVersion
 }
 
-// SetVersionCfgFile set custom version config file
-func SetVersionCfgFile(fp string) {
-	defaultVersionCfg = fp
-}
+// // SetVersionCfgFile set custom version config file
+// func SetVersionCfgFile(fp string) {
+// 	defaultVersionCfg = fp
+// }
 
 var (
 	// TODO: append more version

@@ -1,9 +1,10 @@
-testdata/
+/testdata/
 vendor/
 # example/
 *.png
-# *.jpeg
+*.jpeg
 # *.json
 *.log
 .DS_store
 js/
+default.jpeg

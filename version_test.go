@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/skip2/go-qrcode/bitset"
+	"github.com/yeqown/reedsolomon/binary"
 )
 
 // func Test_load(t *testing.T) {
@@ -135,7 +135,7 @@ func TestVersion_verInfo(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   *bitset.Bitset
+		want   *binary.Binary
 	}{
 		// TODO: Add test cases.
 	}
@@ -170,7 +170,7 @@ func TestVersion_formatInfo(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   *bitset.Bitset
+		want   *binary.Binary
 	}{
 		// TODO: Add test cases.
 	}

@@ -79,6 +79,19 @@ var (
 	}
 )
 
+func StateSliceMatched(ss1, ss2 []State) bool {
+	if len(ss1) != len(ss2) {
+		return false
+	}
+	for idx := range ss1 {
+		if (ss1[idx] ^ ss2[idx]) != 0 {
+			return false
+		}
+	}
+
+	return true
+}
+
 // New generate a matrix with map[][]bool
 func New(width, height int) *Matrix {
 	mat := make([][]State, width)

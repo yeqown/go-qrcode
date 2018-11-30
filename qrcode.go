@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"os"
 	"sync"
 	"time"
@@ -483,7 +484,7 @@ func reserveVersionBlock(m *matrix.Matrix, dimension int) {
 
 // fillIntoMatrix fill q.dataBSet bitset stream into q.mat, ref to:
 // http://www.thonky.com/qr-code-tutorial/module-placement-matrix
-func (q *QRCode) fillIntoMatrix(dimension int) {
+func (q *QRCode) fillIntoMatrix(mat *matrix.Matrix, dimension int) {
 	var (
 		x, y      = dimension - 1, dimension - 1
 		l         = q.dataBSet.Len()
@@ -500,7 +501,7 @@ func (q *QRCode) fillIntoMatrix(dimension int) {
 	for i := 0; pos < l; i++ {
 		// debugLogf("fillIntoMatrix: dimension: %d, len: %d: pos: %d", dimension, l, pos)
 
-		state, err = q.mat.Get(x, y)
+		state, err = mat.Get(x, y)
 		if err == matrix.ErrorOutRangeOfW {
 			break
 		}
@@ -512,9 +513,9 @@ func (q *QRCode) fillIntoMatrix(dimension int) {
 		}
 
 		if state == matrix.StateInit {
-			q.mat.Set(x, y, setState)
+			mat.Set(x, y, setState)
 			pos++
-			debugLogf("normal set turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
+			// debugLogf("normal set turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
 		} else if state == matrix.ZERO {
 			// turn forward and the new forward's block fisrt pos as value
 			if upForward {
@@ -530,9 +531,9 @@ func (q *QRCode) fillIntoMatrix(dimension int) {
 			}
 
 			upForward = !upForward
-			debugLogf("unnormal state turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
-			if s, _ := q.mat.Get(x, y); s == matrix.StateInit {
-				q.mat.Set(x, y, setState)
+			// debugLogf("unnormal state turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
+			if s, _ := mat.Get(x, y); s == matrix.StateInit {
+				mat.Set(x, y, setState)
 				pos++
 			}
 		}
@@ -581,46 +582,103 @@ func (q *QRCode) SaveTo(w io.Writer) error {
 
 // draw ... draw with bitset
 func (q *QRCode) draw() {
+
+	type sc struct {
+		Score int
+		Idx   int
+	}
+	var (
+		masks       = make([]*Mask, 8)
+		mats        = make([]*matrix.Matrix, 8)
+		lowScore    = math.MaxInt32
+		markMatsIdx int
+		scoreChan   = make(chan sc, 8)
+		wg          sync.WaitGroup
+	)
+
 	dimension := q.v.Dimension()
 
 	// initial the 2d matrix
 	q.initMatrix()
 
-	// save current q.matrix copy
-	mask0 := NewMask(q.mat, Modulo0)
-
-	// fill bitset into matrix
-	q.fillIntoMatrix(dimension)
-
-	// draw("./testdata/bf_qrcode.jpeg", *q.mat)
-	// XOR with mask and q.mat
-	q.xorMask(mask0)
-	// draw("./testdata/af_qrcode.jpeg", *q.mat)
-
-	// fill format info
-	q.fillFormatInfo(Modulo0, dimension)
-
-	// verion7 and larger version has version info
-	if q.v.Ver >= 7 {
-		q.fillVersionInfo(dimension)
+	// init mask and mats
+	for i := 0; i < 8; i++ {
+		masks[i] = NewMask(q.mat, MaskPatternModulo(i))
+		mats[i] = q.mat.Copy()
 	}
+
+	// generate 8 matrix with mask
+	for i := 0; i < 8; i++ {
+		wg.Add(1)
+		go func(i int) {
+			// fill bitset into matrix
+			q.fillIntoMatrix(mats[i], dimension)
+
+			// debug output
+			if DEBUG {
+				drawAndSaveToFile(fmt.Sprintf("draft/mats_%d.jpeg", i), *mats[i])
+				drawAndSaveToFile(fmt.Sprintf("draft/mask_%d.jpeg", i), *masks[i].mat)
+			}
+
+			// xor with mask
+			q.xorMask(mats[i], masks[i])
+			if DEBUG {
+				drawAndSaveToFile(fmt.Sprintf("draft/mats_mask_%d.jpeg", i), *mats[i])
+			}
+
+			// fill format info
+			q.fillFormatInfo(mats[i], MaskPatternModulo(i), dimension)
+			// verion7 and larger version has version info
+			if q.v.Ver >= 7 {
+				q.fillVersionInfo(mats[i], dimension)
+			}
+
+			// calculate score and decide the low score and draw
+			score := CalculateScore(mats[i])
+			debugLogf("cur idx: %d, score: %d, current lowest: mats[%d]:%d", i, score, markMatsIdx, lowScore)
+			scoreChan <- sc{
+				Score: score,
+				Idx:   i,
+			}
+			// if score < lowScore {
+			// 	lowScore = score
+			// 	markMatsIdx = i
+			// }
+			if DEBUG {
+				drawAndSaveToFile(fmt.Sprintf("draft/qrcode_mask_%d.jpeg", i), *mats[i])
+			}
+			wg.Done()
+		}(i)
+	}
+
+	wg.Wait()
+	close(scoreChan)
+
+	for c := range scoreChan {
+		if c.Score < lowScore {
+			lowScore = c.Score
+			markMatsIdx = c.Idx
+		}
+	}
+
+	q.mat = mats[markMatsIdx]
 }
 
 // all mask patter and check the score choose the the lowest mask result
-func (q *QRCode) xorMask(mask *Mask) {
+func (q *QRCode) xorMask(mat *matrix.Matrix, mask *Mask) {
 	mask.mat.Iter(matrix.ROW, func(x, y int, s matrix.State) {
 		// skip the empty palce
 		if s == matrix.StateInit {
 			return
 		}
-		s0, _ := q.mat.Get(x, y)
-		q.mat.Set(x, y, matrix.XOR(s0, s))
+		s0, _ := mat.Get(x, y)
+		mat.Set(x, y, matrix.XOR(s0, s))
 	})
 }
 
 // fillVersionInfo ref to:
 // https://www.thonky.com/qr-code-tutorial/format-version-tables
-func (q *QRCode) fillVersionInfo(dimension int) {
+func (q *QRCode) fillVersionInfo(mat *matrix.Matrix, dimension int) {
 	verBSet := q.v.verInfo()
 	var mod3, mod6 int
 	for pos := 0; pos < 18; pos++ {
@@ -628,18 +686,18 @@ func (q *QRCode) fillVersionInfo(dimension int) {
 		mod6 = pos % 6
 
 		if verBSet.At(pos) {
-			q.mat.Set(mod6, dimension-12+mod3, matrix.StateTrue)
-			q.mat.Set(dimension-12+mod3, mod6, matrix.StateTrue)
+			mat.Set(mod6, dimension-12+mod3, matrix.StateTrue)
+			mat.Set(dimension-12+mod3, mod6, matrix.StateTrue)
 		} else {
-			q.mat.Set(mod6, dimension-12+mod3, matrix.StateFalse)
-			q.mat.Set(dimension-12+mod3, mod6, matrix.StateTrue)
+			mat.Set(mod6, dimension-12+mod3, matrix.StateFalse)
+			mat.Set(dimension-12+mod3, mod6, matrix.StateTrue)
 		}
 	}
 }
 
 // fill format info ref to:
 // https://www.thonky.com/qr-code-tutorial/format-version-tables
-func (q *QRCode) fillFormatInfo(mode MaskPatternModulo, dimension int) {
+func (q *QRCode) fillFormatInfo(mat *matrix.Matrix, mode MaskPatternModulo, dimension int) {
 	fmtBSet := q.v.formatInfo(int(mode))
 	debugLogf("fmtBitSet: %s", fmtBSet.String())
 	var (
@@ -649,14 +707,14 @@ func (q *QRCode) fillFormatInfo(mode MaskPatternModulo, dimension int) {
 	for pos := 0; pos < 15; pos++ {
 		if fmtBSet.At(pos) {
 			// row
-			q.mat.Set(x, 8, matrix.StateTrue)
+			mat.Set(x, 8, matrix.StateTrue)
 			// column
-			q.mat.Set(8, y, matrix.StateTrue)
+			mat.Set(8, y, matrix.StateTrue)
 		} else {
 			// row
-			q.mat.Set(x, 8, matrix.StateFalse)
+			mat.Set(x, 8, matrix.StateFalse)
 			// column
-			q.mat.Set(8, y, matrix.StateFalse)
+			mat.Set(8, y, matrix.StateFalse)
 		}
 
 		x = x + 1

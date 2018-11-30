@@ -175,4 +175,45 @@ func TestMatrix_Copy(t *testing.T) {
 		t.Errorf("Matrix.Copy() = %v, want %v", StateTrue, s)
 		t.Fail()
 	}
+
+	if s, _ := got.Get(2, 2); s != StateInit {
+		t.Errorf("Matrix.Copy() = %v, want %v", StateInit, s)
+		t.Fail()
+	}
+}
+
+func Test_stateSliceMatched(t *testing.T) {
+	type args struct {
+		ss1 []State
+		ss2 []State
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "case 0",
+			args: args{
+				ss1: []State{StateFalse, StateFalse, StateFalse, StateFalse, StateTrue},
+				ss2: []State{StateFalse, StateFalse, StateFalse, StateFalse, StateTrue},
+			},
+			want: true,
+		},
+		{
+			name: "case 0",
+			args: args{
+				ss1: []State{StateFalse, StateFalse, StateFalse, StateFalse, StateTrue},
+				ss2: []State{StateFalse, StateTrue, StateFalse, StateFalse, StateTrue},
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := StateSliceMatched(tt.args.ss1, tt.args.ss2); got != tt.want {
+				t.Errorf("stateSliceMatched() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

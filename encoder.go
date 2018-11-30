@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/skip2/go-qrcode/bitset"
+	"github.com/yeqown/reedsolomon/binary"
 )
 
 // EncMode ...
@@ -26,8 +26,8 @@ const (
 )
 
 var (
-	paddingByte1 = bitset.NewFromBase2String("11101100")
-	paddingByte2 = bitset.NewFromBase2String("00010001")
+	paddingByte1, _ = binary.NewFromBinaryString("11101100")
+	paddingByte2, _ = binary.NewFromBinaryString("00010001")
 )
 
 // GetEncModeName ...
@@ -49,16 +49,16 @@ func GetEncModeName(mode EncMode) string {
 }
 
 // getEncodeModeIndicator ...
-func getEncodeModeIndicator(mode EncMode) *bitset.Bitset {
+func getEncodeModeIndicator(mode EncMode) *binary.Binary {
 	switch mode {
 	case EncModeNumeric:
-		return bitset.New(false, false, false, true)
+		return binary.New(false, false, false, true)
 	case EncModeAlphanumeric:
-		return bitset.New(false, false, true, false)
+		return binary.New(false, false, true, false)
 	case EncModeByte:
-		return bitset.New(false, true, false, false)
+		return binary.New(false, true, false, false)
 	case EncModeJP:
-		return bitset.New(true, false, false, false)
+		return binary.New(true, false, false, false)
 	default:
 		panic("no indicator")
 	}
@@ -67,7 +67,7 @@ func getEncodeModeIndicator(mode EncMode) *bitset.Bitset {
 // Encoder ... data to bit stream ...
 type Encoder struct {
 	// self init
-	dst  *bitset.Bitset
+	dst  *binary.Binary
 	data []byte // raw input data
 
 	// initial params
@@ -82,8 +82,8 @@ type Encoder struct {
 // 1. encode raw data into bitset
 // 2. append padding data
 //
-func (e *Encoder) Encode(byts []byte) (*bitset.Bitset, error) {
-	e.dst = bitset.New()
+func (e *Encoder) Encode(byts []byte) (*binary.Binary, error) {
+	e.dst = binary.New()
 	e.data = byts
 
 	// appedn mode indicator symbol

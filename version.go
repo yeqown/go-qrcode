@@ -4,7 +4,8 @@ import (
 	"errors"
 	"log"
 
-	"github.com/skip2/go-qrcode/bitset"
+	// "github.com/skip2/go-qrcode/bitset"
+	"github.com/yeqown/reedsolomon/binary"
 )
 
 // ECLevel error correction level
@@ -179,12 +180,12 @@ func (v Version) TotalNumBlocks() int {
 }
 
 // VerInfo Version info bitset
-func (v Version) verInfo() *bitset.Bitset {
+func (v Version) verInfo() *binary.Binary {
 	if v.Ver < 7 {
 		return nil
 	}
 
-	result := bitset.New()
+	result := binary.New()
 	result.AppendUint32(versionBitSequence[v.Ver], verInfoBitsNum)
 
 	return result
@@ -192,7 +193,7 @@ func (v Version) verInfo() *bitset.Bitset {
 
 // formatInfo returns the 15-bit Format Information value for a QR
 // code.
-func (v Version) formatInfo(maskPattern int) *bitset.Bitset {
+func (v Version) formatInfo(maskPattern int) *binary.Binary {
 	formatID := 0
 
 	switch v.ECLevel {
@@ -213,7 +214,7 @@ func (v Version) formatInfo(maskPattern int) *bitset.Bitset {
 	}
 
 	formatID |= maskPattern & 0x7
-	result := bitset.New()
+	result := binary.New()
 	result.AppendUint32(formatBitSequence[formatID].regular, formatInfoBitsNum)
 	return result
 }

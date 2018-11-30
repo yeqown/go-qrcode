@@ -1,4 +1,4 @@
-testdata/
+/testdata/
 vendor/
 draft/
 # example/
@@ -8,3 +8,4 @@ default.jpeg
 *.log
 .DS_store
 js/
+default.jpeg

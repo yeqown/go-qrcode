@@ -9,9 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skip2/go-qrcode/bitset"
-	"github.com/skip2/go-qrcode/reedsolomon"
+	// "github.com/skip2/go-qrcode/bitset"
+	// "github.com/skip2/go-qrcode/reedsolomon"
+
 	"github.com/yeqown/go-qrcode/matrix"
+	"github.com/yeqown/reedsolomon"
+	"github.com/yeqown/reedsolomon/binary"
 )
 
 var (
@@ -61,9 +64,9 @@ type QRCode struct {
 	content string // input text content
 	rawData []byte // raw Data to transfer
 
-	dataBSet *bitset.Bitset // final data bit stream of encode data
+	dataBSet *binary.Binary // final data bit stream of encode data
 	mat      *matrix.Matrix // matrix grid to store final bitmap
-	ecBSet   *bitset.Bitset // final error correction bitset
+	ecBSet   *binary.Binary // final error correction bitset
 
 	v       Version  // version means the size
 	ver     int      // version num
@@ -152,7 +155,7 @@ func (q *QRCode) analyze() error {
 // https://www.thonky.com/qr-code-tutorial/data-encoding
 func (q *QRCode) dataEncoding() (blocks []dataBlock, err error) {
 	var (
-		bset *bitset.Bitset
+		bset *binary.Binary
 	)
 	bset, err = q.encoder.Encode(q.rawData)
 	if err != nil {
@@ -169,7 +172,10 @@ func (q *QRCode) dataEncoding() (blocks []dataBlock, err error) {
 			start = end
 			end = start + g.NumDataCodewords*8
 
-			blocks[blockID].Data = bset.Substr(start, end)
+			blocks[blockID].Data, err = bset.Subset(start, end)
+			if err != nil {
+				panic(err)
+			}
 			blocks[blockID].StartOffset = end - start
 			blocks[blockID].NumECBlock = g.ECBlockwordsPerBlock
 
@@ -182,14 +188,14 @@ func (q *QRCode) dataEncoding() (blocks []dataBlock, err error) {
 
 // dataBlock ...
 type dataBlock struct {
-	Data        *bitset.Bitset
+	Data        *binary.Binary
 	StartOffset int // length
 	NumECBlock  int // error correction codewrods num per data block
 }
 
 // ecBlock ...
 type ecBlock struct {
-	Data *bitset.Bitset
+	Data *binary.Binary
 	// StartOffset int // length
 }
 
@@ -201,7 +207,10 @@ func (q *QRCode) errorCorrectionEncoding(dataBlocks []dataBlock) (blocks []ecBlo
 	for idx, b := range dataBlocks {
 		debugLogf("numOfECBlock: %d", b.NumECBlock)
 		bset := reedsolomon.Encode(b.Data, b.NumECBlock)
-		blocks[idx].Data = bset.Substr(b.StartOffset, bset.Len())
+		blocks[idx].Data, err = bset.Subset(b.StartOffset, bset.Len())
+		if err != nil {
+			panic(err)
+		}
 		// blocks[idx].StartOffset = b.StartOffset
 	}
 	return
@@ -229,10 +238,10 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 
 	// check if bitsets initialized, or initial them
 	if q.dataBSet == nil {
-		q.dataBSet = bitset.New()
+		q.dataBSet = binary.New()
 	}
 	if q.ecBSet == nil {
-		q.ecBSet = bitset.New()
+		q.ecBSet = binary.New()
 	}
 
 	for !endFlag {
@@ -243,7 +252,11 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 				overflowCnt++
 				continue
 			}
-			q.dataBSet.Append(block.Data.Substr(start, end))
+			subBin, err := block.Data.Subset(start, end)
+			if err != nil {
+				panic(err)
+			}
+			q.dataBSet.Append(subBin)
 			debugLogf("arrange data blocks info: start: %d, end: %d, len: %d, overflowCnt: %d, curIdx: %d",
 				start, end, block.Data.Len(), overflowCnt, curIdx,
 			)
@@ -269,7 +282,11 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 				overflowCnt++
 				continue
 			}
-			q.ecBSet.Append(block.Data.Substr(start, end))
+			subBin, err := block.Data.Subset(start, end)
+			if err != nil {
+				panic(err)
+			}
+			q.ecBSet.Append(subBin)
 		}
 		curIdx++
 		// loop finish check

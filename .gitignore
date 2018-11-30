@@ -1,8 +1,9 @@
 /testdata/
 vendor/
+draft/
 # example/
 *.png
-*.jpeg
+default.jpeg
 # *.json
 *.log
 .DS_store

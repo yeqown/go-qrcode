@@ -582,7 +582,7 @@ func (q *QRCode) fillIntoMatrix(mat *matrix.Matrix, dimension int) {
 
 // Save QRCode image into saveToPath
 func (q *QRCode) Save(saveToPath string) error {
-	if _, err := os.Open(saveToPath); !os.IsExist(err) {
+	if _, err := os.Open(saveToPath); err != nil && !os.IsExist(err) {
 		log.Printf("could not find path: %s, then save to %s",
 			saveToPath, defaultFilename)
 		saveToPath = defaultFilename

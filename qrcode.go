@@ -596,7 +596,7 @@ func (q *QRCode) SaveTo(w io.Writer) error {
 	return drawAndSave(w, *q.mat)
 }
 
-// draw ... draw with bitset
+// draw ... with bitset
 func (q *QRCode) draw() {
 
 	type sc struct {

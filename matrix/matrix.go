@@ -3,7 +3,6 @@ package matrix
 import (
 	"errors"
 	"fmt"
-	"image/color"
 )
 
 // ScanDirection scan matrix driection
@@ -37,29 +36,12 @@ const (
 	// StateVersion 0x4444
 	StateVersion State = 0x4444
 
-	// StateFormat 0x7777 for presisted state
+	// StateFormat 0x7777 for persisted state
 	StateFormat State = 0x7777
 )
 
 func (s State) String() string {
 	return fmt.Sprintf("0x%X", uint16(s))
-}
-
-// LoadGray16 load color by value State
-func LoadGray16(v State) color.Gray16 {
-	switch v {
-	case StateFalse:
-		return colorMap[StateFalse]
-	case StateTrue:
-		return colorMap[StateTrue]
-	case StateInit:
-		return colorMap[StateInit]
-	case StateVersion:
-		return colorMap[StateVersion]
-	case StateFormat:
-		return colorMap[StateFormat]
-	}
-	return color.Gray16{Y: uint16(v)}
 }
 
 var (
@@ -68,15 +50,6 @@ var (
 
 	// ErrorOutRangeOfH y out of range of Height
 	ErrorOutRangeOfH = errors.New("out of range of height")
-
-	// colorMap state map tp color.Gray16
-	colorMap = map[State]color.Gray16{
-		StateFalse:   color.Gray16{Y: uint16(StateFalse)},
-		StateTrue:    color.Gray16{Y: uint16(StateTrue)},
-		StateInit:    color.Gray16{Y: uint16(StateInit)},
-		StateVersion: color.Gray16{Y: uint16(StateVersion)},
-		StateFormat:  color.Gray16{Y: uint16(StateFormat)},
-	}
 )
 
 func StateSliceMatched(ss1, ss2 []State) bool {

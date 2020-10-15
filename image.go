@@ -11,8 +11,7 @@ import (
 	"github.com/yeqown/go-qrcode/matrix"
 )
 
-/* Draw image with matrix
- */
+// Draw image with matrix
 
 var (
 	defaultExpandPixel = 20
@@ -23,7 +22,7 @@ var (
 //// SetExpandPixel set defaultExpandPixel, default is 40
 //func SetExpandPixel(n int) {
 //	if n < 0 {
-//		panic("could not set the negative interger")
+//		panic("could not set the negative integer")
 //	}
 //	defaultExpandPixel = n
 //}
@@ -41,39 +40,39 @@ func drawAndSaveToFile(name string, m matrix.Matrix) error {
 
 // drawAndSave save image into io.Writer
 func drawAndSave(w io.Writer, m matrix.Matrix) error {
-	img := draw(m)
+	img := draw(m, _defaultOutputOption)
 	return save(w, img)
 }
 
-func draw(mat matrix.Matrix) image.Image {
+// draw deal qrcode matrix as a image.Image
+func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
+	_stateToRGBA[matrix.StateFalse] = opt.backgroundColor
+	_stateToRGBA[matrix.StateTrue] = opt.qrColor
+
 	// w as image width, h as image height
 	w := mat.Width()*defaultExpandPixel + 2*padding
 	h := w
 
-	// draw into image
-	var (
-		gray16 = image.NewGray16(image.Rect(0, 0, w, h))
-	)
-
+	rgba := image.NewRGBA(image.Rect(0, 0, w, h))
 	// top-bottom padding
 	for posX := 0; posX < w; posX++ {
 		for posY := 0; posY < padding; posY++ {
-			gray16.SetGray16(posX, posY, color.White)
+			rgba.Set(posX, posY, opt.backgroundColor)
 		}
 
 		for posY := h - padding; posY < h; posY++ {
-			gray16.SetGray16(posX, posY, color.White)
+			rgba.Set(posX, posY, opt.backgroundColor)
 		}
 	}
 
 	// left-right padding
 	for posY := padding; posY < h-padding; posY++ {
 		for posX := 0; posX < padding; posX++ {
-			gray16.SetGray16(posX, posY, color.White)
+			rgba.Set(posX, posY, opt.backgroundColor)
 		}
 
 		for posX := w - padding; posX < w; posX++ {
-			gray16.SetGray16(posX, posY, color.White)
+			rgba.Set(posX, posY, opt.backgroundColor)
 		}
 	}
 
@@ -87,17 +86,13 @@ func draw(mat matrix.Matrix) image.Image {
 		// true for black, false for white
 		for posX := xStart; posX < xEnd; posX++ {
 			for posY := yStart; posY < yEnd; posY++ {
-				// block border
-				// if posX == xStart || posY == yStart {
-				// 	gray16.SetGray16(posX, posY, matrix.LoadGray16(matrix.BORDER))
-				// 	continue
-				// }
-				gray16.SetGray16(posX, posY, matrix.LoadGray16(v))
+				rgba.Set(posX, posY, stateRGBA(v))
 			}
 		}
 	})
 
-	return gray16
+	// TODO: add icon image
+	return rgba
 }
 
 // save to file
@@ -107,4 +102,56 @@ func save(w io.Writer, img image.Image) error {
 	}
 
 	return nil
+}
+
+var (
+	// _stateToRGBA state map tp color.Gray16
+	_stateToRGBA = map[matrix.State]color.Color{
+		matrix.StateFalse: hexToRGBA("#1aa6b7"),
+		matrix.StateTrue:  hexToRGBA("#01c5c4"),
+		//matrix.StateInit:  hexToRGBA("#1aa6b7"),
+		//matrix.StateVersion: hexToRGBA("#444444"),
+		// matrix.StateFormat:  hexToRGBA("#555555"),
+	}
+
+	// _defaultStateColor default color of undefined matrix.State
+	// it shouldn't be used.
+	_defaultStateColor = hexToRGBA("#ff414d")
+)
+
+func hexToRGBA(s string) color.RGBA {
+	c := color.RGBA{
+		R: 0,
+		G: 0,
+		B: 0,
+		A: 0xff,
+	}
+
+	var err error
+	switch len(s) {
+	case 7:
+		_, err = fmt.Sscanf(s, "#%02x%02x%02x", &c.R, &c.G, &c.B)
+	case 4:
+		_, err = fmt.Sscanf(s, "#%1x%1x%1x", &c.R, &c.G, &c.B)
+		// Double the hex digits:
+		c.R *= 17
+		c.G *= 17
+		c.B *= 17
+	default:
+		err = fmt.Errorf("invalid length, must be 7 or 4")
+	}
+	if err != nil {
+		panic(err)
+	}
+
+	return c
+}
+
+// stateRGBA get color.Color by value State
+func stateRGBA(v matrix.State) color.Color {
+	if v, ok := _stateToRGBA[v]; ok {
+		return v
+	}
+
+	return _defaultStateColor
 }

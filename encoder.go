@@ -80,7 +80,7 @@ type Encoder struct {
 
 // Encode ...
 // 1. encode raw data into bitset
-// 2. append padding data
+// 2. append _defaultPadding data
 //
 func (e *Encoder) Encode(byts []byte) (*binary.Binary, error) {
 	e.dst = binary.New()
@@ -104,7 +104,7 @@ func (e *Encoder) Encode(byts []byte) (*binary.Binary, error) {
 		panic("this has not been finished")
 	}
 
-	// fill and padding bits
+	// fill and _defaultPadding bits
 	e.breakUpInto8bit()
 
 	return e.dst, nil
@@ -188,8 +188,8 @@ func (e *Encoder) breakUpInto8bit() {
 		e.dst.AppendNumBools(8-mod, false)
 	}
 
-	// padding bytes
-	// padding byte 11101100 00010001
+	// _defaultPadding bytes
+	// _defaultPadding byte 11101100 00010001
 	if n := maxCap - e.dst.Len(); n > 0 {
 		debugLogf("maxCap: %d, len: %d, less: %d", maxCap, e.dst.Len(), n)
 		for i := 1; i <= (n / 8); i++ {

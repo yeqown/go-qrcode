@@ -1,7 +1,6 @@
 package matrix
 
 import (
-	"image/color"
 	"reflect"
 	"testing"
 )
@@ -32,55 +31,6 @@ func TestMatrix(t *testing.T) {
 
 	m.print()
 	// m.Reset(2, 2)
-}
-
-func Test_loadGray16(t *testing.T) {
-	type args struct {
-		v State
-	}
-	tests := []struct {
-		name string
-		args args
-		want color.Gray16
-	}{
-		{
-			name: "case 1",
-			args: args{v: StateFalse},
-			want: color.Gray16{Y: uint16(StateFalse)},
-		},
-		{
-			name: "case 2",
-			args: args{v: StateInit},
-			want: color.Gray16{Y: uint16(StateInit)},
-		},
-		{
-			name: "case 3",
-			args: args{v: StateTrue},
-			want: color.Gray16{Y: uint16(StateTrue)},
-		},
-		{
-			name: "case 4",
-			args: args{v: StateFormat},
-			want: color.Gray16{Y: uint16(StateFormat)},
-		},
-		{
-			name: "case 5",
-			args: args{v: StateVersion},
-			want: color.Gray16{Y: uint16(StateVersion)},
-		},
-		{
-			name: "case 6",
-			args: args{v: State(0x6767)},
-			want: color.Gray16{Y: uint16(0x6767)},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := LoadGray16(tt.args.v); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("loadGray16() = %v, want %v", got, tt.want)
-			}
-		})
-	}
 }
 
 func TestXOR(t *testing.T) {

@@ -118,7 +118,7 @@ type capacity struct {
 }
 
 // group contains fields to generate ECBlocks
-// and append padding bit
+// and append _defaultPadding bit
 type group struct {
 	// NumBlocks num of blocks
 	NumBlocks int `json:"nbs"`

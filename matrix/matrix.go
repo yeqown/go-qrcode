@@ -18,7 +18,7 @@ const (
 	// COLUMN for column first
 	COLUMN ScanDirection = 2
 
-	// StateFalse 0xffff FLASE
+	// StateFalse 0xffff FALSE
 	StateFalse State = 0xffff
 
 	// ZERO 0x0 FALSE
@@ -82,9 +82,8 @@ func New(width, height int) *Matrix {
 	return m
 }
 
-// Matrix ...
+// Matrix is a matrix data type
 // width:3 height: 4 for [3][4]int
-//
 type Matrix struct {
 	mat    [][]State
 	width  int

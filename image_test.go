@@ -1,6 +1,8 @@
 package qrcode
 
 import (
+	"image/color"
+	"reflect"
 	"testing"
 
 	"github.com/yeqown/go-qrcode/matrix"
@@ -15,5 +17,94 @@ func Test_image_draw(t *testing.T) {
 	if err := drawAndSaveToFile("./testdata/default.jpeg", *m, nil); err != nil {
 		t.Errorf("want nil, but err: %v", err)
 		t.Fail()
+	}
+}
+
+func Test_stateRGBA(t *testing.T) {
+	type args struct {
+		v matrix.State
+	}
+	tests := []struct {
+		name string
+		args args
+		want color.Color
+	}{
+		{
+			name: "case 1",
+			args: args{v: matrix.StateFalse},
+			want: hexToRGBA("#1aa6b7"),
+		},
+		{
+			name: "case 2",
+			args: args{v: matrix.StateInit},
+			want: _defaultStateColor,
+		},
+		{
+			name: "case 3",
+			args: args{v: matrix.StateTrue},
+			want: hexToRGBA("#01c5c4"),
+		},
+		{
+			name: "case 4",
+			args: args{v: matrix.StateFormat},
+			want: _defaultStateColor,
+		},
+		{
+			name: "case 5",
+			args: args{v: matrix.StateVersion},
+			want: _defaultStateColor,
+		},
+		{
+			name: "case 6",
+			args: args{v: matrix.State(0x6767)},
+			want: _defaultStateColor,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := stateRGBA(tt.args.v); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("loadGray16() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+
+}
+
+func Test_hexToRGBA(t *testing.T) {
+	type args struct {
+		s string
+	}
+	tests := []struct {
+		name string
+		args args
+		want color.RGBA
+	}{
+		{
+			name: "case 1",
+			args: args{s: "#112233"},
+			want: color.RGBA{R: 17, G: 34, B: 51, A: 255},
+		},
+		{
+			name: "case 2",
+			args: args{s: "#112"},
+			want: color.RGBA{R: 17, G: 17, B: 34, A: 255},
+		},
+		//{
+		//	name: "case 3",
+		//	args: args{s: "#1122331"},
+		//	want: color.RGBA{},
+		//}, // panic
+		//{
+		//	name: "case 4",
+		//	args: args{s: "#11"},
+		//	want: color.RGBA{},
+		//}, // panic
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := hexToRGBA(tt.args.s); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("hexToRGBA() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

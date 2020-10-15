@@ -595,13 +595,16 @@ func (q *QRCode) fillIntoMatrix(m *matrix.Matrix, dimension int) {
 }
 
 // Save QRCode image into saveToPath
+// TODO(@yeqown): use SaveTo rather than drawAndSaveToFile
 func (q *QRCode) Save(saveToPath string) error {
 	if _, err := os.Open(saveToPath); err != nil && os.IsExist(err) {
 		log.Printf("could not find path: %s, then save to %s",
-			saveToPath, defaultFilename)
-		saveToPath = defaultFilename
+			saveToPath, _defaultFilename)
+		saveToPath = _defaultFilename
 	}
+
 	q.draw()
+
 	return drawAndSaveToFile(saveToPath, *q.mat, q.outputOption)
 }
 

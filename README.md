@@ -1,6 +1,6 @@
 # go-qrcode #
 
-<img src="./testdata/repo-qrcode.jpeg" width="100px" align="right"/>
+<img src="./qrcode.jpeg" width="100px" align="right"/>
 QR code (abbreviated from Quick Response Code) is the trademark for a type of matrix barcode (or two-dimensional barcode) first designed in 1994 for the automotive industry in Japan. A barcode is a machine-readable optical label that contains information about the item to which it is attached. A QR code uses four standardized encoding modes (numeric, alphanumeric, byte/binary, and kanji) to store data efficiently; extensions may also be used
 
 ### Install

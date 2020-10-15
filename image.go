@@ -20,13 +20,13 @@ var (
 	padding            = 40
 )
 
-// SetExpandPixel set defaultExpandPixel, default is 40
-func SetExpandPixel(n int) {
-	if n < 0 {
-		panic("could not set the negative interger")
-	}
-	defaultExpandPixel = n
-}
+//// SetExpandPixel set defaultExpandPixel, default is 40
+//func SetExpandPixel(n int) {
+//	if n < 0 {
+//		panic("could not set the negative interger")
+//	}
+//	defaultExpandPixel = n
+//}
 
 // drawAndSaveToFile image with matrix
 func drawAndSaveToFile(name string, m matrix.Matrix) error {
@@ -77,8 +77,8 @@ func draw(mat matrix.Matrix) image.Image {
 		}
 	}
 
-	// iter the matrix to draw each pixel
-	mat.Iter(matrix.ROW, func(x int, y int, v matrix.State) {
+	// iterate the matrix to draw each pixel
+	mat.Iterate(matrix.ROW, func(x int, y int, v matrix.State) {
 		xStart := x*defaultExpandPixel + padding
 		yStart := y*defaultExpandPixel + padding
 		xEnd := (x+1)*defaultExpandPixel + padding
@@ -100,9 +100,8 @@ func draw(mat matrix.Matrix) image.Image {
 	return gray16
 }
 
+// save to file
 func save(w io.Writer, img image.Image) error {
-
-	// save to file
 	if err := jpeg.Encode(w, img, nil); err != nil {
 		return fmt.Errorf("could not save image into file with err: %v", err)
 	}

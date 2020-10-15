@@ -60,7 +60,7 @@ func rule1(mat *matrix.Matrix) int {
 		colCurColorCnt int
 	)
 
-	mat.Iter(matrix.ROW, func(x, y int, value matrix.State) {
+	mat.Iterate(matrix.ROW, func(x, y int, value matrix.State) {
 		if x == 0 {
 			rowCurColorCnt = 0
 			rowCurState = value
@@ -81,7 +81,7 @@ func rule1(mat *matrix.Matrix) int {
 	})
 
 	// column
-	mat.Iter(matrix.COLUMN, func(x, y int, value matrix.State) {
+	mat.Iterate(matrix.COLUMN, func(x, y int, value matrix.State) {
 		if x == 0 {
 			colCurColorCnt = 0
 			colCurState = value
@@ -173,7 +173,7 @@ func rule4(mat *matrix.Matrix) int {
 		totalCnt             = mat.Width() * mat.Height()
 		darkCnt, darkPercent int
 	)
-	mat.Iter(matrix.ROW, func(x, y int, s matrix.State) {
+	mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
 		if s == matrix.StateTrue {
 			darkCnt++
 		}
@@ -205,9 +205,8 @@ func abs(x int) int {
 
 // Mask ...
 type Mask struct {
-	mat   *matrix.Matrix    // matrix
-	mode  MaskPatternModulo // mode
-	score int               // score 惩罚得分，分值越低说明越符合条件
+	mat  *matrix.Matrix    // matrix
+	mode MaskPatternModulo // mode
 }
 
 // NewMask ...
@@ -245,16 +244,16 @@ func (m *Mask) init() {
 		f = modulo7Func
 	}
 
-	m.mat.Iter(matrix.ROW, func(x, y int, s matrix.State) {
+	m.mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
 		// skip the function modules
 		if state, _ := m.mat.Get(x, y); state != matrix.StateInit {
-			m.mat.Set(x, y, matrix.StateInit)
+			_ = m.mat.Set(x, y, matrix.StateInit)
 			return
 		}
 		if f(x, y) {
-			m.mat.Set(x, y, matrix.StateTrue)
+			_ = m.mat.Set(x, y, matrix.StateTrue)
 		} else {
-			m.mat.Set(x, y, matrix.StateFalse)
+			_ = m.mat.Set(x, y, matrix.StateFalse)
 		}
 	})
 }
@@ -262,71 +261,47 @@ func (m *Mask) init() {
 // modulo0Func for maskPattern function
 // Modulo0 (x+y) mod 2 == 0
 func modulo0Func(x, y int) bool {
-	if (x+y)%2 == 0 {
-		return true
-	}
-	return false
+	return (x+y)%2 == 0
 }
 
 // modulo1Func for maskPattern function
 // Modulo1 (y) mod 2 == 0
 func modulo1Func(x, y int) bool {
-	if y%2 == 0 {
-		return true
-	}
-	return false
+	return y%2 == 0
 }
 
 // modulo2Func for maskPattern function
 // Modulo2 (x) mod 3 == 0
 func modulo2Func(x, y int) bool {
-	if x%3 == 0 {
-		return true
-	}
-	return false
+	return x%3 == 0
 }
 
 // modulo3Func for maskPattern function
 // Modulo3 (x+y) mod 3 == 0
 func modulo3Func(x, y int) bool {
-	if (x+y)%3 == 0 {
-		return true
-	}
-	return false
+	return (x+y)%3 == 0
 }
 
 // modulo4Func for maskPattern function
 // Modulo4 (floor (x/ 2) + floor (y/ 3) mod 2 == 0
 func modulo4Func(x, y int) bool {
-	if (x/3+y/2)%2 == 0 {
-		return true
-	}
-	return false
+	return (x/3+y/2)%2 == 0
 }
 
 // modulo5Func for maskPattern function
 // Modulo5 (x * y) mod 2 + (x * y) mod 3 == 0
 func modulo5Func(x, y int) bool {
-	if (x*y)%2+(x*y)%3 == 0 {
-		return true
-	}
-	return false
+	return (x*y)%2+(x*y)%3 == 0
 }
 
 // modulo6Func for maskPattern function
 // Modulo6 (x * y) mod 2) + (x * y) mod 3) mod 2 == 0
 func modulo6Func(x, y int) bool {
-	if ((x*y)%2+(x*y)%3)%2 == 0 {
-		return true
-	}
-	return false
+	return ((x*y)%2+(x*y)%3)%2 == 0
 }
 
 // modulo7Func for maskPattern function
 // Modulo7 (x + y) mod 2) + (x * y) mod 3) mod 2 == 0
 func modulo7Func(x, y int) bool {
-	if ((x+y)%2+(x*y)%3)%2 == 0 {
-		return true
-	}
-	return false
+	return ((x+y)%2+(x*y)%3)%2 == 0
 }

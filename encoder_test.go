@@ -144,8 +144,8 @@ func Test_analyzeAlphanum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := analyzeAlphanum(tt.args.byt); got != tt.want {
-				t.Errorf("analyzeAlphanum() = %v, want %v", got, tt.want)
+			if got := analyzeAlphaNum(tt.args.byt); got != tt.want {
+				t.Errorf("analyzeAlphaNum() = %v, want %v", got, tt.want)
 			}
 		})
 	}

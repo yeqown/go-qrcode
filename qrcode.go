@@ -7,7 +7,6 @@ import (
 	"math"
 	"os"
 	"sync"
-	"time"
 
 	// "github.com/skip2/go-qrcode/bitset"
 	// "github.com/skip2/go-qrcode/reedsolomon"
@@ -18,8 +17,8 @@ import (
 )
 
 var (
-	// DEBUG mode flag
-	DEBUG = false
+	// _debug mode flag
+	_debug = false
 
 	// once to load versions config file
 	once sync.Once
@@ -218,7 +217,7 @@ func (q *QRCode) errorCorrectionEncoding(dataBlocks []dataBlock) (blocks []ecBlo
 
 // arrarngeBits ... and save into dataBSet
 func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
-	if DEBUG {
+	if _debug {
 		log.Println("before arrange")
 		for i := 0; i < len(ecBlocks); i++ {
 			debugLogf("ec block_%d: %v", i, ecBlocks[i])
@@ -310,15 +309,15 @@ func (q *QRCode) initMatrix() {
 
 	// add finder left-top
 	addFinder(q.mat, 0, 0)
-	addSpliter(q.mat, 7, 7, dimension)
+	addSplitter(q.mat, 7, 7, dimension)
 	debugLogf("finish left-top finder")
 	// add finder right-top
 	addFinder(q.mat, dimension-7, 0)
-	addSpliter(q.mat, dimension-8, 7, dimension)
+	addSplitter(q.mat, dimension-8, 7, dimension)
 	debugLogf("finish right-top finder")
 	// add finder left-bottom
 	addFinder(q.mat, 0, dimension-7)
-	addSpliter(q.mat, 7, dimension-8, dimension)
+	addSplitter(q.mat, 7, dimension-8, dimension)
 	debugLogf("finish left-bottom finder")
 
 	// only version-1 QR code has no alignment module
@@ -348,7 +347,7 @@ func addFinder(m *matrix.Matrix, top, left int) {
 	// black outer
 	x, y := top, left
 	for i := 0; i < 24; i++ {
-		m.Set(x, y, matrix.StateTrue)
+		_ = m.Set(x, y, matrix.StateTrue)
 		if i < 6 {
 			x = x + 1
 		} else if i < 12 {
@@ -363,7 +362,7 @@ func addFinder(m *matrix.Matrix, top, left int) {
 	// white inner
 	x, y = top+1, left+1
 	for i := 0; i < 16; i++ {
-		m.Set(x, y, matrix.StateFalse)
+		_ = m.Set(x, y, matrix.StateFalse)
 		if i < 4 {
 			x = x + 1
 		} else if i < 8 {
@@ -378,27 +377,27 @@ func addFinder(m *matrix.Matrix, top, left int) {
 	// black inner
 	for x := left + 2; x < left+5; x++ {
 		for y := top + 2; y < top+5; y++ {
-			m.Set(x, y, matrix.StateTrue)
+			_ = m.Set(x, y, matrix.StateTrue)
 		}
 	}
 }
 
-// add spliter module
-func addSpliter(m *matrix.Matrix, x, y, dimension int) {
+// add splitter module
+func addSplitter(m *matrix.Matrix, x, y, dimension int) {
 	// top-left
 	if x == 7 && y == 7 {
 		for pos := 0; pos < 8; pos++ {
-			m.Set(x, pos, matrix.StateFalse)
-			m.Set(pos, y, matrix.StateFalse)
+			_ = m.Set(x, pos, matrix.StateFalse)
+			_ = m.Set(pos, y, matrix.StateFalse)
 		}
 		return
 	}
 
-	// top-ritgh
+	// top-right
 	if x == dimension-8 && y == 7 {
 		for pos := 0; pos < 8; pos++ {
-			m.Set(x, y-pos, matrix.StateFalse)
-			m.Set(x+pos, y, matrix.StateFalse)
+			_ = m.Set(x, y-pos, matrix.StateFalse)
+			_ = m.Set(x+pos, y, matrix.StateFalse)
 		}
 		return
 	}
@@ -406,8 +405,8 @@ func addSpliter(m *matrix.Matrix, x, y, dimension int) {
 	// bottom-left
 	if x == 7 && y == dimension-8 {
 		for pos := 0; pos < 8; pos++ {
-			m.Set(x, y+pos, matrix.StateFalse)
-			m.Set(x-pos, y, matrix.StateFalse)
+			_ = m.Set(x, y+pos, matrix.StateFalse)
+			_ = m.Set(x-pos, y, matrix.StateFalse)
 		}
 		return
 	}
@@ -416,11 +415,11 @@ func addSpliter(m *matrix.Matrix, x, y, dimension int) {
 
 // add matrix align module
 func addAlignment(m *matrix.Matrix, centerX, centerY int) {
-	m.Set(centerX, centerY, matrix.StateTrue)
+	_ = m.Set(centerX, centerY, matrix.StateTrue)
 	// black
 	x, y := centerX-2, centerY-2
 	for i := 0; i < 16; i++ {
-		m.Set(x, y, matrix.StateTrue)
+		_ = m.Set(x, y, matrix.StateTrue)
 		if i < 4 {
 			x = x + 1
 		} else if i < 8 {
@@ -434,7 +433,7 @@ func addAlignment(m *matrix.Matrix, centerX, centerY int) {
 	// white
 	x, y = centerX-1, centerY-1
 	for i := 0; i < 8; i++ {
-		m.Set(x, y, matrix.StateFalse)
+		_ = m.Set(x, y, matrix.StateFalse)
 		if i < 2 {
 			x = x + 1
 		} else if i < 4 {
@@ -451,57 +450,57 @@ func addAlignment(m *matrix.Matrix, centerX, centerY int) {
 func addTimingLine(m *matrix.Matrix, dimension int) {
 	for pos := 8; pos < dimension-8; pos++ {
 		if pos%2 == 0 {
-			m.Set(6, pos, matrix.StateTrue)
-			m.Set(pos, 6, matrix.StateTrue)
+			_ = m.Set(6, pos, matrix.StateTrue)
+			_ = m.Set(pos, 6, matrix.StateTrue)
 		} else {
-			m.Set(6, pos, matrix.StateFalse)
-			m.Set(pos, 6, matrix.StateFalse)
+			_ = m.Set(6, pos, matrix.StateFalse)
+			_ = m.Set(pos, 6, matrix.StateFalse)
 		}
 	}
 }
 
 // addDarkBlock ...
 func addDarkBlock(m *matrix.Matrix, x, y int) {
-	m.Set(x, y, matrix.StateTrue)
+	_ = m.Set(x, y, matrix.StateTrue)
 }
 
-// reserveFormatBlock maitain the postion in matrix for format info
+// reserveFormatBlock maintain the position in matrix for format info
 func reserveFormatBlock(m *matrix.Matrix, dimension int) {
 	for pos := 0; pos < 9; pos++ {
 		// skip timing line
 		if pos == 6 {
-			m.Set(8, dimension-pos, matrix.StateFormat)
-			m.Set(dimension-pos, 8, matrix.StateFormat)
+			_ = m.Set(8, dimension-pos, matrix.StateFormat)
+			_ = m.Set(dimension-pos, 8, matrix.StateFormat)
 			continue
 		}
 		// skip dark module
 		if pos == 8 {
-			m.Set(8, pos, matrix.StateFormat)           // top-left-column
-			m.Set(pos, 8, matrix.StateFormat)           // top-left-row
-			m.Set(dimension-pos, 8, matrix.StateFormat) // top-right-row
+			_ = m.Set(8, pos, matrix.StateFormat)           // top-left-column
+			_ = m.Set(pos, 8, matrix.StateFormat)           // top-left-row
+			_ = m.Set(dimension-pos, 8, matrix.StateFormat) // top-right-row
 			continue
 		}
-		m.Set(8, pos, matrix.StateFormat)           // top-left-column
-		m.Set(pos, 8, matrix.StateFormat)           // top-left-row
-		m.Set(dimension-pos, 8, matrix.StateFormat) // top-right-row
-		m.Set(8, dimension-pos, matrix.StateFormat) // bottom-left-column
+		_ = m.Set(8, pos, matrix.StateFormat)           // top-left-column
+		_ = m.Set(pos, 8, matrix.StateFormat)           // top-left-row
+		_ = m.Set(dimension-pos, 8, matrix.StateFormat) // top-right-row
+		_ = m.Set(8, dimension-pos, matrix.StateFormat) // bottom-left-column
 	}
 }
 
-// reserveVersionBlock maitain the postion in matrix for version info
+// reserveVersionBlock maintain the position in matrix for version info
 func reserveVersionBlock(m *matrix.Matrix, dimension int) {
 	// 3x6=18 cells
 	for i := 1; i <= 3; i++ {
 		for pos := 0; pos < 6; pos++ {
-			m.Set(dimension-8-i, pos, matrix.StateVersion)
-			m.Set(pos, dimension-8-i, matrix.StateVersion)
+			_ = m.Set(dimension-8-i, pos, matrix.StateVersion)
+			_ = m.Set(pos, dimension-8-i, matrix.StateVersion)
 		}
 	}
 }
 
 // fillIntoMatrix fill q.dataBSet bitset stream into q.mat, ref to:
 // http://www.thonky.com/qr-code-tutorial/module-placement-matrix
-func (q *QRCode) fillIntoMatrix(mat *matrix.Matrix, dimension int) {
+func (q *QRCode) fillIntoMatrix(m *matrix.Matrix, dimension int) {
 	var (
 		x, y      = dimension - 1, dimension - 1
 		l         = q.dataBSet.Len()
@@ -510,7 +509,7 @@ func (q *QRCode) fillIntoMatrix(mat *matrix.Matrix, dimension int) {
 
 		setState, state matrix.State
 		// turn      = false // if last loop, changed forward, this is true
-		// downFoward = false
+		// downForward = false
 		// once sync.Once
 		err error
 	)
@@ -518,7 +517,7 @@ func (q *QRCode) fillIntoMatrix(mat *matrix.Matrix, dimension int) {
 	for i := 0; pos < l; i++ {
 		// debugLogf("fillIntoMatrix: dimension: %d, len: %d: pos: %d", dimension, l, pos)
 
-		state, err = mat.Get(x, y)
+		state, err = m.Get(x, y)
 		if err == matrix.ErrorOutRangeOfW {
 			break
 		}
@@ -530,7 +529,7 @@ func (q *QRCode) fillIntoMatrix(mat *matrix.Matrix, dimension int) {
 		}
 
 		if state == matrix.StateInit {
-			mat.Set(x, y, setState)
+			_ = m.Set(x, y, setState)
 			pos++
 			// debugLogf("normal set turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
 		} else if state == matrix.ZERO {
@@ -548,9 +547,9 @@ func (q *QRCode) fillIntoMatrix(mat *matrix.Matrix, dimension int) {
 			}
 
 			upForward = !upForward
-			// debugLogf("unnormal state turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
-			if s, _ := mat.Get(x, y); s == matrix.StateInit {
-				mat.Set(x, y, setState)
+			// debugLogf("unmoral state turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
+			if s, _ := m.Get(x, y); s == matrix.StateInit {
+				_ = m.Set(x, y, setState)
 				pos++
 			}
 		}
@@ -632,20 +631,20 @@ func (q *QRCode) draw() {
 			q.fillIntoMatrix(mats[i], dimension)
 
 			// debug output
-			if DEBUG {
-				drawAndSaveToFile(fmt.Sprintf("draft/mats_%d.jpeg", i), *mats[i])
-				drawAndSaveToFile(fmt.Sprintf("draft/mask_%d.jpeg", i), *masks[i].mat)
+			if _debug {
+				_ = drawAndSaveToFile(fmt.Sprintf("draft/mats_%d.jpeg", i), *mats[i])
+				_ = drawAndSaveToFile(fmt.Sprintf("draft/mask_%d.jpeg", i), *masks[i].mat)
 			}
 
 			// xor with mask
 			q.xorMask(mats[i], masks[i])
-			if DEBUG {
-				drawAndSaveToFile(fmt.Sprintf("draft/mats_mask_%d.jpeg", i), *mats[i])
+			if _debug {
+				_ = drawAndSaveToFile(fmt.Sprintf("draft/mats_mask_%d.jpeg", i), *mats[i])
 			}
 
 			// fill format info
 			q.fillFormatInfo(mats[i], MaskPatternModulo(i), dimension)
-			// verion7 and larger version has version info
+			// version7 and larger version has version info
 			if q.v.Ver >= 7 {
 				q.fillVersionInfo(mats[i], dimension)
 			}
@@ -661,8 +660,8 @@ func (q *QRCode) draw() {
 			// 	lowScore = score
 			// 	markMatsIdx = i
 			// }
-			if DEBUG {
-				drawAndSaveToFile(fmt.Sprintf("draft/qrcode_mask_%d.jpeg", i), *mats[i])
+			if _debug {
+				_ = drawAndSaveToFile(fmt.Sprintf("draft/qrcode_mask_%d.jpeg", i), *mats[i])
 			}
 			wg.Done()
 		}(i)
@@ -682,20 +681,20 @@ func (q *QRCode) draw() {
 }
 
 // all mask patter and check the score choose the the lowest mask result
-func (q *QRCode) xorMask(mat *matrix.Matrix, mask *Mask) {
-	mask.mat.Iter(matrix.ROW, func(x, y int, s matrix.State) {
+func (q *QRCode) xorMask(m *matrix.Matrix, mask *Mask) {
+	mask.mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
 		// skip the empty palce
 		if s == matrix.StateInit {
 			return
 		}
-		s0, _ := mat.Get(x, y)
-		mat.Set(x, y, matrix.XOR(s0, s))
+		s0, _ := m.Get(x, y)
+		_ = m.Set(x, y, matrix.XOR(s0, s))
 	})
 }
 
 // fillVersionInfo ref to:
 // https://www.thonky.com/qr-code-tutorial/format-version-tables
-func (q *QRCode) fillVersionInfo(mat *matrix.Matrix, dimension int) {
+func (q *QRCode) fillVersionInfo(m *matrix.Matrix, dimension int) {
 	verBSet := q.v.verInfo()
 	var mod3, mod6 int
 	for pos := 0; pos < 18; pos++ {
@@ -703,18 +702,18 @@ func (q *QRCode) fillVersionInfo(mat *matrix.Matrix, dimension int) {
 		mod6 = pos % 6
 
 		if verBSet.At(pos) {
-			mat.Set(mod6, dimension-12+mod3, matrix.StateTrue)
-			mat.Set(dimension-12+mod3, mod6, matrix.StateTrue)
+			_ = m.Set(mod6, dimension-12+mod3, matrix.StateTrue)
+			_ = m.Set(dimension-12+mod3, mod6, matrix.StateTrue)
 		} else {
-			mat.Set(mod6, dimension-12+mod3, matrix.StateFalse)
-			mat.Set(dimension-12+mod3, mod6, matrix.StateTrue)
+			_ = m.Set(mod6, dimension-12+mod3, matrix.StateFalse)
+			_ = m.Set(dimension-12+mod3, mod6, matrix.StateTrue)
 		}
 	}
 }
 
 // fill format info ref to:
 // https://www.thonky.com/qr-code-tutorial/format-version-tables
-func (q *QRCode) fillFormatInfo(mat *matrix.Matrix, mode MaskPatternModulo, dimension int) {
+func (q *QRCode) fillFormatInfo(m *matrix.Matrix, mode MaskPatternModulo, dimension int) {
 	fmtBSet := q.v.formatInfo(int(mode))
 	debugLogf("fmtBitSet: %s", fmtBSet.String())
 	var (
@@ -724,14 +723,14 @@ func (q *QRCode) fillFormatInfo(mat *matrix.Matrix, mode MaskPatternModulo, dime
 	for pos := 0; pos < 15; pos++ {
 		if fmtBSet.At(pos) {
 			// row
-			mat.Set(x, 8, matrix.StateTrue)
+			_ = m.Set(x, 8, matrix.StateTrue)
 			// column
-			mat.Set(8, y, matrix.StateTrue)
+			_ = m.Set(8, y, matrix.StateTrue)
 		} else {
 			// row
-			mat.Set(x, 8, matrix.StateFalse)
+			_ = m.Set(x, 8, matrix.StateFalse)
 			// column
-			mat.Set(8, y, matrix.StateFalse)
+			_ = m.Set(8, y, matrix.StateFalse)
 		}
 
 		x = x + 1
@@ -753,16 +752,22 @@ func (q *QRCode) fillFormatInfo(mat *matrix.Matrix, mode MaskPatternModulo, dime
 	}
 }
 
-func (q *QRCode) debugDraw() {
-	if !DEBUG {
-		return
-	}
-	drawAndSaveToFile("./testdata/qrtest_loop.jpeg", *q.mat)
-	time.Sleep(time.Millisecond * 100)
+//
+//func (q *QRCode) debugDraw() {
+//	if !_debug {
+//		return
+//	}
+//	_ = drawAndSaveToFile("./testdata/qrtest_loop.jpeg", *q.mat)
+//	time.Sleep(time.Millisecond * 100)
+//}
+
+// SetDebugMode open debug mode
+func SetDebugMode() {
+	_debug = true
 }
 
 func debugLogf(fmt string, v ...interface{}) {
-	if !DEBUG {
+	if !_debug {
 		return
 	}
 	log.Printf(fmt, v...)

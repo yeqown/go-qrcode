@@ -28,19 +28,23 @@ var (
 //}
 
 // drawAndSaveToFile image with matrix
-func drawAndSaveToFile(name string, m matrix.Matrix) error {
+func drawAndSaveToFile(name string, m matrix.Matrix, opt *outputImageOptions) error {
 	f, err := os.Create(name)
 	if err != nil {
 		return fmt.Errorf("could not create file: %v", err)
 	}
 	defer f.Close()
 
-	return drawAndSave(f, m)
+	return drawAndSave(f, m, opt)
 }
 
 // drawAndSave save image into io.Writer
-func drawAndSave(w io.Writer, m matrix.Matrix) error {
-	img := draw(m, _defaultOutputOption)
+func drawAndSave(w io.Writer, m matrix.Matrix, opt *outputImageOptions) error {
+	if opt == nil {
+		opt = _defaultOutputOption
+	}
+
+	img := draw(m, opt)
 	return save(w, img)
 }
 

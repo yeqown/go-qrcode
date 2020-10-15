@@ -25,11 +25,17 @@ var (
 )
 
 // New generate a QRCode struct to create
-func New(text string) (*QRCode, error) {
+func New(text string, opts ...ImageOption) (*QRCode, error) {
+	dst := new(outputImageOptions)
+	for _, opt := range opts {
+		opt.apply(dst)
+	}
+
 	qrc := &QRCode{
-		content:     text,
-		mode:        EncModeByte,
-		needAnalyze: true,
+		content:      text,
+		mode:         EncModeByte,
+		needAnalyze:  true,
+		outputOption: dst,
 	}
 
 	// initialize QRCode instance
@@ -42,13 +48,19 @@ func New(text string) (*QRCode, error) {
 
 // NewWithSpecV generate a QRCode struct with
 // specified `ver`(QR version) and `ecLv`(Error Correction level)
-func NewWithSpecV(text string, ver int, ecLv ECLevel) (*QRCode, error) {
+func NewWithSpecV(text string, ver int, ecLv ECLevel, opts ...ImageOption) (*QRCode, error) {
+	dst := new(outputImageOptions)
+	for _, opt := range opts {
+		opt.apply(dst)
+	}
+
 	qrc := &QRCode{
-		content:     text,
-		ver:         ver,
-		mode:        EncModeByte,
-		ecLv:        ecLv,
-		needAnalyze: false,
+		content:      text,
+		ver:          ver,
+		mode:         EncModeByte,
+		ecLv:         ecLv,
+		needAnalyze:  false,
+		outputOption: dst,
 	}
 	// initialize QRCode instance
 	if err := qrc.init(); err != nil {
@@ -74,6 +86,9 @@ type QRCode struct {
 	encoder *Encoder // encoder ptr to call it's methods ~
 
 	needAnalyze bool // auto analyze form content or specified `mode, recoverLv, ver`
+
+	// outputOption option to draw image
+	outputOption *outputImageOptions
 }
 
 func (q *QRCode) init() error {
@@ -110,18 +125,18 @@ func (q *QRCode) init() error {
 		err        error       // global error var
 	)
 
-	// data encoding, and be splited into blocks
+	// data encoding, and be split into blocks
 	if dataBlocks, err = q.dataEncoding(); err != nil {
 		return err
 	}
 
-	// generate er bitsets, and alse be spilited into blocks
+	// generate er bitsets, and also be split into blocks
 	if ecBlocks, err = q.errorCorrectionEncoding(dataBlocks); err != nil {
 		return err
 	}
 
-	// arrange datablocks and ecblocks
-	q.arrarngeBits(dataBlocks, ecBlocks)
+	// arrange data blocks and EC blocks
+	q.arrangeBits(dataBlocks, ecBlocks)
 
 	// append ec bits after data bits
 	q.dataBSet.Append(q.ecBSet)
@@ -164,7 +179,7 @@ func (q *QRCode) dataEncoding() (blocks []dataBlock, err error) {
 
 	blocks = make([]dataBlock, q.v.TotalNumBlocks())
 
-	// split bset into data Block
+	// split bitset into data Block
 	start, end, blockID := 0, 0, 0
 	for _, g := range q.v.Groups {
 		for j := 0; j < g.NumBlocks; j++ {
@@ -189,7 +204,7 @@ func (q *QRCode) dataEncoding() (blocks []dataBlock, err error) {
 type dataBlock struct {
 	Data        *binary.Binary
 	StartOffset int // length
-	NumECBlock  int // error correction codewrods num per data block
+	NumECBlock  int // error correction codewords num per data block
 }
 
 // ecBlock ...
@@ -215,8 +230,8 @@ func (q *QRCode) errorCorrectionEncoding(dataBlocks []dataBlock) (blocks []ecBlo
 	return
 }
 
-// arrarngeBits ... and save into dataBSet
-func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
+// arrangeBits ... and save into dataBSet
+func (q *QRCode) arrangeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 	if _debug {
 		log.Println("before arrange")
 		for i := 0; i < len(ecBlocks); i++ {
@@ -267,7 +282,7 @@ func (q *QRCode) arrarngeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 		}
 	}
 
-	// arrange ec blocks, and reinitial
+	// arrange ec blocks and reinitialize
 	endFlag = false
 	overflowCnt = 0
 	curIdx = 0
@@ -587,13 +602,13 @@ func (q *QRCode) Save(saveToPath string) error {
 		saveToPath = defaultFilename
 	}
 	q.draw()
-	return drawAndSaveToFile(saveToPath, *q.mat)
+	return drawAndSaveToFile(saveToPath, *q.mat, q.outputOption)
 }
 
 // SaveTo QRCode image into `w`(io.Writer)
 func (q *QRCode) SaveTo(w io.Writer) error {
 	q.draw()
-	return drawAndSave(w, *q.mat)
+	return drawAndSave(w, *q.mat, q.outputOption)
 }
 
 // draw ... with bitset
@@ -632,14 +647,14 @@ func (q *QRCode) draw() {
 
 			// debug output
 			if _debug {
-				_ = drawAndSaveToFile(fmt.Sprintf("draft/mats_%d.jpeg", i), *mats[i])
-				_ = drawAndSaveToFile(fmt.Sprintf("draft/mask_%d.jpeg", i), *masks[i].mat)
+				_ = drawAndSaveToFile(fmt.Sprintf("draft/mats_%d.jpeg", i), *mats[i], nil)
+				_ = drawAndSaveToFile(fmt.Sprintf("draft/mask_%d.jpeg", i), *masks[i].mat, nil)
 			}
 
 			// xor with mask
 			q.xorMask(mats[i], masks[i])
 			if _debug {
-				_ = drawAndSaveToFile(fmt.Sprintf("draft/mats_mask_%d.jpeg", i), *mats[i])
+				_ = drawAndSaveToFile(fmt.Sprintf("draft/mats_mask_%d.jpeg", i), *mats[i], nil)
 			}
 
 			// fill format info
@@ -661,7 +676,7 @@ func (q *QRCode) draw() {
 			// 	markMatsIdx = i
 			// }
 			if _debug {
-				_ = drawAndSaveToFile(fmt.Sprintf("draft/qrcode_mask_%d.jpeg", i), *mats[i])
+				_ = drawAndSaveToFile(fmt.Sprintf("draft/qrcode_mask_%d.jpeg", i), *mats[i], nil)
 			}
 			wg.Done()
 		}(i)

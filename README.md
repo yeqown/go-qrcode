@@ -56,8 +56,11 @@ func WithFgColorRGBHex(hex string) ImageOption {}
 // WithLogoImage .
 func WithLogoImage(img image.Image) ImageOption {}
 
-// WithLogoImageFile load image from file, PNG is required
-func WithLogoImageFile(f string) ImageOption {}
+// WithLogoImageFilePNG load image from file, PNG is required
+func WithLogoImageFilePNG(f string) ImageOption {}
+
+// WithLogoImageFileJPEG load image from file, JPEG is required
+func WithLogoImageFileJPEG(f string) ImageOption {}
 
 // WithQRWidth specify width of each qr block
 func WithQRWidth(width uint8) ImageOption {}

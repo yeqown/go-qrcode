@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/jpeg"
-	"image/png"
-	"os"
+
+	"github.com/yeqown/go-qrcode/matrix"
 )
 
 // _defaultOutputOption default output image background color and etc options
@@ -65,104 +64,55 @@ func (oo *outputImageOptions) qrBlockWidth() int {
 	return oo.qrWidth
 }
 
-type ImageOption interface {
-	apply(o *outputImageOptions)
-}
-
-// funcOption wraps a function that modifies outputImageOptions into an
-// implementation of the ImageOption interface.
-type funcOption struct {
-	f func(oo *outputImageOptions)
-}
-
-func (fo *funcOption) apply(oo *outputImageOptions) {
-	fo.f(oo)
-}
-
-func newFuncDialOption(f func(oo *outputImageOptions)) *funcOption {
-	return &funcOption{
-		f: f,
+var (
+	// _stateToRGBA state map tp color.Gray16
+	_stateToRGBA = map[matrix.State]color.Color{
+		matrix.StateFalse: hexToRGBA("#ffffff"),
+		matrix.StateTrue:  hexToRGBA("#000000"),
+		matrix.StateInit:  hexToRGBA("#cdc9c3"),
+		// matrix.StateVersion: hexToRGBA("#444444"),
+		// matrix.StateFormat:  hexToRGBA("#555555"),
 	}
+
+	// _defaultStateColor default color of undefined matrix.State
+	// it shouldn't be used.
+	_defaultStateColor = hexToRGBA("#ff414d")
+)
+
+// stateRGBA get color.Color by value State
+func (oo *outputImageOptions) stateRGBA(v matrix.State) color.Color {
+	if v, ok := _stateToRGBA[v]; ok {
+		return v
+	}
+
+	return _defaultStateColor
 }
 
-// WithBgColor background color
-func WithBgColor(c color.Color) ImageOption {
-	return newFuncDialOption(func(oo *outputImageOptions) {
-		oo.bgColor = c
-	})
-}
+// hexToRGBA convert hex string into color.RGBA
+func hexToRGBA(s string) color.RGBA {
+	c := color.RGBA{
+		R: 0,
+		G: 0,
+		B: 0,
+		A: 0xff,
+	}
 
-// WithBgColorRGBHex background color
-func WithBgColorRGBHex(hex string) ImageOption {
-	return newFuncDialOption(func(oo *outputImageOptions) {
-		oo.bgColor = hexToRGBA(hex)
-	})
-}
+	var err error
+	switch len(s) {
+	case 7:
+		_, err = fmt.Sscanf(s, "#%02x%02x%02x", &c.R, &c.G, &c.B)
+	case 4:
+		_, err = fmt.Sscanf(s, "#%1x%1x%1x", &c.R, &c.G, &c.B)
+		// Double the hex digits:
+		c.R *= 17
+		c.G *= 17
+		c.B *= 17
+	default:
+		err = fmt.Errorf("invalid length, must be 7 or 4")
+	}
+	if err != nil {
+		panic(err)
+	}
 
-// WithFgColor QR color
-func WithFgColor(c color.Color) ImageOption {
-	return newFuncDialOption(func(oo *outputImageOptions) {
-		oo.qrColor = c
-	})
-}
-
-// WithFgColorRGBHex Hex string to set QR Color
-func WithFgColorRGBHex(hex string) ImageOption {
-	return newFuncDialOption(func(oo *outputImageOptions) {
-		oo.qrColor = hexToRGBA(hex)
-	})
-}
-
-// WithLogoImage image should only has 1/5 width of QRCode at most
-func WithLogoImage(img image.Image) ImageOption {
-	return newFuncDialOption(func(oo *outputImageOptions) {
-		oo.logo = img
-	})
-}
-
-// WithLogoImageFileJPEG load image from file, jpeg is required.
-// image should only has 1/5 width of QRCode at most
-func WithLogoImageFileJPEG(f string) ImageOption {
-	return newFuncDialOption(func(oo *outputImageOptions) {
-		fd, err := os.Open(f)
-		if err != nil {
-			fmt.Printf("could not open file(%s), error=%v\n", f, err)
-			return
-		}
-
-		img, err := jpeg.Decode(fd)
-		if err != nil {
-			fmt.Printf("could not open file(%s), error=%v\n", f, err)
-			return
-		}
-
-		oo.logo = img
-	})
-}
-
-// WithLogoImageFilePNG load image from file, PNG is required.
-// image should only has 1/5 width of QRCode at most
-func WithLogoImageFilePNG(f string) ImageOption {
-	return newFuncDialOption(func(oo *outputImageOptions) {
-		fd, err := os.Open(f)
-		if err != nil {
-			fmt.Printf("could not open file(%s), error=%v\n", f, err)
-			return
-		}
-
-		img, err := png.Decode(fd)
-		if err != nil {
-			fmt.Printf("could not open file(%s), error=%v\n", f, err)
-			return
-		}
-
-		oo.logo = img
-	})
-}
-
-// WithQRWidth specify width of each qr block
-func WithQRWidth(width uint8) ImageOption {
-	return newFuncDialOption(func(oo *outputImageOptions) {
-		oo.qrWidth = int(width)
-	})
+	return c
 }

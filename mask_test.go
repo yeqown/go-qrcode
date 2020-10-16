@@ -7,7 +7,7 @@ import (
 )
 
 func TestMask(t *testing.T) {
-	qrc, _ := New("baidu.com")
+	qrc, _ := New("baidu.com google.com qq.com sina.com apple.com")
 	qrc.initMatrix()
 
 	var stateInitCnt int

@@ -14,6 +14,7 @@ func Test_image_draw(t *testing.T) {
 	for x := 0; x < m.Width(); x++ {
 		_ = m.Set(x, 3, matrix.StateTrue)
 	}
+
 	if err := drawAndSaveToFile("./testdata/default.jpeg", *m, nil); err != nil {
 		t.Errorf("want nil, but err: %v", err)
 		t.Fail()
@@ -32,17 +33,17 @@ func Test_stateRGBA(t *testing.T) {
 		{
 			name: "case 1",
 			args: args{v: matrix.StateFalse},
-			want: hexToRGBA("#1aa6b7"),
+			want: _stateToRGBA[matrix.StateFalse],
 		},
 		{
 			name: "case 2",
 			args: args{v: matrix.StateInit},
-			want: _defaultStateColor,
+			want: _stateToRGBA[matrix.StateInit],
 		},
 		{
 			name: "case 3",
 			args: args{v: matrix.StateTrue},
-			want: hexToRGBA("#01c5c4"),
+			want: _stateToRGBA[matrix.StateTrue],
 		},
 		{
 			name: "case 4",
@@ -62,8 +63,8 @@ func Test_stateRGBA(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := stateRGBA(tt.args.v); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("loadGray16() = %v, want %v", got, tt.want)
+			if got := new(outputImageOptions).stateRGBA(tt.args.v); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("stateRGBA() = %v, want %v", got, tt.want)
 			}
 		})
 	}

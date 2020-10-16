@@ -10,10 +10,11 @@ import (
 
 // _defaultOutputOption default output image background color and etc options
 var _defaultOutputOption = &outputImageOptions{
-	bgColor: color.White, // white
-	qrColor: color.Black, // black
-	logo:    nil,
-	qrWidth: 20,
+	bgColor: color.White,     // white
+	qrColor: color.Black,     // black
+	logo:    nil,             //
+	qrWidth: 20,              //
+	shape:   _shapeRectangle, //
 }
 
 // outputImageOptions to output QR code image
@@ -30,6 +31,9 @@ type outputImageOptions struct {
 
 	// qrWidth width of each qr block
 	qrWidth int
+
+	// shape
+	shape IShape
 }
 
 func (oo *outputImageOptions) backgroundColor() color.Color {
@@ -62,6 +66,14 @@ func (oo *outputImageOptions) qrBlockWidth() int {
 	}
 
 	return oo.qrWidth
+}
+
+func (oo *outputImageOptions) getShape() IShape {
+	if oo == nil || oo.shape == nil {
+		return _shapeRectangle
+	}
+
+	return oo.shape
 }
 
 var (

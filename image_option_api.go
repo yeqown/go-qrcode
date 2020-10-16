@@ -116,3 +116,17 @@ func WithQRWidth(width uint8) ImageOption {
 		oo.qrWidth = int(width)
 	})
 }
+
+// WithCircleShape use circle shape as rectangle(default)
+func WithCircleShape() ImageOption {
+	return newFuncDialOption(func(oo *outputImageOptions) {
+		oo.shape = _shapeCircle
+	})
+}
+
+// WithCustomShape use custom shape as rectangle(default)
+func WithCustomShape(shape IShape) ImageOption {
+	return newFuncDialOption(func(oo *outputImageOptions) {
+		oo.shape = shape
+	})
+}

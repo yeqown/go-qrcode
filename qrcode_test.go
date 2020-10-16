@@ -87,3 +87,21 @@ func Test_New_WithOutputOption_Logo(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func Test_New_WithOutputOption_Shape(t *testing.T) {
+	qrc, err := New("Test_New_WithOutputOption_Shape",
+		WithBgColorRGBHex("#b8de6f"),
+		WithFgColorRGBHex("#f1e189"),
+		WithCircleShape(),
+	)
+	if err != nil {
+		t.Errorf("could not generate QRCode: %v", err)
+		t.Fail()
+	}
+
+	// save file
+	if err := qrc.Save("./testdata/qrtest_circle.jpeg"); err != nil {
+		t.Errorf("could not save image: %v", err)
+		t.Fail()
+	}
+}

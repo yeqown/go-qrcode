@@ -3,6 +3,7 @@ package qrcode
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"image/jpeg"
 	"io"
 	"log"
@@ -73,25 +74,33 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 		}
 	}
 
-	// iterate the matrix to draw each pixel
-	mat.Iterate(matrix.ROW, func(x int, y int, v matrix.State) {
-		xStart := x*opt.qrBlockWidth() + _defaultPadding
-		yStart := y*opt.qrBlockWidth() + _defaultPadding
-		xEnd := (x+1)*opt.qrBlockWidth() + _defaultPadding
-		yEnd := (y+1)*opt.qrBlockWidth() + _defaultPadding
+	ctx := &DrawContext{
+		upperLeft:  image.Point{}, // useless
+		lowerRight: image.Point{}, // useless
+		img:        rgba,
+		color:      color.Black, // useless
+	}
+	shape := opt.getShape()
 
-		// draw the block
-		// TODO(@yeqown): make this abstract to Shape
-		for posX := xStart; posX < xEnd; posX++ {
-			for posY := yStart; posY < yEnd; posY++ {
-				rgba.Set(posX, posY, opt.stateRGBA(v))
-			}
+	// iterate the matrix to Draw each pixel
+	mat.Iterate(matrix.ROW, func(x int, y int, v matrix.State) {
+		// Draw the block
+		ctx.upperLeft = image.Point{
+			X: x*opt.qrBlockWidth() + _defaultPadding,
+			Y: y*opt.qrBlockWidth() + _defaultPadding,
 		}
+		ctx.lowerRight = image.Point{
+			X: (x+1)*opt.qrBlockWidth() + _defaultPadding,
+			Y: (y+1)*opt.qrBlockWidth() + _defaultPadding,
+		}
+		ctx.color = opt.stateRGBA(v)
+		// DONE(@yeqown): make this abstract to Shapes
+		shape.Draw(ctx)
 	})
 
 	// DONE(@yeqown): add logo image
 	if opt.logoImage() != nil {
-		// draw logo image into rgba
+		// Draw logo image into rgba
 		bound := opt.logo.Bounds()
 		upperLeft, lowerRight := bound.Min, bound.Max
 		logoWidth, logoHeight := lowerRight.X-upperLeft.X, lowerRight.Y-upperLeft.Y

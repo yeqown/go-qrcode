@@ -129,7 +129,7 @@ var (
 	_stateToRGBA = map[matrix.State]color.Color{
 		matrix.StateFalse: hexToRGBA("#1aa6b7"),
 		matrix.StateTrue:  hexToRGBA("#01c5c4"),
-		// matrix.StateInit:  hexToRGBA("#1aa6b7"),
+		matrix.StateInit:  hexToRGBA("#d2d3c9"),
 		// matrix.StateVersion: hexToRGBA("#444444"),
 		// matrix.StateFormat:  hexToRGBA("#555555"),
 	}

@@ -3,39 +3,46 @@ package qrcode
 import (
 	"image"
 	"image/color"
-	"image/jpeg"
-	"os"
 	"testing"
+
+	"github.com/fogleman/gg"
 )
 
 func Test_circle_Draw(t *testing.T) {
 	rect := image.Rect(0, 0, 100, 100)
 	rgba := image.NewRGBA(rect)
-	// white background
-	for posX := rect.Min.X; posX < rect.Max.X; posX++ {
-		for posY := rect.Min.Y; posY < rect.Max.Y; posY++ {
-			rgba.Set(posX, posY, color.White)
-		}
-	}
+	dc := gg.NewContextForRGBA(rgba)
+
+	dc.DrawRectangle(0, 0, 100, 100)
+	dc.SetColor(color.White)
+	dc.Fill()
 
 	ctx := &DrawContext{
-		upperLeft:  rect.Min,
-		lowerRight: rect.Max,
-		img:        rgba,
-		color:      color.White,
+		Context:    dc,
+		upperLeft:  image.Point{X: 0, Y: 0},
+		lowerRight: image.Point{X: 50, Y: 50},
+		color:      color.Black,
 	}
 	_shapeCircle.Draw(ctx)
 
-	// save to file
-	fd, err := os.Create("./testdata/circle.jpeg")
+	err := dc.SavePNG("./testdata/circle.png")
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
 	}
+}
 
-	err = jpeg.Encode(fd, rgba, nil)
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
+func Test_gg(t *testing.T) {
+	rect := image.Rect(0, 0, 100, 100)
+	rgba := image.NewRGBA(rect)
+	dc := gg.NewContextForRGBA(rgba)
+
+	dc.DrawRectangle(0, 0, 100, 100)
+	dc.SetColor(color.White)
+	dc.Fill()
+
+	dc.DrawCircle(50, 50, 40)
+	dc.SetColor(color.Black)
+	dc.Fill()
+	_ = dc.SavePNG("out.png")
 }

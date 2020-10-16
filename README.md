@@ -75,6 +75,7 @@ following are some shots:
 
 <img src="./testdata/qrtest_fg_bg.jpeg" width="100px">
 <img src="./testdata/qrtest_icon.jpeg" width="100px">
+<img src="./testdata/qrtest_circle.jpeg" width="100px">
 
 ### Documention
 

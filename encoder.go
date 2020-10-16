@@ -75,18 +75,18 @@ type Encoder struct {
 	ecLv ECLevel // error correction level
 
 	// self load
-	version Version // QR verison ref
+	version Version // QR version ref
 }
 
 // Encode ...
 // 1. encode raw data into bitset
-// 2. append padding data
+// 2. append _defaultPadding data
 //
 func (e *Encoder) Encode(byts []byte) (*binary.Binary, error) {
 	e.dst = binary.New()
 	e.data = byts
 
-	// appedn mode indicator symbol
+	// append mode indicator symbol
 	indicator := getEncodeModeIndicator(e.mode)
 	e.dst.Append(indicator)
 	// append chars length counter bits symbol
@@ -104,7 +104,7 @@ func (e *Encoder) Encode(byts []byte) (*binary.Binary, error) {
 		panic("this has not been finished")
 	}
 
-	// fill and padding bits
+	// fill and _defaultPadding bits
 	e.breakUpInto8bit()
 
 	return e.dst, nil
@@ -162,14 +162,14 @@ func (e *Encoder) encodeByte() {
 		return
 	}
 	for _, b := range e.data {
-		e.dst.AppendByte(b, 8)
+		_ = e.dst.AppendByte(b, 8)
 	}
 }
 
 // Break Up into 8-bit Codewords and Add Pad Bytes if Necessary
 func (e *Encoder) breakUpInto8bit() {
 	// fill ending code (max 4bit)
-	// depends on max capcity of current version and EC level
+	// depends on max capacity of current version and EC level
 	maxCap := e.version.NumTotalCodewrods() * 8
 	if less := maxCap - e.dst.Len(); less < 0 {
 		err := fmt.Errorf(
@@ -188,8 +188,8 @@ func (e *Encoder) breakUpInto8bit() {
 		e.dst.AppendNumBools(8-mod, false)
 	}
 
-	// padding bytes
-	// padding byte 11101100 00010001
+	// _defaultPadding bytes
+	// _defaultPadding byte 11101100 00010001
 	if n := maxCap - e.dst.Len(); n > 0 {
 		debugLogf("maxCap: %d, len: %d, less: %d", maxCap, e.dst.Len(), n)
 		for i := 1; i <= (n / 8); i++ {
@@ -285,7 +285,7 @@ func anlayzeMode(raw []byte) EncMode {
 		case EncModeNumeric:
 			if !analyFunc(byt) {
 				encMode = EncModeAlphanumeric
-				analyFunc = analyzeAlphanum
+				analyFunc = analyzeAlphaNum
 			}
 		case EncModeAlphanumeric:
 			if !analyFunc(byt) {
@@ -303,8 +303,8 @@ func analyzeNum(byt byte) bool {
 	return byt >= '0' && byt <= '9'
 }
 
-// analyzeAlphanum ... is byt in alphanum
-func analyzeAlphanum(byt byte) bool {
+// analyzeAlphaNum ... is byt in alpha number
+func analyzeAlphaNum(byt byte) bool {
 	if (byt >= '0' && byt <= '9') || (byt >= 'A' && byt <= 'Z') {
 		return true
 	}

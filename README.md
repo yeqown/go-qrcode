@@ -1,6 +1,8 @@
 # go-qrcode #
 
-<img src="./testdata/repo-qrcode.jpeg" width="100px" align="right"/>
+[![Go Report Card](https://goreportcard.com/badge/github.com/yeqown/go-qrcode)](https://goreportcard.com/report/github.com/yeqown/go-qrcode) [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/yeqown/go-qrcode)
+
+<img src="./qrcode.jpeg" width="100px" align="right"/>
 QR code (abbreviated from Quick Response Code) is the trademark for a type of matrix barcode (or two-dimensional barcode) first designed in 1994 for the automotive industry in Japan. A barcode is a machine-readable optical label that contains information about the item to which it is attached. A QR code uses four standardized encoding modes (numeric, alphanumeric, byte/binary, and kanji) to store data efficiently; extensions may also be used
 
 ### Install
@@ -34,9 +36,49 @@ func main() {
 }
 ```
 
+### Options
+
+now `go-qrcode` provides some options to customize output QRCode.
+
+```go
+// WithBgColor background color
+func WithBgColor(c color.Color) ImageOption {}
+
+// WithBgColorRGBHex background color
+func WithBgColorRGBHex(hex string) ImageOption {}
+
+// WithFgColor QR color
+func WithFgColor(c color.Color) ImageOption {}
+
+// WithFgColorRGBHex Hex string to set QR Color
+func WithFgColorRGBHex(hex string) ImageOption {}
+
+// WithLogoImage .
+func WithLogoImage(img image.Image) ImageOption {}
+
+// WithLogoImageFilePNG load image from file, PNG is required
+func WithLogoImageFilePNG(f string) ImageOption {}
+
+// WithLogoImageFileJPEG load image from file, JPEG is required
+func WithLogoImageFileJPEG(f string) ImageOption {}
+
+// WithQRWidth specify width of each qr block
+func WithQRWidth(width uint8) ImageOption {}
+```
+
+use options in `New` and `NewWithSpecV`. 
+```go
+func New("text", WithQRWidth(x)) // x is uint8 (0 - 255)
+```
+
+following are some shots:
+
+<img src="./testdata/qrtest_fg_bg.jpeg" width="100px">
+<img src="./testdata/qrtest_icon.jpeg" width="100px">
+
 ### Documention
 
-Jump to [godoc.org/github/yeqown/go-qrcode](https://godoc.org/github.com/yeqown/go-qrcode)
+Jump to [go.dev/github/yeqown/go-qrcode](https://godoc.org/github.com/yeqown/go-qrcode)
 
 ### Links
 

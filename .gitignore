@@ -1,4 +1,3 @@
-/testdata/
 vendor/
 draft/
 # example/
@@ -9,3 +8,4 @@ default.jpeg
 .DS_store
 js/
 default.jpeg
+.idea/

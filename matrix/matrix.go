@@ -3,14 +3,10 @@ package matrix
 import (
 	"errors"
 	"fmt"
-	"image/color"
 )
 
 // ScanDirection scan matrix driection
 type ScanDirection uint
-
-// State value of matrix map[][]
-type State uint16
 
 const (
 	// ROW for row first
@@ -18,15 +14,17 @@ const (
 
 	// COLUMN for column first
 	COLUMN ScanDirection = 2
+)
 
-	// StateFalse 0xffff FLASE
+// State value of matrix map[][]
+type State uint16
+
+const (
+	// StateFalse 0xffff FALSE
 	StateFalse State = 0xffff
 
 	// ZERO 0x0 FALSE
 	ZERO State = 0xeeee
-
-	// BORDER ... gray color
-	BORDER State = 0x3333
 
 	// StateTrue 0x0 TRUE
 	StateTrue State = 0x0
@@ -37,29 +35,12 @@ const (
 	// StateVersion 0x4444
 	StateVersion State = 0x4444
 
-	// StateFormat 0x7777 for presisted state
+	// StateFormat 0x7777 for persisted state
 	StateFormat State = 0x7777
 )
 
 func (s State) String() string {
 	return fmt.Sprintf("0x%X", uint16(s))
-}
-
-// LoadGray16 load color by value State
-func LoadGray16(v State) color.Gray16 {
-	switch v {
-	case StateFalse:
-		return colorMap[StateFalse]
-	case StateTrue:
-		return colorMap[StateTrue]
-	case StateInit:
-		return colorMap[StateInit]
-	case StateVersion:
-		return colorMap[StateVersion]
-	case StateFormat:
-		return colorMap[StateFormat]
-	}
-	return color.Gray16{Y: uint16(v)}
 }
 
 var (
@@ -68,15 +49,6 @@ var (
 
 	// ErrorOutRangeOfH y out of range of Height
 	ErrorOutRangeOfH = errors.New("out of range of height")
-
-	// colorMap state map tp color.Gray16
-	colorMap = map[State]color.Gray16{
-		StateFalse:   color.Gray16{Y: uint16(StateFalse)},
-		StateTrue:    color.Gray16{Y: uint16(StateTrue)},
-		StateInit:    color.Gray16{Y: uint16(StateInit)},
-		StateVersion: color.Gray16{Y: uint16(StateVersion)},
-		StateFormat:  color.Gray16{Y: uint16(StateFormat)},
-	}
 )
 
 func StateSliceMatched(ss1, ss2 []State) bool {
@@ -109,9 +81,8 @@ func New(width, height int) *Matrix {
 	return m
 }
 
-// Matrix ...
+// Matrix is a matrix data type
 // width:3 height: 4 for [3][4]int
-//
 type Matrix struct {
 	mat    [][]State
 	width  int
@@ -129,7 +100,7 @@ func (m *Matrix) init() {
 
 // Print to stdout
 func (m *Matrix) print() {
-	m.Iter(ROW, func(x, y int, s State) {
+	m.Iterate(ROW, func(x, y int, s State) {
 		fmt.Printf("(%2d,%2d)%s ", x, y, s)
 		if (x + 1) == m.width {
 			fmt.Println()
@@ -186,11 +157,11 @@ func (m *Matrix) Get(w, h int) (State, error) {
 	return m.mat[w][h], nil
 }
 
-// IterFunc ...
-type IterFunc func(int, int, State)
+// IterateFunc ...
+type IterateFunc func(int, int, State)
 
-// Iter the Matrix with loop direction ROW major or COLUMN major
-func (m *Matrix) Iter(dir ScanDirection, f IterFunc) {
+// Iterate the Matrix with loop direction ROW major or COLUMN major
+func (m *Matrix) Iterate(dir ScanDirection, f IterateFunc) {
 	// row direction first
 	if dir == ROW {
 		for h := 0; h < m.height; h++ {

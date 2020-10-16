@@ -238,7 +238,7 @@ func Test_loadVersion(t *testing.T) {
 
 func Test_analyzeVersion(t *testing.T) {
 	// load(defaultVersionCfg)
-	v := loadVersion(1, Meddium)
+	v := loadVersion(1, Medium)
 	type args struct {
 		raw   []byte
 		ecLv  ECLevel
@@ -254,7 +254,7 @@ func Test_analyzeVersion(t *testing.T) {
 			name: "case 0",
 			args: args{
 				raw:   []byte("TEXT"),
-				ecLv:  Meddium,
+				ecLv:  Medium,
 				eMode: EncModeAlphanumeric,
 			},
 			want:    &v,

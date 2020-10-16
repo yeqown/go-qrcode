@@ -15,8 +15,8 @@ const (
 	// Low :Level L: 7% error recovery.
 	Low ECLevel = iota
 
-	// Meddium :Level M: 15% error recovery. Good default choice.
-	Meddium
+	// Medium :Level M: 15% error recovery. Good default choice.
+	Medium
 
 	// Quart :Level Q: 25% error recovery.
 	Quart
@@ -81,7 +81,7 @@ var (
 )
 
 func init() {
-	// if DEBUG {
+	// if _debug {
 	// 	if err := load(defaultVersionCfg); err != nil {
 	// 		panic(err)
 	// 	}
@@ -111,14 +111,14 @@ func init() {
 
 // capacity struct includes data type max capacity
 type capacity struct {
-	Numeric      int `json:"n"` // num capcity
-	AlphaNumeric int `json:"a"` // char capcity
-	Byte         int `json:"b"` // byte capcity (utf-8 also)
-	JP           int `json:"j"` // Janpanese capcity
+	Numeric      int `json:"n"` // num capacity
+	AlphaNumeric int `json:"a"` // char capacity
+	Byte         int `json:"b"` // byte capacity (utf-8 also)
+	JP           int `json:"j"` // Japanese capacity
 }
 
 // group contains fields to generate ECBlocks
-// and append padding bit
+// and append _defaultPadding bit
 type group struct {
 	// NumBlocks num of blocks
 	NumBlocks int `json:"nbs"`
@@ -138,7 +138,7 @@ type Version struct {
 	// ECLevel error correction 0, 1, 2, 3
 	ECLevel ECLevel `json:"eclv"`
 
-	// Cap includes each type's max capcity (specified by `Ver` and `ECLevel`)
+	// Cap includes each type's max capacity (specified by `Ver` and `ECLevel`)
 	// ref to: https://www.thonky.com/qr-code-tutorial/character-capacities
 	Cap capacity `json:"cap"`
 
@@ -199,7 +199,7 @@ func (v Version) formatInfo(maskPattern int) *binary.Binary {
 	switch v.ECLevel {
 	case Low:
 		formatID = 0x08 // 0b01000
-	case Meddium:
+	case Medium:
 		formatID = 0x00 // 0b00000
 	case Quart:
 		formatID = 0x18 // 0b11000
@@ -261,7 +261,7 @@ func analyzeVersion(raw []byte, ecLv ECLevel, eMode EncMode) (*Version, error) {
 		}
 	}
 
-	debugLogf("missmatched version, version's length: %d, ecLv: %v", len(versions), ecLv)
+	debugLogf("mismatched version, version's length: %d, ecLv: %v", len(versions), ecLv)
 	return nil, errMissMatchedVersion
 }
 
@@ -273,17 +273,17 @@ func analyzeVersion(raw []byte, ecLv ECLevel, eMode EncMode) (*Version, error) {
 var (
 	// TODO: append more version
 	alignPatternLocation = map[int][]int{
-		2: []int{6, 18},
-		3: []int{6, 22},
-		4: []int{6, 26},
-		5: []int{6, 30},
-		6: []int{6, 34},
+		2: {6, 18},
+		3: {6, 22},
+		4: {6, 26},
+		5: {6, 30},
+		6: {6, 34},
 	}
 
 	alignPatternCache = map[int][]loc{}
 )
 
-// loc point postion(x,y)
+// loc point position(x,y)
 type loc struct {
 	X int // for width
 	Y int // for height

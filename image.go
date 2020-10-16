@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"image/jpeg"
 	"io"
+	"log"
 	"os"
 
 	"github.com/yeqown/go-qrcode/matrix"
@@ -46,42 +47,42 @@ func drawAndSave(w io.Writer, m matrix.Matrix, opt *outputImageOptions) (err err
 
 // draw deal QRCode's matrix to be a image.Image
 func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
-	_stateToRGBA[matrix.StateFalse] = opt.backgroundColor
-	_stateToRGBA[matrix.StateTrue] = opt.qrColor
+	_stateToRGBA[matrix.StateFalse] = opt.backgroundColor()
+	_stateToRGBA[matrix.StateTrue] = opt.foregroundColor()
 
 	// w as image width, h as image height
-	w := mat.Width()*opt.qrWidth + 2*_defaultPadding
+	w := mat.Width()*opt.qrBlockWidth() + 2*_defaultPadding
 	h := w
 	rgba := image.NewRGBA(image.Rect(0, 0, w, h))
 
 	// top-bottom _defaultPadding
 	for posX := 0; posX < w; posX++ {
 		for posY := 0; posY < _defaultPadding; posY++ {
-			rgba.Set(posX, posY, opt.backgroundColor)
+			rgba.Set(posX, posY, opt.backgroundColor())
 		}
 
 		for posY := h - _defaultPadding; posY < h; posY++ {
-			rgba.Set(posX, posY, opt.backgroundColor)
+			rgba.Set(posX, posY, opt.backgroundColor())
 		}
 	}
 
 	// left-right _defaultPadding
 	for posY := _defaultPadding; posY < h-_defaultPadding; posY++ {
 		for posX := 0; posX < _defaultPadding; posX++ {
-			rgba.Set(posX, posY, opt.backgroundColor)
+			rgba.Set(posX, posY, opt.backgroundColor())
 		}
 
 		for posX := w - _defaultPadding; posX < w; posX++ {
-			rgba.Set(posX, posY, opt.backgroundColor)
+			rgba.Set(posX, posY, opt.backgroundColor())
 		}
 	}
 
 	// iterate the matrix to draw each pixel
 	mat.Iterate(matrix.ROW, func(x int, y int, v matrix.State) {
-		xStart := x*opt.qrWidth + _defaultPadding
-		yStart := y*opt.qrWidth + _defaultPadding
-		xEnd := (x+1)*opt.qrWidth + _defaultPadding
-		yEnd := (y+1)*opt.qrWidth + _defaultPadding
+		xStart := x*opt.qrBlockWidth() + _defaultPadding
+		yStart := y*opt.qrBlockWidth() + _defaultPadding
+		xEnd := (x+1)*opt.qrBlockWidth() + _defaultPadding
+		yEnd := (y+1)*opt.qrBlockWidth() + _defaultPadding
 
 		// draw the block
 		// TODO(@yeqown): make this abstract to Shape
@@ -92,22 +93,35 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 		}
 	})
 
-	// DONE(@yeqown): add icon image
-	if opt.logoImage != nil {
-		// draw icon image into rgba
-		bound := opt.logoImage.Bounds()
+	// DONE(@yeqown): add logo image
+	if opt.logoImage() != nil {
+		// draw logo image into rgba
+		bound := opt.logo.Bounds()
 		upperLeft, lowerRight := bound.Min, bound.Max
+		logoWidth, logoHeight := lowerRight.X-upperLeft.X, lowerRight.Y-upperLeft.Y
+
+		if !validLogoImage(w, h, logoWidth, logoHeight) {
+			log.Printf("w=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/5 of QRCode \n",
+				w, h, logoWidth, logoHeight)
+			goto done
+		}
+
+		// DONE(@yeqown): calculate the xOffset and yOffset
 		// which point(xOffset, yOffset) should icon upper-left to start
-		xOffset, yOffset := 0, 0
+		xOffset, yOffset := (w-logoWidth)/2, (h-logoHeight)/2
 
 		for posX := upperLeft.X; posX < lowerRight.X; posX++ {
 			for posY := upperLeft.Y; posY < lowerRight.Y; posY++ {
-				rgba.Set(posX+xOffset, posY+yOffset, opt.logoImage.At(posX, posY))
+				rgba.Set(posX+xOffset, posY+yOffset, opt.logo.At(posX, posY))
 			}
 		}
 	}
-
+done:
 	return rgba
+}
+
+func validLogoImage(qrWidth, qrHeight, logoWidth, logoHeight int) bool {
+	return qrWidth >= 5*logoWidth && qrHeight >= 5*logoHeight
 }
 
 var (

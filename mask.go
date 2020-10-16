@@ -36,15 +36,15 @@ var (
 		matrix.StateTrue, matrix.StateFalse, matrix.StateTrue, matrix.StateTrue, matrix.StateTrue, matrix.StateFalse, matrix.StateTrue}
 )
 
-// CalculateScore calculate the score of masking result ...
+// CalculateScore calculate the maskScore of masking result ...
 func CalculateScore(mat *matrix.Matrix) int {
-	debugLogf("calculate score starting")
+	debugLogf("calculate maskScore starting")
 	score1 := rule1(mat.Copy())
 	score2 := rule2(mat.Copy())
 	score3 := rule3(mat.Copy())
 	score4 := rule4(mat.Copy())
 
-	debugLogf("score: %d", score1+score2+score3+score4)
+	debugLogf("maskScore: %d", score1+score2+score3+score4)
 	return score1 + score2 + score3 + score4
 }
 
@@ -186,7 +186,7 @@ func rule4(mat *matrix.Matrix) int {
 	last5Times := abs(((darkPercent/5)-x)*5 - 50)
 	next5Times := abs(((darkPercent/5)+1)*5 - 50)
 
-	// get the min score
+	// get the min maskScore
 	if last5Times > next5Times {
 		// scoreC <- next5Times / 5 * 10
 		return next5Times * 2

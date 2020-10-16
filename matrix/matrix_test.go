@@ -112,7 +112,7 @@ func TestMatrix_Copy(t *testing.T) {
 	// change origin
 	m1.Set(2, 2, StateTrue)
 
-	// cmpare copy of the matrix
+	// compare copy of the matrix
 	if !reflect.DeepEqual(got, m2) {
 		t.Errorf("Matrix.Copy() = %v, want %v", got, m2)
 		t.Fail()

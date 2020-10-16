@@ -8,24 +8,23 @@ import (
 // ScanDirection scan matrix driection
 type ScanDirection uint
 
-// State value of matrix map[][]
-type State uint16
-
 const (
 	// ROW for row first
 	ROW ScanDirection = 1
 
 	// COLUMN for column first
 	COLUMN ScanDirection = 2
+)
 
+// State value of matrix map[][]
+type State uint16
+
+const (
 	// StateFalse 0xffff FALSE
 	StateFalse State = 0xffff
 
 	// ZERO 0x0 FALSE
 	ZERO State = 0xeeee
-
-	// BORDER ... gray color
-	BORDER State = 0x3333
 
 	// StateTrue 0x0 TRUE
 	StateTrue State = 0x0

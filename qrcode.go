@@ -8,9 +8,6 @@ import (
 	"os"
 	"sync"
 
-	// "github.com/skip2/go-qrcode/bitset"
-	// "github.com/skip2/go-qrcode/reedsolomon"
-
 	"github.com/yeqown/go-qrcode/matrix"
 	"github.com/yeqown/reedsolomon"
 	"github.com/yeqown/reedsolomon/binary"
@@ -70,7 +67,8 @@ func NewWithSpecV(text string, ver int, ecLv ECLevel, opts ...ImageOption) (*QRC
 	return qrc, nil
 }
 
-// QRCode contains: infos
+// QRCode contains fields to generate QRCode matrix, outputImageOptions to draw image,
+// and etc.
 type QRCode struct {
 	content string // input text content
 	rawData []byte // raw Data to transfer
@@ -595,17 +593,26 @@ func (q *QRCode) fillIntoMatrix(m *matrix.Matrix, dimension int) {
 }
 
 // Save QRCode image into saveToPath
-// TODO(@yeqown): use SaveTo rather than drawAndSaveToFile
-func (q *QRCode) Save(saveToPath string) error {
-	if _, err := os.Open(saveToPath); err != nil && os.IsExist(err) {
+// DONE(@yeqown): use SaveTo rather than drawAndSaveToFile
+func (q *QRCode) Save(saveToPath string) (err error) {
+	var fd io.WriteCloser
+
+	if _, err = os.Stat(saveToPath); err != nil && os.IsExist(err) {
+		// custom path got: "file exists"
 		log.Printf("could not find path: %s, then save to %s",
 			saveToPath, _defaultFilename)
 		saveToPath = _defaultFilename
 	}
 
-	q.draw()
+	fd, err = os.Create(saveToPath)
+	if err != nil {
+		return fmt.Errorf("save failed, err=%v", err)
+	}
 
-	return drawAndSaveToFile(saveToPath, *q.mat, q.outputOption)
+	return q.SaveTo(fd)
+
+	//q.draw()
+	//return drawAndSaveToFile(saveToPath, *q.mat, q.outputOption)
 }
 
 // SaveTo QRCode image into `w`(io.Writer)
@@ -614,19 +621,20 @@ func (q *QRCode) SaveTo(w io.Writer) error {
 	return drawAndSave(w, *q.mat, q.outputOption)
 }
 
-// draw ... with bitset
+// draw from bitset to matrix.Matrix, calculate all mask modula score,
+// then decide which mask to use according to the mask's score (the lowest one).
 func (q *QRCode) draw() {
-
-	type sc struct {
+	type maskScore struct {
 		Score int
 		Idx   int
 	}
+
 	var (
 		masks       = make([]*Mask, 8)
 		mats        = make([]*matrix.Matrix, 8)
 		lowScore    = math.MaxInt32
 		markMatsIdx int
-		scoreChan   = make(chan sc, 8)
+		scoreChan   = make(chan maskScore, 8)
 		wg          sync.WaitGroup
 	)
 
@@ -667,17 +675,14 @@ func (q *QRCode) draw() {
 				q.fillVersionInfo(mats[i], dimension)
 			}
 
-			// calculate score and decide the low score and draw
+			// calculate score and decide the lowest score and draw
 			score := CalculateScore(mats[i])
 			debugLogf("cur idx: %d, score: %d, current lowest: mats[%d]:%d", i, score, markMatsIdx, lowScore)
-			scoreChan <- sc{
+			scoreChan <- maskScore{
 				Score: score,
 				Idx:   i,
 			}
-			// if score < lowScore {
-			// 	lowScore = score
-			// 	markMatsIdx = i
-			// }
+
 			if _debug {
 				_ = drawAndSaveToFile(fmt.Sprintf("draft/qrcode_mask_%d.jpeg", i), *mats[i], nil)
 			}
@@ -698,7 +703,7 @@ func (q *QRCode) draw() {
 	q.mat = mats[markMatsIdx]
 }
 
-// all mask patter and check the score choose the the lowest mask result
+// all mask patter and check the maskScore choose the the lowest mask result
 func (q *QRCode) xorMask(m *matrix.Matrix, mask *Mask) {
 	mask.mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
 		// skip the empty palce

@@ -67,7 +67,7 @@ func NewWithSpecV(text string, ver int, ecLv ecLevel, opts ...ImageOption) (*QRC
 	return qrc, nil
 }
 
-// QRCode contains fields to generate QRCode matrix, outputImageOptions to draw image,
+// QRCode contains fields to generate QRCode matrix, outputImageOptions to Draw image,
 // and etc.
 type QRCode struct {
 	content string // input text content
@@ -611,7 +611,7 @@ func (q *QRCode) Save(saveToPath string) (err error) {
 
 	return q.SaveTo(fd)
 
-	//q.draw()
+	//q.Draw()
 	//return drawAndSaveToFile(saveToPath, *q.mat, q.outputOption)
 }
 
@@ -675,7 +675,7 @@ func (q *QRCode) draw() {
 				q.fillVersionInfo(mats[i], dimension)
 			}
 
-			// calculate score and decide the lowest score and draw
+			// calculate score and decide the lowest score and Draw
 			score := calculateScore(mats[i])
 			debugLogf("cur idx: %d, score: %d, current lowest: mats[%d]:%d", i, score, markMatsIdx, lowScore)
 			scoreChan <- maskScore{

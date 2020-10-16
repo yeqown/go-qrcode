@@ -64,6 +64,12 @@ func WithLogoImageFileJPEG(f string) ImageOption {}
 
 // WithQRWidth specify width of each qr block
 func WithQRWidth(width uint8) ImageOption {}
+
+// WithCircleShape use circle shape as rectangle(default)
+func WithCircleShape() ImageOption {}
+
+// WithCustomShape use custom shape as rectangle(default)
+func WithCustomShape(shape IShape) ImageOption {}
 ```
 
 use options in `New` and `NewWithSpecV`. 
@@ -75,6 +81,7 @@ following are some shots:
 
 <img src="./testdata/qrtest_fg_bg.jpeg" width="100px">
 <img src="./testdata/qrtest_icon.jpeg" width="100px">
+<img src="./testdata/qrtest_circle.jpeg" width="100px">
 
 ### Documention
 

@@ -45,7 +45,7 @@ func (r circle) Draw(c *DrawContext) {
 	w := c.lowerRight.X - c.upperLeft.X
 	h := c.lowerRight.Y - c.upperLeft.Y
 
-	// choose property radius values
+	// choose a proper radius values
 	radius := w / 2
 	r2 := h / 2
 	if r2 <= radius {

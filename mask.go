@@ -4,27 +4,27 @@ import (
 	"github.com/yeqown/go-qrcode/matrix"
 )
 
-// MaskPatternModulo ...
-// Mask Pattern ref to: https://www.thonky.com/qr-code-tutorial/mask-patterns
-type MaskPatternModulo uint32
+// maskPatternModulo ...
+// mask Pattern ref to: https://www.thonky.com/qr-code-tutorial/mask-patterns
+type maskPatternModulo uint32
 
 const (
-	// Modulo0 (x+y) mod 2 == 0
-	Modulo0 MaskPatternModulo = iota
-	// Modulo1 (x) mod 2 == 0
-	Modulo1
-	// Modulo2 (y) mod 3 == 0
-	Modulo2
-	// Modulo3 (x+y) mod 3 == 0
-	Modulo3
-	// Modulo4 (floor (x/ 2) + floor (y/ 3) mod 2 == 0
-	Modulo4
-	// Modulo5 (x * y) mod 2) + (x * y) mod 3) == 0
-	Modulo5
-	// Modulo6 (x * y) mod 2) + (x * y) mod 3) mod 2 == 0
-	Modulo6
-	// Modulo7 (x + y) mod 2) + (x * y) mod 3) mod 2 == 0
-	Modulo7
+	// modulo0 (x+y) mod 2 == 0
+	modulo0 maskPatternModulo = iota
+	// modulo1 (x) mod 2 == 0
+	modulo1
+	// modulo2 (y) mod 3 == 0
+	modulo2
+	// modulo3 (x+y) mod 3 == 0
+	modulo3
+	// modulo4 (floor (x/ 2) + floor (y/ 3) mod 2 == 0
+	modulo4
+	// modulo5 (x * y) mod 2) + (x * y) mod 3) == 0
+	modulo5
+	// modulo6 (x * y) mod 2) + (x * y) mod 3) mod 2 == 0
+	modulo6
+	// modulo7 (x + y) mod 2) + (x * y) mod 3) mod 2 == 0
+	modulo7
 )
 
 var (
@@ -36,8 +36,8 @@ var (
 		matrix.StateTrue, matrix.StateFalse, matrix.StateTrue, matrix.StateTrue, matrix.StateTrue, matrix.StateFalse, matrix.StateTrue}
 )
 
-// CalculateScore calculate the maskScore of masking result ...
-func CalculateScore(mat *matrix.Matrix) int {
+// calculateScore calculate the maskScore of masking result ...
+func calculateScore(mat *matrix.Matrix) int {
 	debugLogf("calculate maskScore starting")
 	score1 := rule1(mat.Copy())
 	score2 := rule2(mat.Copy())
@@ -203,15 +203,14 @@ func abs(x int) int {
 	return x
 }
 
-// Mask ...
-type Mask struct {
+type mask struct {
 	mat  *matrix.Matrix    // matrix
-	mode MaskPatternModulo // mode
+	mode maskPatternModulo // mode
 }
 
-// NewMask ...
-func NewMask(m *matrix.Matrix, mode MaskPatternModulo) *Mask {
-	mask := &Mask{
+// newMask ...
+func newMask(m *matrix.Matrix, mode maskPatternModulo) *mask {
+	mask := &mask{
 		mat:  m.Copy(),
 		mode: mode,
 	}
@@ -219,28 +218,28 @@ func NewMask(m *matrix.Matrix, mode MaskPatternModulo) *Mask {
 	return mask
 }
 
-// MaskPatternFunc ...
-type MaskPatternFunc func(int, int) bool
+// moduloFunc to define what's modulo func
+type moduloFunc func(int, int) bool
 
 // init generate maks by mode
-func (m *Mask) init() {
-	var f MaskPatternFunc
+func (m *mask) init() {
+	var f moduloFunc
 	switch m.mode {
-	case Modulo0:
+	case modulo0:
 		f = modulo0Func
-	case Modulo1:
+	case modulo1:
 		f = modulo1Func
-	case Modulo2:
+	case modulo2:
 		f = modulo2Func
-	case Modulo3:
+	case modulo3:
 		f = modulo3Func
-	case Modulo4:
+	case modulo4:
 		f = modulo4Func
-	case Modulo5:
+	case modulo5:
 		f = modulo5Func
-	case Modulo6:
+	case modulo6:
 		f = modulo6Func
-	case Modulo7:
+	case modulo7:
 		f = modulo7Func
 	}
 
@@ -259,49 +258,49 @@ func (m *Mask) init() {
 }
 
 // modulo0Func for maskPattern function
-// Modulo0 (x+y) mod 2 == 0
+// modulo0 (x+y) mod 2 == 0
 func modulo0Func(x, y int) bool {
 	return (x+y)%2 == 0
 }
 
 // modulo1Func for maskPattern function
-// Modulo1 (y) mod 2 == 0
+// modulo1 (y) mod 2 == 0
 func modulo1Func(x, y int) bool {
 	return y%2 == 0
 }
 
 // modulo2Func for maskPattern function
-// Modulo2 (x) mod 3 == 0
+// modulo2 (x) mod 3 == 0
 func modulo2Func(x, y int) bool {
 	return x%3 == 0
 }
 
 // modulo3Func for maskPattern function
-// Modulo3 (x+y) mod 3 == 0
+// modulo3 (x+y) mod 3 == 0
 func modulo3Func(x, y int) bool {
 	return (x+y)%3 == 0
 }
 
 // modulo4Func for maskPattern function
-// Modulo4 (floor (x/ 2) + floor (y/ 3) mod 2 == 0
+// modulo4 (floor (x/ 2) + floor (y/ 3) mod 2 == 0
 func modulo4Func(x, y int) bool {
 	return (x/3+y/2)%2 == 0
 }
 
 // modulo5Func for maskPattern function
-// Modulo5 (x * y) mod 2 + (x * y) mod 3 == 0
+// modulo5 (x * y) mod 2 + (x * y) mod 3 == 0
 func modulo5Func(x, y int) bool {
 	return (x*y)%2+(x*y)%3 == 0
 }
 
 // modulo6Func for maskPattern function
-// Modulo6 (x * y) mod 2) + (x * y) mod 3) mod 2 == 0
+// modulo6 (x * y) mod 2) + (x * y) mod 3) mod 2 == 0
 func modulo6Func(x, y int) bool {
 	return ((x*y)%2+(x*y)%3)%2 == 0
 }
 
 // modulo7Func for maskPattern function
-// Modulo7 (x + y) mod 2) + (x * y) mod 3) mod 2 == 0
+// modulo7 (x + y) mod 2) + (x * y) mod 3) mod 2 == 0
 func modulo7Func(x, y int) bool {
 	return ((x+y)%2+(x*y)%3)%2 == 0
 }

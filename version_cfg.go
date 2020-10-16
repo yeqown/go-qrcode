@@ -1,7 +1,7 @@
 package qrcode
 
 var (
-	versions = []Version{
+	versions = []version{
 		{
 			Ver:     1,
 			ECLevel: 0,

@@ -9,9 +9,9 @@ import (
 // }
 
 func TestEncodeNum(t *testing.T) {
-	enc := Encoder{
+	enc := encoder{
 		ecLv:    Low,
-		mode:    EncModeNumeric,
+		mode:    encModeNumeric,
 		version: loadVersion(1, Low),
 	}
 
@@ -24,9 +24,9 @@ func TestEncodeNum(t *testing.T) {
 }
 
 func TestEncodeAlphanum(t *testing.T) {
-	enc := Encoder{
+	enc := encoder{
 		ecLv:    Low,
-		mode:    EncModeAlphanumeric,
+		mode:    encModeAlphanumeric,
 		version: loadVersion(1, Low),
 	}
 
@@ -39,9 +39,9 @@ func TestEncodeAlphanum(t *testing.T) {
 }
 
 func TestEncodeByte(t *testing.T) {
-	enc := Encoder{
+	enc := encoder{
 		ecLv:    Quart,
-		mode:    EncModeByte,
+		mode:    encModeByte,
 		version: loadVersion(5, Quart),
 	}
 
@@ -158,37 +158,37 @@ func Test_anlayzeMode(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want EncMode
+		want encMode
 	}{
 		{
 			name: "case 0",
 			args: args{raw: []byte("123120899231")},
-			want: EncModeNumeric,
+			want: encModeNumeric,
 		},
 		{
 			name: "case 1",
 			args: args{raw: []byte(":/1231H208*99231FBJO")},
-			want: EncModeAlphanumeric,
+			want: encModeAlphanumeric,
 		},
 		{
 			name: "case 2",
 			args: args{raw: []byte("hahah1298312hG&^FBJO@jhgG*")},
-			want: EncModeByte,
+			want: encModeByte,
 		},
 		{
 			name: "case 3",
 			args: args{raw: []byte("JKAHDOIANKQOIHCMJKASJ")},
-			want: EncModeAlphanumeric,
+			want: encModeAlphanumeric,
 		},
 		{
 			name: "case 4",
 			args: args{raw: []byte("https://baidu.com?keyword=_JSO==GA")},
-			want: EncModeByte,
+			want: encModeByte,
 		},
 		{
 			name: "case 5",
 			args: args{raw: []byte("这是汉字也应该是EncModeByte")},
-			want: EncModeByte,
+			want: encModeByte,
 		},
 	}
 	for _, tt := range tests {

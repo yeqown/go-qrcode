@@ -34,7 +34,7 @@ import (
 func TestVersion_Dimension(t *testing.T) {
 	type fields struct {
 		Ver           int
-		ECLevel       ECLevel
+		ECLevel       ecLevel
 		Cap           capacity
 		RemainderBits int
 		Groups        []group
@@ -48,7 +48,7 @@ func TestVersion_Dimension(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := Version{
+			v := version{
 				Ver:           tt.fields.Ver,
 				ECLevel:       tt.fields.ECLevel,
 				Cap:           tt.fields.Cap,
@@ -56,7 +56,7 @@ func TestVersion_Dimension(t *testing.T) {
 				Groups:        tt.fields.Groups,
 			}
 			if got := v.Dimension(); got != tt.want {
-				t.Errorf("Version.Dimension() = %v, want %v", got, tt.want)
+				t.Errorf("version.Dimension() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -65,7 +65,7 @@ func TestVersion_Dimension(t *testing.T) {
 func TestVersion_NumTotalCodewrods(t *testing.T) {
 	type fields struct {
 		Ver           int
-		ECLevel       ECLevel
+		ECLevel       ecLevel
 		Cap           capacity
 		RemainderBits int
 		Groups        []group
@@ -79,7 +79,7 @@ func TestVersion_NumTotalCodewrods(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := Version{
+			v := version{
 				Ver:           tt.fields.Ver,
 				ECLevel:       tt.fields.ECLevel,
 				Cap:           tt.fields.Cap,
@@ -87,7 +87,7 @@ func TestVersion_NumTotalCodewrods(t *testing.T) {
 				Groups:        tt.fields.Groups,
 			}
 			if got := v.NumTotalCodewrods(); got != tt.want {
-				t.Errorf("Version.NumTotalCodewrods() = %v, want %v", got, tt.want)
+				t.Errorf("version.NumTotalCodewrods() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -96,7 +96,7 @@ func TestVersion_NumTotalCodewrods(t *testing.T) {
 func TestVersion_NumGroups(t *testing.T) {
 	type fields struct {
 		Ver           int
-		ECLevel       ECLevel
+		ECLevel       ecLevel
 		Cap           capacity
 		RemainderBits int
 		Groups        []group
@@ -110,7 +110,7 @@ func TestVersion_NumGroups(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := Version{
+			v := version{
 				Ver:           tt.fields.Ver,
 				ECLevel:       tt.fields.ECLevel,
 				Cap:           tt.fields.Cap,
@@ -118,7 +118,7 @@ func TestVersion_NumGroups(t *testing.T) {
 				Groups:        tt.fields.Groups,
 			}
 			if got := v.NumGroups(); got != tt.want {
-				t.Errorf("Version.NumGroups() = %v, want %v", got, tt.want)
+				t.Errorf("version.NumGroups() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -127,7 +127,7 @@ func TestVersion_NumGroups(t *testing.T) {
 func TestVersion_verInfo(t *testing.T) {
 	type fields struct {
 		Ver           int
-		ECLevel       ECLevel
+		ECLevel       ecLevel
 		Cap           capacity
 		RemainderBits int
 		Groups        []group
@@ -141,7 +141,7 @@ func TestVersion_verInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := Version{
+			v := version{
 				Ver:           tt.fields.Ver,
 				ECLevel:       tt.fields.ECLevel,
 				Cap:           tt.fields.Cap,
@@ -149,7 +149,7 @@ func TestVersion_verInfo(t *testing.T) {
 				Groups:        tt.fields.Groups,
 			}
 			if got := v.verInfo(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Version.verInfo() = %v, want %v", got, tt.want)
+				t.Errorf("version.verInfo() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -158,7 +158,7 @@ func TestVersion_verInfo(t *testing.T) {
 func TestVersion_formatInfo(t *testing.T) {
 	type fields struct {
 		Ver           int
-		ECLevel       ECLevel
+		ECLevel       ecLevel
 		Cap           capacity
 		RemainderBits int
 		Groups        []group
@@ -176,7 +176,7 @@ func TestVersion_formatInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			v := Version{
+			v := version{
 				Ver:           tt.fields.Ver,
 				ECLevel:       tt.fields.ECLevel,
 				Cap:           tt.fields.Cap,
@@ -184,7 +184,7 @@ func TestVersion_formatInfo(t *testing.T) {
 				Groups:        tt.fields.Groups,
 			}
 			if got := v.formatInfo(tt.args.maskPattern); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Version.formatInfo() = %v, want %v", got, tt.want)
+				t.Errorf("version.formatInfo() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -194,12 +194,12 @@ func Test_loadVersion(t *testing.T) {
 	// load(defaultVersionCfg)
 	type args struct {
 		lv         int
-		recoveryLv ECLevel
+		recoveryLv ecLevel
 	}
 	tests := []struct {
 		name string
 		args args
-		want Version
+		want version
 	}{
 		{
 			name: "case 0",
@@ -207,7 +207,7 @@ func Test_loadVersion(t *testing.T) {
 				lv:         1,
 				recoveryLv: Highest,
 			},
-			want: Version{
+			want: version{
 				Ver:     1,
 				ECLevel: Highest,
 				Cap: capacity{
@@ -241,13 +241,13 @@ func Test_analyzeVersion(t *testing.T) {
 	v := loadVersion(1, Medium)
 	type args struct {
 		raw   []byte
-		ecLv  ECLevel
-		eMode EncMode
+		ecLv  ecLevel
+		eMode encMode
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *Version
+		want    *version
 		wantErr bool
 	}{
 		{
@@ -255,7 +255,7 @@ func Test_analyzeVersion(t *testing.T) {
 			args: args{
 				raw:   []byte("TEXT"),
 				ecLv:  Medium,
-				eMode: EncModeAlphanumeric,
+				eMode: encModeAlphanumeric,
 			},
 			want:    &v,
 			wantErr: false,

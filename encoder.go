@@ -9,20 +9,20 @@ import (
 	"github.com/yeqown/reedsolomon/binary"
 )
 
-// EncMode ...
-type EncMode uint
+// encMode ...
+type encMode uint
 
 const (
-	// EncModeNone mode ...
-	EncModeNone EncMode = 1 << iota
-	// EncModeNumeric mode ...
-	EncModeNumeric
-	// EncModeAlphanumeric mode ...
-	EncModeAlphanumeric
-	// EncModeByte mode ...
-	EncModeByte
-	// EncModeJP mode ...
-	EncModeJP
+	// encModeNone mode ...
+	encModeNone encMode = 1 << iota
+	// encModeNumeric mode ...
+	encModeNumeric
+	// encModeAlphanumeric mode ...
+	encModeAlphanumeric
+	// encModeByte mode ...
+	encModeByte
+	// encModeJP mode ...
+	encModeJP
 )
 
 var (
@@ -30,18 +30,18 @@ var (
 	paddingByte2, _ = binary.NewFromBinaryString("00010001")
 )
 
-// GetEncModeName ...
-func GetEncModeName(mode EncMode) string {
+// getEncModeName ...
+func getEncModeName(mode encMode) string {
 	switch mode {
-	case EncModeNone:
+	case encModeNone:
 		return "none"
-	case EncModeNumeric:
+	case encModeNumeric:
 		return "numeric"
-	case EncModeAlphanumeric:
+	case encModeAlphanumeric:
 		return "alphanumeric"
-	case EncModeByte:
+	case encModeByte:
 		return "byte"
-	case EncModeJP:
+	case encModeJP:
 		return "japan"
 	default:
 		return "unknown"
@@ -49,40 +49,40 @@ func GetEncModeName(mode EncMode) string {
 }
 
 // getEncodeModeIndicator ...
-func getEncodeModeIndicator(mode EncMode) *binary.Binary {
+func getEncodeModeIndicator(mode encMode) *binary.Binary {
 	switch mode {
-	case EncModeNumeric:
+	case encModeNumeric:
 		return binary.New(false, false, false, true)
-	case EncModeAlphanumeric:
+	case encModeAlphanumeric:
 		return binary.New(false, false, true, false)
-	case EncModeByte:
+	case encModeByte:
 		return binary.New(false, true, false, false)
-	case EncModeJP:
+	case encModeJP:
 		return binary.New(true, false, false, false)
 	default:
 		panic("no indicator")
 	}
 }
 
-// Encoder ... data to bit stream ...
-type Encoder struct {
+// encoder ... data to bit stream ...
+type encoder struct {
 	// self init
 	dst  *binary.Binary
 	data []byte // raw input data
 
 	// initial params
-	mode EncMode // encode mode
-	ecLv ECLevel // error correction level
+	mode encMode // encode mode
+	ecLv ecLevel // error correction level
 
 	// self load
-	version Version // QR version ref
+	version version // QR version ref
 }
 
 // Encode ...
 // 1. encode raw data into bitset
 // 2. append _defaultPadding data
 //
-func (e *Encoder) Encode(byts []byte) (*binary.Binary, error) {
+func (e *encoder) Encode(byts []byte) (*binary.Binary, error) {
 	e.dst = binary.New()
 	e.data = byts
 
@@ -94,13 +94,13 @@ func (e *Encoder) Encode(byts []byte) (*binary.Binary, error) {
 
 	// encode data with specified mode
 	switch e.mode {
-	case EncModeNumeric:
+	case encModeNumeric:
 		e.encodeNumeric()
-	case EncModeAlphanumeric:
+	case encModeAlphanumeric:
 		e.encodeAlphanumeric()
-	case EncModeByte:
+	case encModeByte:
 		e.encodeByte()
-	case EncModeJP:
+	case encModeJP:
 		panic("this has not been finished")
 	}
 
@@ -111,7 +111,7 @@ func (e *Encoder) Encode(byts []byte) (*binary.Binary, error) {
 }
 
 // 0001b mode indicator
-func (e *Encoder) encodeNumeric() {
+func (e *encoder) encodeNumeric() {
 	if e.dst == nil {
 		log.Println("e.dst is nil")
 		return
@@ -132,7 +132,7 @@ func (e *Encoder) encodeNumeric() {
 }
 
 // 0010b mode indicator
-func (e *Encoder) encodeAlphanumeric() {
+func (e *encoder) encodeAlphanumeric() {
 	if e.dst == nil {
 		log.Println("e.dst is nil")
 		return
@@ -156,7 +156,7 @@ func (e *Encoder) encodeAlphanumeric() {
 }
 
 // 0100b mode indicator
-func (e *Encoder) encodeByte() {
+func (e *encoder) encodeByte() {
 	if e.dst == nil {
 		log.Println("e.dst is nil")
 		return
@@ -167,7 +167,7 @@ func (e *Encoder) encodeByte() {
 }
 
 // Break Up into 8-bit Codewords and Add Pad Bytes if Necessary
-func (e *Encoder) breakUpInto8bit() {
+func (e *encoder) breakUpInto8bit() {
 	// fill ending code (max 4bit)
 	// depends on max capacity of current version and EC level
 	maxCap := e.version.NumTotalCodewrods() * 8
@@ -219,7 +219,7 @@ var charCountMap = map[string]int{
 }
 
 // charCountBits
-func (e *Encoder) charCountBits() int {
+func (e *encoder) charCountBits() int {
 	var lv int
 	if v := e.version.Ver; v <= 9 {
 		lv = 9
@@ -228,7 +228,7 @@ func (e *Encoder) charCountBits() int {
 	} else {
 		lv = 40
 	}
-	pos := fmt.Sprintf("%d_%s", lv, GetEncModeName(e.mode))
+	pos := fmt.Sprintf("%d_%s", lv, getEncModeName(e.mode))
 	return charCountMap[pos]
 }
 
@@ -274,25 +274,25 @@ type analyzeEncFunc func(byte) bool
 // 如果输入字符串只包含数字（0-9），请使用数字编码模式。
 // 在数字编码模式不适用的情况下，如果可以在字符索引表的左列中找到输入字符串中的所有字符，请使用字符编码模式。注意：小写字母不能使用字符编码模式。
 // 在字符编码模式不适用的情况下，如果字符可以在ISO-8859-1字符集中找到，则使用字节编码模式。
-func anlayzeMode(raw []byte) EncMode {
+func anlayzeMode(raw []byte) encMode {
 	var (
 		analyFunc analyzeEncFunc = analyzeNum
-		encMode                  = EncModeNumeric
+		encMode                  = encModeNumeric
 	)
 	// check
 	for _, byt := range raw {
 		switch encMode {
-		case EncModeNumeric:
+		case encModeNumeric:
 			if !analyFunc(byt) {
-				encMode = EncModeAlphanumeric
+				encMode = encModeAlphanumeric
 				analyFunc = analyzeAlphaNum
 			}
-		case EncModeAlphanumeric:
+		case encModeAlphanumeric:
 			if !analyFunc(byt) {
-				encMode = EncModeByte
+				encMode = encModeByte
 			}
-		case EncModeByte:
-			return EncModeByte
+		case encModeByte:
+			return encModeByte
 		}
 	}
 	return encMode

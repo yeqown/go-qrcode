@@ -15,7 +15,7 @@ func TestNew(t *testing.T) {
 	t.Logf("analyzed version is: %d, len of data: %d, encMode: %v",
 		qrc.v, len(qrc.rawData), qrc.mode)
 
-	if qrc.mode != EncModeByte {
+	if qrc.mode != encModeByte {
 		t.Error("could analyze error with encode type")
 		t.Fail()
 	}

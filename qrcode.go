@@ -30,7 +30,7 @@ func New(text string, opts ...ImageOption) (*QRCode, error) {
 
 	qrc := &QRCode{
 		content:      text,
-		mode:         EncModeByte,
+		mode:         encModeByte,
 		needAnalyze:  true,
 		outputOption: dst,
 	}
@@ -45,7 +45,7 @@ func New(text string, opts ...ImageOption) (*QRCode, error) {
 
 // NewWithSpecV generate a QRCode struct with
 // specified `ver`(QR version) and `ecLv`(Error Correction level)
-func NewWithSpecV(text string, ver int, ecLv ECLevel, opts ...ImageOption) (*QRCode, error) {
+func NewWithSpecV(text string, ver int, ecLv ecLevel, opts ...ImageOption) (*QRCode, error) {
 	dst := new(outputImageOptions)
 	for _, opt := range opts {
 		opt.apply(dst)
@@ -54,7 +54,7 @@ func NewWithSpecV(text string, ver int, ecLv ECLevel, opts ...ImageOption) (*QRC
 	qrc := &QRCode{
 		content:      text,
 		ver:          ver,
-		mode:         EncModeByte,
+		mode:         encModeByte,
 		ecLv:         ecLv,
 		needAnalyze:  false,
 		outputOption: dst,
@@ -77,11 +77,11 @@ type QRCode struct {
 	mat      *matrix.Matrix // matrix grid to store final bitmap
 	ecBSet   *binary.Binary // final error correction bitset
 
-	v       Version  // version means the size
+	v       version  // version means the size
 	ver     int      // version num
-	ecLv    ECLevel  // recoveryLevel
-	mode    EncMode  // EncMode
-	encoder *Encoder // encoder ptr to call it's methods ~
+	ecLv    ecLevel  // recoveryLevel
+	mode    encMode  // encMode
+	encoder *encoder // encoder ptr to call it's methods ~
 
 	needAnalyze bool // auto analyze form content or specified `mode, recoverLv, ver`
 
@@ -111,7 +111,7 @@ func (q *QRCode) init() error {
 	}
 
 	q.mat = matrix.New(q.v.Dimension(), q.v.Dimension())
-	q.encoder = &Encoder{
+	q.encoder = &encoder{
 		mode:    q.mode,
 		ecLv:    q.ecLv,
 		version: q.v,
@@ -349,7 +349,7 @@ func (q *QRCode) initMatrix() {
 	reserveFormatBlock(q.mat, dimension)
 
 	// reserveVersionBlock for version over 7
-	// only version 7 and larger version shoud add Version info
+	// only version 7 and larger version shoud add version info
 	if q.v.Ver >= 7 {
 		reserveVersionBlock(q.mat, dimension)
 	}
@@ -630,7 +630,7 @@ func (q *QRCode) draw() {
 	}
 
 	var (
-		masks       = make([]*Mask, 8)
+		masks       = make([]*mask, 8)
 		mats        = make([]*matrix.Matrix, 8)
 		lowScore    = math.MaxInt32
 		markMatsIdx int
@@ -645,7 +645,7 @@ func (q *QRCode) draw() {
 
 	// init mask and mats
 	for i := 0; i < 8; i++ {
-		masks[i] = NewMask(q.mat, MaskPatternModulo(i))
+		masks[i] = newMask(q.mat, maskPatternModulo(i))
 		mats[i] = q.mat.Copy()
 	}
 
@@ -669,14 +669,14 @@ func (q *QRCode) draw() {
 			}
 
 			// fill format info
-			q.fillFormatInfo(mats[i], MaskPatternModulo(i), dimension)
+			q.fillFormatInfo(mats[i], maskPatternModulo(i), dimension)
 			// version7 and larger version has version info
 			if q.v.Ver >= 7 {
 				q.fillVersionInfo(mats[i], dimension)
 			}
 
 			// calculate score and decide the lowest score and draw
-			score := CalculateScore(mats[i])
+			score := calculateScore(mats[i])
 			debugLogf("cur idx: %d, score: %d, current lowest: mats[%d]:%d", i, score, markMatsIdx, lowScore)
 			scoreChan <- maskScore{
 				Score: score,
@@ -704,7 +704,7 @@ func (q *QRCode) draw() {
 }
 
 // all mask patter and check the maskScore choose the the lowest mask result
-func (q *QRCode) xorMask(m *matrix.Matrix, mask *Mask) {
+func (q *QRCode) xorMask(m *matrix.Matrix, mask *mask) {
 	mask.mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
 		// skip the empty palce
 		if s == matrix.StateInit {
@@ -736,7 +736,7 @@ func (q *QRCode) fillVersionInfo(m *matrix.Matrix, dimension int) {
 
 // fill format info ref to:
 // https://www.thonky.com/qr-code-tutorial/format-version-tables
-func (q *QRCode) fillFormatInfo(m *matrix.Matrix, mode MaskPatternModulo, dimension int) {
+func (q *QRCode) fillFormatInfo(m *matrix.Matrix, mode maskPatternModulo, dimension int) {
 	fmtBSet := q.v.formatInfo(int(mode))
 	debugLogf("fmtBitSet: %s", fmtBSet.String())
 	var (

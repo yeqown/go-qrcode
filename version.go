@@ -8,12 +8,12 @@ import (
 	"github.com/yeqown/reedsolomon/binary"
 )
 
-// ECLevel error correction level
-type ECLevel int
+// ecLevel error correction level
+type ecLevel int
 
 const (
 	// Low :Level L: 7% error recovery.
-	Low ECLevel = iota
+	Low ecLevel = iota
 
 	// Medium :Level M: 15% error recovery. Good default choice.
 	Medium
@@ -33,7 +33,7 @@ var (
 	// defaultVersionCfg        = "./versionCfg.json"
 	errMissMatchedVersion    = errors.New("could not match version! check the versionCfg.json file")
 	errMissMatchedEncodeType = errors.New("could not match the encode type")
-	// versions                 []Version
+	// versions                 []version
 	// Each QR Code contains a 15-bit Format Information value.  The 15 bits
 	// consist of 5 data bits concatenated with 10 error correction bits.
 	//
@@ -63,11 +63,11 @@ var (
 		{0x24b4, 0x34e3}, {0x2183, 0x31d4}, {0x2eda, 0x3e8d}, {0x2bed, 0x3bba},
 	}
 
-	// QR Codes version 7 and higher contain an 18-bit Version Information value,
+	// QR Codes version 7 and higher contain an 18-bit version Information value,
 	// consisting of a 6 data bits and 12 error correction bits.
 	//
 	// versionBitSequence is a mapping from QR Code version to the completed
-	// 18-bit Version Information value.
+	// 18-bit version Information value.
 	//
 	// For example, a QR code of version 7:
 	// versionBitSequence[0x7] = 0x07c94 = 000111110010010100
@@ -94,7 +94,7 @@ func init() {
 
 // load versionCfg.json (versions config file) into `[]versions`
 // func load(pathToCfg string) error {
-// 	versions = make([]Version, 0)
+// 	versions = make([]version, 0)
 
 // 	fd, err := os.OpenFile(pathToCfg, os.O_RDONLY, 0644)
 // 	if err != nil {
@@ -130,15 +130,15 @@ type group struct {
 	ECBlockwordsPerBlock int `json:"ecbs_pb"`
 }
 
-// Version ...
-type Version struct {
+// version ...
+type version struct {
 	// version code 1-40
 	Ver int `json:"ver"`
 
 	// ECLevel error correction 0, 1, 2, 3
-	ECLevel ECLevel `json:"eclv"`
+	ECLevel ecLevel `json:"eclv"`
 
-	// Cap includes each type's max capacity (specified by `Ver` and `ECLevel`)
+	// Cap includes each type's max capacity (specified by `Ver` and `ecLevel`)
 	// ref to: https://www.thonky.com/qr-code-tutorial/character-capacities
 	Cap capacity `json:"cap"`
 
@@ -152,12 +152,12 @@ type Version struct {
 }
 
 // Dimension ...
-func (v Version) Dimension() int {
+func (v version) Dimension() int {
 	return v.Ver*4 + 17
 }
 
 // NumTotalCodewrods total data codewords
-func (v Version) NumTotalCodewrods() int {
+func (v version) NumTotalCodewrods() int {
 	var total int
 	for _, g := range v.Groups {
 		total = total + (g.NumBlocks * g.NumDataCodewords)
@@ -166,12 +166,12 @@ func (v Version) NumTotalCodewrods() int {
 }
 
 // NumGroups ... need group num. ref to version config file
-func (v Version) NumGroups() int {
+func (v version) NumGroups() int {
 	return len(v.Groups)
 }
 
 // TotalNumBlocks ... total data blocks num, ref to version config file
-func (v Version) TotalNumBlocks() int {
+func (v version) TotalNumBlocks() int {
 	var total int
 	for _, g := range v.Groups {
 		total = total + g.NumBlocks
@@ -179,8 +179,8 @@ func (v Version) TotalNumBlocks() int {
 	return total
 }
 
-// VerInfo Version info bitset
-func (v Version) verInfo() *binary.Binary {
+// VerInfo version info bitset
+func (v version) verInfo() *binary.Binary {
 	if v.Ver < 7 {
 		return nil
 	}
@@ -193,7 +193,7 @@ func (v Version) verInfo() *binary.Binary {
 
 // formatInfo returns the 15-bit Format Information value for a QR
 // code.
-func (v Version) formatInfo(maskPattern int) *binary.Binary {
+func (v version) formatInfo(maskPattern int) *binary.Binary {
 	formatID := 0
 
 	switch v.ECLevel {
@@ -220,7 +220,7 @@ func (v Version) formatInfo(maskPattern int) *binary.Binary {
 }
 
 // loadVersion get version config from config
-func loadVersion(lv int, ecLv ECLevel) Version {
+func loadVersion(lv int, ecLv ecLevel) version {
 	for _, v := range versions {
 		if v.Ver == lv && v.ECLevel == ecLv {
 			return v
@@ -231,25 +231,25 @@ func loadVersion(lv int, ecLv ECLevel) Version {
 
 // analyzeVersion the text, and decide which version should be choose
 // ref to: http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
-func analyzeVersion(raw []byte, ecLv ECLevel, eMode EncMode) (*Version, error) {
+func analyzeVersion(raw []byte, ecLv ecLevel, eMode encMode) (*version, error) {
 	if len(versions) == 0 {
 		panic("did not loaded the versions config success")
 	}
 	var (
-		// target    Version
+		// target    version
 		lengthCnt = len(raw)
 		cap       int
 	)
 	for _, v := range versions {
 		if v.ECLevel == ecLv {
 			switch eMode {
-			case EncModeNumeric:
+			case encModeNumeric:
 				cap = v.Cap.Byte
-			case EncModeAlphanumeric:
+			case encModeAlphanumeric:
 				cap = v.Cap.Byte
-			case EncModeByte:
+			case encModeByte:
 				cap = v.Cap.Byte
-			case EncModeJP:
+			case encModeJP:
 				cap = v.Cap.JP
 			default:
 				return nil, errMissMatchedEncodeType

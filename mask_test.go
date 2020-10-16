@@ -22,27 +22,27 @@ func TestMask(t *testing.T) {
 	cpyMat := qrc.mat.Copy()
 	_ = drawAndSaveToFile("./testdata/mask_origin.jpeg", *cpyMat, nil)
 
-	mask0 := NewMask(cpyMat, Modulo0)
+	mask0 := newMask(cpyMat, modulo0)
 	_ = drawAndSaveToFile("./testdata/modulo0.jpeg", *mask0.mat, nil)
 
-	mask1 := NewMask(cpyMat, Modulo1)
+	mask1 := newMask(cpyMat, modulo1)
 	_ = drawAndSaveToFile("./testdata/modulo1.jpeg", *mask1.mat, nil)
 
-	mask2 := NewMask(cpyMat, Modulo2)
+	mask2 := newMask(cpyMat, modulo2)
 	_ = drawAndSaveToFile("./testdata/modulo2.jpeg", *mask2.mat, nil)
 
-	mask3 := NewMask(cpyMat, Modulo3)
+	mask3 := newMask(cpyMat, modulo3)
 	_ = drawAndSaveToFile("./testdata/modulo3.jpeg", *mask3.mat, nil)
 
-	mask4 := NewMask(cpyMat, Modulo4)
+	mask4 := newMask(cpyMat, modulo4)
 	_ = drawAndSaveToFile("./testdata/modulo4.jpeg", *mask4.mat, nil)
 
-	mask5 := NewMask(cpyMat, Modulo5)
+	mask5 := newMask(cpyMat, modulo5)
 	_ = drawAndSaveToFile("./testdata/modulo5.jpeg", *mask5.mat, nil)
 
-	mask6 := NewMask(cpyMat, Modulo6)
+	mask6 := newMask(cpyMat, modulo6)
 	_ = drawAndSaveToFile("./testdata/modulo6.jpeg", *mask6.mat, nil)
 
-	mask7 := NewMask(cpyMat, Modulo7)
+	mask7 := newMask(cpyMat, modulo7)
 	_ = drawAndSaveToFile("./testdata/modulo7.jpeg", *mask7.mat, nil)
 }

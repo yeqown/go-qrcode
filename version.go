@@ -13,7 +13,7 @@ type ecLevel int
 
 const (
 	// Low :Level L: 7% error recovery.
-	Low ecLevel = iota
+	Low ecLevel = iota + 1
 
 	// Medium :Level M: 15% error recovery. Good default choice.
 	Medium

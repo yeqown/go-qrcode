@@ -218,7 +218,7 @@ func Test_loadVersion(t *testing.T) {
 				},
 				RemainderBits: 0,
 				Groups: []group{
-					group{
+					{
 						NumBlocks:            1,
 						NumDataCodewords:     9,
 						ECBlockwordsPerBlock: 17,

@@ -142,6 +142,10 @@ func drawAndSave(w io.Writer, m matrix.Matrix, opt *outputImageOptions) (err err
 
 // draw deal QRCode's matrix to be a image.Image
 func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
+	if _debug {
+		fmt.Printf("matrix.Width()=%d, matrix.Height()=%d\n", mat.Width(), mat.Height())
+	}
+
 	// w as image width, h as image height
 	w := mat.Width()*opt.qrBlockWidth() + 2*_defaultPadding
 	h := w
@@ -155,10 +159,11 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 
 	// qrcode block draw context
 	ctx := &DrawContext{
-		Context:    dc,
-		upperLeft:  image.Point{}, // useless
-		lowerRight: image.Point{}, // useless
-		color:      color.Black,   // useless
+		Context:   dc,
+		upperLeft: image.Point{},
+		w:         opt.qrBlockWidth(),
+		h:         opt.qrBlockWidth(),
+		color:     color.Black,
 	}
 	shape := opt.getShape()
 
@@ -169,18 +174,18 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 			X: x*opt.qrBlockWidth() + _defaultPadding,
 			Y: y*opt.qrBlockWidth() + _defaultPadding,
 		}
-		ctx.lowerRight = image.Point{
-			X: (x+1)*opt.qrBlockWidth() + _defaultPadding,
-			Y: (y+1)*opt.qrBlockWidth() + _defaultPadding,
-		}
 		ctx.color = opt.stateRGBA(v)
 		// DONE(@yeqown): make this abstract to Shapes
 		shape.Draw(ctx)
+
+		//if x == y && _debug {
+		//	_ = dc.SavePNG(fmt.Sprintf("./.debug/%d.png", x))
+		//}
 	})
 
-	if _debug {
-		fmt.Printf("save as tmp.png, err=%v\n", dc.SavePNG("./tmp.png"))
-	}
+	//if _debug {
+	//	fmt.Printf("save as tmp.png, err=%v\n", dc.SavePNG("./tmp.png"))
+	//}
 
 	// DONE(@yeqown): add logo image
 	if opt.logoImage() != nil {

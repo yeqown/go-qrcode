@@ -27,7 +27,7 @@ func newImage() image.Image {
 func Test_JPEG_Encoder(t *testing.T) {
 	img := newImage()
 
-	fd, _ := os.OpenFile("./testdata/JPEG_encoder_test.jpeg", os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0666)
+	fd, _ := os.OpenFile("./testdata/encoder_JPEG.jpeg", os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0666)
 	err := jpegEncoder{}.Encode(fd, img)
 	if err != nil {
 		t.Error(err)
@@ -38,7 +38,7 @@ func Test_JPEG_Encoder(t *testing.T) {
 func Test_PNG_Encoder(t *testing.T) {
 	img := newImage()
 
-	fd, _ := os.OpenFile("./testdata/PNG_encoder_test.png", os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0666)
+	fd, _ := os.OpenFile("./testdata/encoder_PNG.png", os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0666)
 	err := pngEncoder{}.Encode(fd, img)
 	if err != nil {
 		t.Error(err)

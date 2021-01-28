@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/jpeg"
 	"io"
 	"log"
 	"os"
@@ -40,7 +39,20 @@ func drawAndSave(w io.Writer, m matrix.Matrix, opt *outputImageOptions) (err err
 
 	img := draw(m, opt)
 
-	if err = jpeg.Encode(w, img, nil); err != nil {
+	var encoder ImageEncoder
+	switch opt.formatTyp() {
+	case JPEG_FORMAT:
+		encoder = jpegEncoder{}
+	case PNG_FORMAT:
+		encoder = pngEncoder{}
+	case HEIF_FORMAT:
+		encoder = heifEncoder{}
+	default:
+		panic("Not supported file format")
+	}
+
+	// DONE(@yeqown): support file format specified config option
+	if err = encoder.Encode(w, img); err != nil {
 		err = fmt.Errorf("jpeg.Encode got err: %v", err)
 	}
 

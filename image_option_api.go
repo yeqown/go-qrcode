@@ -130,3 +130,10 @@ func WithCustomShape(shape IShape) ImageOption {
 		oo.shape = shape
 	})
 }
+
+// WithOutputFormat option includes: JPEG_FORMAT as default, PNG_FORMAT, HEIF_FORMAT
+func WithOutputFormat(format formatTyp) ImageOption {
+	return newFuncDialOption(func(oo *outputImageOptions) {
+		oo.fileFormat = format
+	})
+}

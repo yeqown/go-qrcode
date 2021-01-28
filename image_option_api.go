@@ -96,13 +96,13 @@ func WithLogoImageFilePNG(f string) ImageOption {
 	return newFuncDialOption(func(oo *outputImageOptions) {
 		fd, err := os.Open(f)
 		if err != nil {
-			fmt.Printf("could not open file(%s), error=%v\n", f, err)
+			fmt.Printf("Open file(%s) failed: %v\n", f, err)
 			return
 		}
 
 		img, err := png.Decode(fd)
 		if err != nil {
-			fmt.Printf("could not open file(%s), error=%v\n", f, err)
+			fmt.Printf("Decode file(%s) as PNG failed: %v\n", f, err)
 			return
 		}
 
@@ -128,5 +128,36 @@ func WithCircleShape() ImageOption {
 func WithCustomShape(shape IShape) ImageOption {
 	return newFuncDialOption(func(oo *outputImageOptions) {
 		oo.shape = shape
+	})
+}
+
+// WithBuiltinImageEncoder option includes: JPEG_FORMAT as default, PNG_FORMAT.
+// This works like WithBuiltinImageEncoder, the different between them is
+// formatTyp is enumerated in (JPEG_FORMAT, PNG_FORMAT)
+func WithBuiltinImageEncoder(format formatTyp) ImageOption {
+	return newFuncDialOption(func(oo *outputImageOptions) {
+		var encoder ImageEncoder
+		switch format {
+		case JPEG_FORMAT:
+			encoder = jpegEncoder{}
+		case PNG_FORMAT:
+			encoder = pngEncoder{}
+		default:
+			panic("Not supported file format")
+		}
+
+		oo.imageEncoder = encoder
+	})
+}
+
+// WithBuiltinImageEncoder to use custom image encoder to encode image.Image into
+// io.Writer
+func WithCustomImageEncoder(encoder ImageEncoder) ImageOption {
+	return newFuncDialOption(func(oo *outputImageOptions) {
+		if encoder == nil {
+			return
+		}
+
+		oo.imageEncoder = encoder
 	})
 }

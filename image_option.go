@@ -10,11 +10,12 @@ import (
 
 // _defaultOutputOption default output image background color and etc options
 var _defaultOutputOption = &outputImageOptions{
-	bgColor: color.White,     // white
-	qrColor: color.Black,     // black
-	logo:    nil,             //
-	qrWidth: 20,              //
-	shape:   _shapeRectangle, //
+	bgColor:      color.White,     // white
+	qrColor:      color.Black,     // black
+	logo:         nil,             //
+	qrWidth:      20,              //
+	shape:        _shapeRectangle, //
+	imageEncoder: jpegEncoder{},
 }
 
 // outputImageOptions to output QR code image
@@ -32,8 +33,11 @@ type outputImageOptions struct {
 	// qrWidth width of each qr block
 	qrWidth int
 
-	// shape
+	// shape means how to draw the shape of each cell.
 	shape IShape
+
+	// imageEncoder specify which file format would be encoded the QR image.
+	imageEncoder ImageEncoder
 }
 
 func (oo *outputImageOptions) backgroundColor() color.Color {
@@ -44,13 +48,15 @@ func (oo *outputImageOptions) backgroundColor() color.Color {
 	return oo.bgColor
 }
 
-func (oo *outputImageOptions) foregroundColor() color.Color {
-	if oo == nil || oo.qrColor == nil {
-		return color.Black
-	}
-
-	return oo.qrColor
-}
+// DEPRECATED
+// qrColor would be save into `_stateToRGBA`
+//func (oo *outputImageOptions) foregroundColor() color.Color {
+//	if oo == nil || oo.qrColor == nil {
+//		return color.Black
+//	}
+//
+//	return oo.qrColor
+//}
 
 func (oo *outputImageOptions) logoImage() image.Image {
 	if oo == nil || oo.logo == nil {

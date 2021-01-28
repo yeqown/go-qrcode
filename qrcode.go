@@ -150,7 +150,7 @@ func (q *QRCode) analyze() error {
 	// choose error correction level
 	q.ecLv = Quart
 
-	// choose encode mode (num, alphanum, byte, Japanese)
+	// choose encode mode (num, alpha num, byte, Japanese)
 	q.mode = anlayzeMode(q.rawData)
 
 	// analyze content to decide version etc.
@@ -349,7 +349,7 @@ func (q *QRCode) initMatrix() {
 	reserveFormatBlock(q.mat, dimension)
 
 	// reserveVersionBlock for version over 7
-	// only version 7 and larger version shoud add version info
+	// only version 7 and larger version should add version info
 	if q.v.Ver >= 7 {
 		reserveVersionBlock(q.mat, dimension)
 	}
@@ -546,7 +546,7 @@ func (q *QRCode) fillIntoMatrix(m *matrix.Matrix, dimension int) {
 			pos++
 			// debugLogf("normal set turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
 		} else if state == matrix.ZERO {
-			// turn forward and the new forward's block fisrt pos as value
+			// turn forward and the new forward's block first pos as value
 			if upForward {
 				x = x - 2
 				y = y + 1
@@ -706,7 +706,7 @@ func (q *QRCode) draw() {
 // all mask patter and check the maskScore choose the the lowest mask result
 func (q *QRCode) xorMask(m *matrix.Matrix, mask *mask) {
 	mask.mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
-		// skip the empty palce
+		// skip the empty place
 		if s == matrix.StateInit {
 			return
 		}

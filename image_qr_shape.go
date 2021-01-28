@@ -21,8 +21,8 @@ type IShape interface {
 type DrawContext struct {
 	*gg.Context
 
-	upperLeft  image.Point // (x1, y1)
-	lowerRight image.Point // (x2, y2)
+	upperLeft image.Point // (x1, y1)
+	w, h      int
 
 	color color.Color
 }
@@ -31,8 +31,9 @@ type DrawContext struct {
 type rectangle struct{}
 
 func (r rectangle) Draw(c *DrawContext) {
+	// FIXED(@yeqown): miss parameter of DrawRectangle
 	c.DrawRectangle(float64(c.upperLeft.X), float64(c.upperLeft.Y),
-		float64(c.lowerRight.X), float64(c.lowerRight.Y))
+		float64(c.w), float64(c.h))
 	c.SetColor(c.color)
 	c.Fill()
 }
@@ -42,17 +43,14 @@ type circle struct{}
 
 // FIXED: Draw could not draw circle
 func (r circle) Draw(c *DrawContext) {
-	w := c.lowerRight.X - c.upperLeft.X
-	h := c.lowerRight.Y - c.upperLeft.Y
-
 	// choose a proper radius values
-	radius := w / 2
-	r2 := h / 2
+	radius := c.w / 2
+	r2 := c.h / 2
 	if r2 <= radius {
 		radius = r2
 	}
 
-	cx, cy := c.upperLeft.X+w/2, c.upperLeft.Y+h/2 // get center point
+	cx, cy := c.upperLeft.X+c.w/2, c.upperLeft.Y+c.h/2 // get center point
 	c.DrawCircle(float64(cx), float64(cy), float64(radius))
 	c.SetColor(c.color)
 	c.Fill()

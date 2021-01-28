@@ -131,9 +131,33 @@ func WithCustomShape(shape IShape) ImageOption {
 	})
 }
 
-// WithOutputFormat option includes: JPEG_FORMAT as default, PNG_FORMAT, HEIF_FORMAT
-func WithOutputFormat(format formatTyp) ImageOption {
+// WithBuiltinImageEncoder option includes: JPEG_FORMAT as default, PNG_FORMAT.
+// This works like WithBuiltinImageEncoder, the different between them is
+// formatTyp is enumerated in (JPEG_FORMAT, PNG_FORMAT)
+func WithBuiltinImageEncoder(format formatTyp) ImageOption {
 	return newFuncDialOption(func(oo *outputImageOptions) {
-		oo.fileFormat = format
+		var encoder ImageEncoder
+		switch format {
+		case JPEG_FORMAT:
+			encoder = jpegEncoder{}
+		case PNG_FORMAT:
+			encoder = pngEncoder{}
+		default:
+			panic("Not supported file format")
+		}
+
+		oo.imageEncoder = encoder
+	})
+}
+
+// WithBuiltinImageEncoder to use custom image encoder to encode image.Image into
+// io.Writer
+func WithCustomImageEncoder(encoder ImageEncoder) ImageOption {
+	return newFuncDialOption(func(oo *outputImageOptions) {
+		if encoder == nil {
+			return
+		}
+
+		oo.imageEncoder = encoder
 	})
 }

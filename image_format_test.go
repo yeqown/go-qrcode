@@ -45,16 +45,3 @@ func Test_PNG_Encoder(t *testing.T) {
 		t.FailNow()
 	}
 }
-
-func Test_HEIF_Encoder(t *testing.T) {
-	t.Skip("not implemented")
-
-	img := newImage()
-
-	fd, _ := os.OpenFile("./testdata/HEIF_encoder_test.heif", os.O_TRUNC|os.O_CREATE|os.O_RDWR, 0666)
-	err := heifEncoder{}.Encode(fd, img)
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-}

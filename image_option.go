@@ -10,12 +10,12 @@ import (
 
 // _defaultOutputOption default output image background color and etc options
 var _defaultOutputOption = &outputImageOptions{
-	bgColor:    color.White,     // white
-	qrColor:    color.Black,     // black
-	logo:       nil,             //
-	qrWidth:    20,              //
-	shape:      _shapeRectangle, //
-	fileFormat: JPEG_FORMAT,
+	bgColor:      color.White,     // white
+	qrColor:      color.Black,     // black
+	logo:         nil,             //
+	qrWidth:      20,              //
+	shape:        _shapeRectangle, //
+	imageEncoder: jpegEncoder{},
 }
 
 // outputImageOptions to output QR code image
@@ -36,8 +36,8 @@ type outputImageOptions struct {
 	// shape means how to draw the shape of each cell.
 	shape IShape
 
-	// specify which file format would be encoded the QR image.
-	fileFormat formatTyp
+	// imageEncoder specify which file format would be encoded the QR image.
+	imageEncoder ImageEncoder
 }
 
 func (oo *outputImageOptions) backgroundColor() color.Color {
@@ -80,14 +80,6 @@ func (oo *outputImageOptions) getShape() IShape {
 	}
 
 	return oo.shape
-}
-
-func (oo *outputImageOptions) formatTyp() formatTyp {
-	if oo == nil {
-		return JPEG_FORMAT
-	}
-
-	return oo.fileFormat
 }
 
 var (

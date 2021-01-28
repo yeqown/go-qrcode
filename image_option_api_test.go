@@ -3,30 +3,26 @@ package qrcode
 import (
 	"image/color"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func Test_WithOutputFormat(t *testing.T) {
+func Test_WithBuiltinImageEncoder(t *testing.T) {
 	oo := _defaultOutputOption
 
-	if oo.fileFormat != JPEG_FORMAT {
-		t.Error("default value failed")
-		t.FailNow()
-	}
-	WithOutputFormat(JPEG_FORMAT).apply(oo)
-	if oo.fileFormat != JPEG_FORMAT {
-		t.Error("value set failed")
-		t.FailNow()
-	}
-	WithOutputFormat(PNG_FORMAT).apply(oo)
-	if oo.fileFormat != PNG_FORMAT {
-		t.Error("value set failed")
-		t.FailNow()
-	}
-	WithOutputFormat(HEIF_FORMAT).apply(oo)
-	if oo.fileFormat != HEIF_FORMAT {
-		t.Error("value set failed")
-		t.FailNow()
-	}
+	assert.IsType(t, oo.imageEncoder, jpegEncoder{})
+	WithBuiltinImageEncoder(JPEG_FORMAT).apply(oo)
+	assert.IsType(t, oo.imageEncoder, jpegEncoder{})
+	WithBuiltinImageEncoder(PNG_FORMAT).apply(oo)
+	assert.IsType(t, oo.imageEncoder, pngEncoder{})
+}
+
+func Test_WithCustomImageEncoder(t *testing.T) {
+	oo := _defaultOutputOption
+
+	assert.IsType(t, oo.imageEncoder, jpegEncoder{})
+	WithCustomImageEncoder(nil).apply(oo)
+	assert.IsType(t, oo.imageEncoder, jpegEncoder{})
 }
 
 func Test_BgColor_FgColor(t *testing.T) {

@@ -14,10 +14,9 @@ const (
 	JPEG_FORMAT formatTyp = iota
 	// PNG_FORMAT .
 	PNG_FORMAT
-	// HEIF_FORMAT High Efficiency Image File Format
-	HEIF_FORMAT
 )
 
+// ImageEncoder is an interface which describes the rule how to encode image.Image into io.Writer
 type ImageEncoder interface {
 	// Encode specify which format to encode image into w io.Writer.
 	Encode(w io.Writer, img image.Image) error
@@ -33,10 +32,4 @@ type pngEncoder struct{}
 
 func (j pngEncoder) Encode(w io.Writer, img image.Image) error {
 	return png.Encode(w, img)
-}
-
-type heifEncoder struct{}
-
-func (j heifEncoder) Encode(w io.Writer, img image.Image) error {
-	panic("Not implemented")
 }

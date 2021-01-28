@@ -71,8 +71,14 @@ func WithCircleShape() ImageOption {}
 // WithCustomShape use custom shape as rectangle(default)
 func WithCustomShape(shape IShape) ImageOption {}
 
-// WithOutputFormat option includes: JPEG_FORMAT as default, PNG_FORMAT, HEIF_FORMAT
-func WithOutputFormat(format formatTyp) ImageOption
+// WithBuiltinImageEncoder option includes: JPEG_FORMAT as default, PNG_FORMAT.
+// This works like WithBuiltinImageEncoder, the different between them is
+// formatTyp is enumerated in (JPEG_FORMAT, PNG_FORMAT)
+func WithBuiltinImageEncoder(format formatTyp) ImageOption
+
+// WithBuiltinImageEncoder to use custom image encoder to encode image.Image into
+// io.Writer
+func WithBuiltinImageEncoder(encoder ImageEncoder) ImageOption
 ```
 
 use options in `New` and `NewWithSpecV`. 

@@ -87,7 +87,7 @@ func (oo *outputImageOptions) formatTyp() formatTyp {
 		return JPEG_FORMAT
 	}
 
-	return oo.formatTyp()
+	return oo.fileFormat
 }
 
 var (

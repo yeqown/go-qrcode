@@ -96,13 +96,13 @@ func WithLogoImageFilePNG(f string) ImageOption {
 	return newFuncDialOption(func(oo *outputImageOptions) {
 		fd, err := os.Open(f)
 		if err != nil {
-			fmt.Printf("could not open file(%s), error=%v\n", f, err)
+			fmt.Printf("Open file(%s) failed: %v\n", f, err)
 			return
 		}
 
 		img, err := png.Decode(fd)
 		if err != nil {
-			fmt.Printf("could not open file(%s), error=%v\n", f, err)
+			fmt.Printf("Decode file(%s) as PNG failed: %v\n", f, err)
 			return
 		}
 

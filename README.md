@@ -70,6 +70,9 @@ func WithCircleShape() ImageOption {}
 
 // WithCustomShape use custom shape as rectangle(default)
 func WithCustomShape(shape IShape) ImageOption {}
+
+// WithOutputFormat option includes: JPEG_FORMAT as default, PNG_FORMAT, HEIF_FORMAT
+func WithOutputFormat(format formatTyp) ImageOption
 ```
 
 use options in `New` and `NewWithSpecV`. 

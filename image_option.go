@@ -48,13 +48,15 @@ func (oo *outputImageOptions) backgroundColor() color.Color {
 	return oo.bgColor
 }
 
-func (oo *outputImageOptions) foregroundColor() color.Color {
-	if oo == nil || oo.qrColor == nil {
-		return color.Black
-	}
-
-	return oo.qrColor
-}
+// DEPRECATED
+// qrColor would be save into `_stateToRGBA`
+//func (oo *outputImageOptions) foregroundColor() color.Color {
+//	if oo == nil || oo.qrColor == nil {
+//		return color.Black
+//	}
+//
+//	return oo.qrColor
+//}
 
 func (oo *outputImageOptions) logoImage() image.Image {
 	if oo == nil || oo.logo == nil {

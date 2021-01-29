@@ -5,6 +5,20 @@
 <img src="./qrcode.jpeg" width="100px" align="right"/>
 QR code (abbreviated from Quick Response Code) is the trademark for a type of matrix barcode (or two-dimensional barcode) first designed in 1994 for the automotive industry in Japan. A barcode is a machine-readable optical label that contains information about the item to which it is attached. A QR code uses four standardized encoding modes (numeric, alphanumeric, byte/binary, and kanji) to store data efficiently; extensions may also be used
 
+### Features
+
+- [x] Normally generate QR code across `version 1` to `version 40`.
+
+- [x] Automatically analyze QR version by source text.
+
+- [x] Specifying cell shape allowably with `WithCustomShape`, `WithCircleShape` (default is `rectangle`)
+
+- [x] Specifying output file's format with `WithBuiltinImageEncoder`, `WithCustomImageEncoder` (default is `JPEG`)
+
+- [x] Not only shape of cell, but also color of QR Code background and foreground color.
+
+- [x] `WithLogoImage`, `WithLogoImageFilePNG`, `WithLogoImageFileJPEG` help you add an icon at the central of QR Code.
+
 ### Install
 
 ```sh
@@ -76,9 +90,9 @@ func WithCustomShape(shape IShape) ImageOption {}
 // formatTyp is enumerated in (JPEG_FORMAT, PNG_FORMAT)
 func WithBuiltinImageEncoder(format formatTyp) ImageOption
 
-// WithBuiltinImageEncoder to use custom image encoder to encode image.Image into
+// WithCustomImageEncoder to use custom image encoder to encode image.Image into
 // io.Writer
-func WithBuiltinImageEncoder(encoder ImageEncoder) ImageOption
+func WithCustomImageEncoder(encoder ImageEncoder) ImageOption
 ```
 
 use options in `New` and `NewWithSpecV`. 

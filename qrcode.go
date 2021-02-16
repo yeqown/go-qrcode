@@ -23,7 +23,7 @@ var (
 
 // New generate a QRCode struct to create
 func New(text string, opts ...ImageOption) (*QRCode, error) {
-	dst := new(outputImageOptions)
+	dst := _defaultOutputOption
 	for _, opt := range opts {
 		opt.apply(dst)
 	}
@@ -46,7 +46,7 @@ func New(text string, opts ...ImageOption) (*QRCode, error) {
 // NewWithSpecV generate a QRCode struct with
 // specified `ver`(QR version) and `ecLv`(Error Correction level)
 func NewWithSpecV(text string, ver int, ecLv ecLevel, opts ...ImageOption) (*QRCode, error) {
-	dst := new(outputImageOptions)
+	dst := _defaultOutputOption
 	for _, opt := range opts {
 		opt.apply(dst)
 	}

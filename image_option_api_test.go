@@ -8,21 +8,23 @@ import (
 )
 
 func Test_WithBuiltinImageEncoder(t *testing.T) {
-	oo := _defaultOutputOption
+	oo := *_defaultOutputOption
+	oo2 := &oo
 
-	assert.IsType(t, oo.imageEncoder, jpegEncoder{})
-	WithBuiltinImageEncoder(JPEG_FORMAT).apply(oo)
-	assert.IsType(t, oo.imageEncoder, jpegEncoder{})
-	WithBuiltinImageEncoder(PNG_FORMAT).apply(oo)
-	assert.IsType(t, oo.imageEncoder, pngEncoder{})
+	assert.IsType(t, jpegEncoder{}, oo2.imageEncoder)
+	WithBuiltinImageEncoder(JPEG_FORMAT).apply(oo2)
+	assert.IsType(t, jpegEncoder{}, oo2.imageEncoder)
+	WithBuiltinImageEncoder(PNG_FORMAT).apply(oo2)
+	assert.IsType(t, pngEncoder{}, oo2.imageEncoder)
 }
 
 func Test_WithCustomImageEncoder(t *testing.T) {
-	oo := _defaultOutputOption
+	oo := *_defaultOutputOption
+	oo2 := &oo
 
-	assert.IsType(t, oo.imageEncoder, jpegEncoder{})
-	WithCustomImageEncoder(nil).apply(oo)
-	assert.IsType(t, oo.imageEncoder, jpegEncoder{})
+	assert.IsType(t, jpegEncoder{}, oo2.imageEncoder)
+	WithCustomImageEncoder(nil).apply(oo2)
+	assert.IsType(t, jpegEncoder{}, oo2.imageEncoder)
 }
 
 func Test_BgColor_FgColor(t *testing.T) {

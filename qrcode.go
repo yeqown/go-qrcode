@@ -18,7 +18,7 @@ var (
 	_debug = false
 
 	// once to load versions config file
-	once sync.Once
+	//once sync.Once
 )
 
 // New generate a QRCode struct to create
@@ -90,12 +90,12 @@ type QRCode struct {
 }
 
 func (q *QRCode) init() error {
-	once.Do(func() {
-		// once load versions config file into memory
-		// if err := load(defaultVersionCfg); err != nil {
-		// 	panic(err)
-		// }
-	})
+	//once.Do(func() {
+	// once load versions config file into memory
+	// if err := load(defaultVersionCfg); err != nil {
+	// 	panic(err)
+	// }
+	//})
 	q.rawData = []byte(q.content)
 	if q.needAnalyze {
 		// analyze the input data to choose adapt version
@@ -151,7 +151,7 @@ func (q *QRCode) analyze() error {
 	q.ecLv = Quart
 
 	// choose encode mode (num, alpha num, byte, Japanese)
-	q.mode = anlayzeMode(q.rawData)
+	q.mode = analyzeMode(q.rawData)
 
 	// analyze content to decide version etc.
 	analyzedV, err := analyzeVersion(q.rawData, q.ecLv, q.mode)
@@ -479,7 +479,7 @@ func addDarkBlock(m *matrix.Matrix, x, y int) {
 
 // reserveFormatBlock maintain the position in matrix for format info
 func reserveFormatBlock(m *matrix.Matrix, dimension int) {
-	for pos := 0; pos < 9; pos++ {
+	for pos := 1; pos < 9; pos++ {
 		// skip timing line
 		if pos == 6 {
 			_ = m.Set(8, dimension-pos, matrix.StateFormat)
@@ -718,18 +718,21 @@ func (q *QRCode) xorMask(m *matrix.Matrix, mask *mask) {
 // fillVersionInfo ref to:
 // https://www.thonky.com/qr-code-tutorial/format-version-tables
 func (q *QRCode) fillVersionInfo(m *matrix.Matrix, dimension int) {
-	verBSet := q.v.verInfo()
-	var mod3, mod6 int
-	for pos := 0; pos < 18; pos++ {
-		mod3 = pos % 3
-		mod6 = pos % 6
+	bin := q.v.verInfo()
 
-		if verBSet.At(pos) {
-			_ = m.Set(mod6, dimension-12+mod3, matrix.StateTrue)
-			_ = m.Set(dimension-12+mod3, mod6, matrix.StateTrue)
-		} else {
-			_ = m.Set(mod6, dimension-12+mod3, matrix.StateFalse)
-			_ = m.Set(dimension-12+mod3, mod6, matrix.StateTrue)
+	// from high bit to lowest
+	pos := 0
+	for j := 5; j >= 0; j-- {
+		for i := 1; i <= 3; i++ {
+			if bin.At(pos) {
+				_ = m.Set(dimension-8-i, j, matrix.StateTrue)
+				_ = m.Set(j, dimension-8-i, matrix.StateTrue)
+			} else {
+				_ = m.Set(dimension-8-i, j, matrix.StateFalse)
+				_ = m.Set(j, dimension-8-i, matrix.StateFalse)
+			}
+
+			pos++
 		}
 	}
 }

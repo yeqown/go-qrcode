@@ -101,11 +101,15 @@ func (m *Matrix) init() {
 // Print to stdout
 func (m *Matrix) print() {
 	m.Iterate(ROW, func(x, y int, s State) {
-		fmt.Printf("(%2d,%2d)%s ", x, y, s)
+		fmt.Printf("%6d ", s)
 		if (x + 1) == m.width {
 			fmt.Println()
 		}
 	})
+}
+
+func (m *Matrix) Print() {
+	m.print()
 }
 
 // Copy matrix into a new Matrix

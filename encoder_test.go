@@ -190,11 +190,16 @@ func Test_anlayzeMode(t *testing.T) {
 			args: args{raw: []byte("这是汉字也应该是EncModeByte")},
 			want: encModeByte,
 		},
+		{
+			name: "case 6 (swedish letter)",
+			args: args{raw: []byte("Övrigt aksldjlk Övrigt should JP encMode?")},
+			want: encModeJP,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := anlayzeMode(tt.args.raw); got != tt.want {
-				t.Errorf("anlayzeMode() = %v, want %v", got, tt.want)
+			if got := analyzeMode(tt.args.raw); got != tt.want {
+				t.Errorf("analyzeMode() = %v, want %v", got, tt.want)
 			}
 		})
 	}

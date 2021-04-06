@@ -269,41 +269,56 @@ func encodeAlphanumericCharacter(v byte) uint32 {
 	return 0
 }
 
+// analyzeEncFunc returns true is current byte matched in current mode, otherwise means you should
+// use a bigger character set to check.
 type analyzeEncFunc func(byte) bool
 
-// 如果输入字符串只包含数字（0-9），请使用数字编码模式。
-// 在数字编码模式不适用的情况下，如果可以在字符索引表的左列中找到输入字符串中的所有字符，请使用字符编码模式。注意：小写字母不能使用字符编码模式。
-// 在字符编码模式不适用的情况下，如果字符可以在ISO-8859-1字符集中找到，则使用字节编码模式。
-func anlayzeMode(raw []byte) encMode {
+// analyzeMode try to detect letter set of input data, so that encoder can determine which mode should be use.
+// case1: only numbers, use encModeNumeric.
+// case2: could not use encModeNumeric, but you can find all of them in character mapping, use encModeAlphanumeric.
+// case3: could not use encModeAlphanumeric, but you can find all of them in ISO-8859-1 character set, use encModeByte.
+// case4: could not use encModeByte, use encModeJP, no more choice.
+//
+// Links: https://en.wikipedia.org/wiki/QR_code Storage section.
+func analyzeMode(raw []byte) encMode {
 	var (
-		analyFunc analyzeEncFunc = analyzeNum
-		encMode                  = encModeNumeric
+		analyzeFn analyzeEncFunc = analyzeNum
+		mode                     = encModeNumeric
 	)
-	// check
+
+	// loop to check each character in raw data,
+	// from low mode to higher while current mode could bearing the input data.
 	for _, byt := range raw {
-		switch encMode {
+		switch mode {
 		case encModeNumeric:
-			if !analyFunc(byt) {
-				encMode = encModeAlphanumeric
-				analyFunc = analyzeAlphaNum
+			if !analyzeFn(byt) {
+				mode = encModeAlphanumeric
+				analyzeFn = analyzeAlphaNum
 			}
 		case encModeAlphanumeric:
-			if !analyFunc(byt) {
-				encMode = encModeByte
+			if !analyzeFn(byt) {
+				mode = encModeByte
+				//analyzeFn = analyzeByte
 			}
 		case encModeByte:
-			return encModeByte
+			return mode
+			//if !analyzeFn(byt) {
+			//	mode = encModeJP
+			//}
+			//case encModeJP:
+			//	return mode
 		}
 	}
-	return encMode
+
+	return mode
 }
 
-// analyzeNum ... is byt in num encMode
+// analyzeNum is byt in num encMode
 func analyzeNum(byt byte) bool {
 	return byt >= '0' && byt <= '9'
 }
 
-// analyzeAlphaNum ... is byt in alpha number
+// analyzeAlphaNum is byt in alpha number
 func analyzeAlphaNum(byt byte) bool {
 	if (byt >= '0' && byt <= '9') || (byt >= 'A' && byt <= 'Z') {
 		return true
@@ -314,3 +329,8 @@ func analyzeAlphaNum(byt byte) bool {
 	}
 	return false
 }
+
+//// analyzeByte is byt in bytes.
+//func analyzeByte(byt byte) bool {
+//	return false
+//}

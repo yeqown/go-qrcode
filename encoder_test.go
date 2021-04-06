@@ -193,7 +193,7 @@ func Test_anlayzeMode(t *testing.T) {
 		{
 			name: "case 6 (swedish letter)",
 			args: args{raw: []byte("Övrigt aksldjlk Övrigt should JP encMode?")},
-			want: encModeJP,
+			want: encModeByte,
 		},
 	}
 	for _, tt := range tests {

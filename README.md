@@ -110,6 +110,8 @@ following are some shots:
 
 Jump to [go.dev/github/yeqown/go-qrcode](https://godoc.org/github.com/yeqown/go-qrcode)
 
+* [How to use `WithCustomShape`](./docs/how-to-use-custom-shape.md) 
+
 ### Links
 
 * [QR Code tutori](https://www.thonky.com/qr-code-tutorial/)

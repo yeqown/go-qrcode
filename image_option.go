@@ -88,8 +88,10 @@ var (
 		matrix.StateFalse: hexToRGBA("#ffffff"),
 		matrix.StateTrue:  hexToRGBA("#000000"),
 		matrix.StateInit:  hexToRGBA("#cdc9c3"),
-		// matrix.StateVersion: hexToRGBA("#444444"),
-		// matrix.StateFormat:  hexToRGBA("#555555"),
+		//matrix.StateVersion: hexToRGBA("#444444"),
+		//matrix.StateFormat: hexToRGBA("#555555"),
+		//matrix.StateFinder: hexToRGBA("#2BA859"),
+		matrix.StateFinder: hexToRGBA("#000000"),
 	}
 
 	// _defaultStateColor default color of undefined matrix.State

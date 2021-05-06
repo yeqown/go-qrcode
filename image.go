@@ -164,7 +164,13 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 		}
 		ctx.color = opt.stateRGBA(v)
 		// DONE(@yeqown): make this abstract to Shapes
-		shape.Draw(ctx)
+
+		switch v {
+		case matrix.StateFinder:
+			shape.DrawFinder(ctx)
+		default:
+			shape.Draw(ctx)
+		}
 
 		//if x == y && _debug {
 		//	_ = dc.SavePNG(fmt.Sprintf("./.debug/%d.png", x))

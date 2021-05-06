@@ -13,8 +13,11 @@ var (
 )
 
 type IShape interface {
-	// draw to fill the IShape
+	// Draw to fill the IShape of qrcode.
 	Draw(ctx *DrawContext)
+
+	// DrawFinder to fill the finder pattern of QRCode, what's finder? google it for more information.
+	DrawFinder(ctx *DrawContext)
 }
 
 // DrawContext is a rectangle area
@@ -25,6 +28,23 @@ type DrawContext struct {
 	w, h      int
 
 	color color.Color
+}
+
+// UpperLeft returns the point which indicates the upper left position.
+func (dc *DrawContext) UpperLeft() image.Point {
+	return dc.upperLeft
+}
+
+// Edge returns width and height of each shape could take at most.
+func (dc *DrawContext) Edge() (width, height int) {
+	return dc.w, dc.h
+}
+
+// Color returns the color which should be fill into the shape. Note that if you're not
+// using this color but your coded color.Color, some ImageOption functions those set foreground color
+// would take no effect.
+func (dc *DrawContext) Color() color.Color {
+	return dc.color
 }
 
 // rectangle IShape
@@ -38,9 +58,14 @@ func (r rectangle) Draw(c *DrawContext) {
 	c.Fill()
 }
 
+func (r rectangle) DrawFinder(ctx *DrawContext) {
+	r.Draw(ctx)
+}
+
 // circle IShape
 type circle struct{}
 
+// Draw
 // FIXED: Draw could not draw circle
 func (r circle) Draw(c *DrawContext) {
 	// choose a proper radius values
@@ -54,4 +79,8 @@ func (r circle) Draw(c *DrawContext) {
 	c.DrawCircle(float64(cx), float64(cy), float64(radius))
 	c.SetColor(c.color)
 	c.Fill()
+}
+
+func (r circle) DrawFinder(ctx *DrawContext) {
+	r.Draw(ctx)
 }

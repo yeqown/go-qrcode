@@ -37,6 +37,9 @@ const (
 
 	// StateFormat 0x7777 for persisted state
 	StateFormat State = 0x7777
+
+	// StateFinder 0x8000 to locate matrix and recognize it.
+	StateFinder State = 0x8000
 )
 
 func (s State) String() string {

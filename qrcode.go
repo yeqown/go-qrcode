@@ -360,7 +360,7 @@ func addFinder(m *matrix.Matrix, top, left int) {
 	// black outer
 	x, y := top, left
 	for i := 0; i < 24; i++ {
-		_ = m.Set(x, y, matrix.StateTrue)
+		_ = m.Set(x, y, matrix.StateFinder)
 		if i < 6 {
 			x = x + 1
 		} else if i < 12 {
@@ -390,7 +390,7 @@ func addFinder(m *matrix.Matrix, top, left int) {
 	// black inner
 	for x := left + 2; x < left+5; x++ {
 		for y := top + 2; y < top+5; y++ {
-			_ = m.Set(x, y, matrix.StateTrue)
+			_ = m.Set(x, y, matrix.StateFinder)
 		}
 	}
 }

@@ -8,11 +8,18 @@ type smallerCircle struct {
 	smallerPercent float64
 }
 
-func newShape() qrcode.IShape {
-	return smallerCircle{smallerPercent: 0.8}
+func (sc *smallerCircle) DrawFinder(ctx *qrcode.DrawContext) {
+	backup := sc.smallerPercent
+	sc.smallerPercent = 1.0
+	sc.Draw(ctx)
+	sc.smallerPercent = backup
 }
 
-func (sc smallerCircle) Draw(ctx *qrcode.DrawContext) {
+func newShape(radiusPercent float64) qrcode.IShape {
+	return &smallerCircle{smallerPercent: radiusPercent}
+}
+
+func (sc *smallerCircle) Draw(ctx *qrcode.DrawContext) {
 	w, h := ctx.Edge()
 	upperLeft := ctx.UpperLeft()
 	color := ctx.Color()
@@ -35,7 +42,7 @@ func (sc smallerCircle) Draw(ctx *qrcode.DrawContext) {
 }
 
 func main() {
-	shape := newShape()
+	shape := newShape(0.7)
 	qrc, err := qrcode.New("with-custom-shape", qrcode.WithCustomShape(shape))
 	// qrc, err := qrcode.New("with-custom-shape", qrcode.WithCircleShape())
 	if err != nil {

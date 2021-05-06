@@ -13,8 +13,11 @@ var (
 )
 
 type IShape interface {
-	// Draw to fill the IShape
+	// Draw to fill the IShape of qrcode.
 	Draw(ctx *DrawContext)
+
+	// DrawFinder to fill the finder pattern of QRCode, what's finder? google it for more information.
+	DrawFinder(ctx *DrawContext)
 }
 
 // DrawContext is a rectangle area
@@ -55,6 +58,10 @@ func (r rectangle) Draw(c *DrawContext) {
 	c.Fill()
 }
 
+func (r rectangle) DrawFinder(ctx *DrawContext) {
+	r.Draw(ctx)
+}
+
 // circle IShape
 type circle struct{}
 
@@ -72,4 +79,8 @@ func (r circle) Draw(c *DrawContext) {
 	c.DrawCircle(float64(cx), float64(cy), float64(radius))
 	c.SetColor(c.color)
 	c.Fill()
+}
+
+func (r circle) DrawFinder(ctx *DrawContext) {
+	r.Draw(ctx)
 }

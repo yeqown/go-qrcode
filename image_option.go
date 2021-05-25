@@ -9,13 +9,15 @@ import (
 )
 
 // _defaultOutputOption default output image background color and etc options
-var _defaultOutputOption = &outputImageOptions{
-	bgColor:      color.White,     // white
-	qrColor:      color.Black,     // black
-	logo:         nil,             //
-	qrWidth:      20,              //
-	shape:        _shapeRectangle, //
-	imageEncoder: jpegEncoder{},
+func _defaultOutputOption() *outputImageOptions {
+	return &outputImageOptions{
+		bgColor:      color.White,     // white
+		qrColor:      color.Black,     // black
+		logo:         nil,             //
+		qrWidth:      20,              //
+		shape:        _shapeRectangle, //
+		imageEncoder: jpegEncoder{},
+	}
 }
 
 // outputImageOptions to output QR code image

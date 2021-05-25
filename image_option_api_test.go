@@ -8,7 +8,7 @@ import (
 )
 
 func Test_WithBuiltinImageEncoder(t *testing.T) {
-	oo := *_defaultOutputOption
+	oo := *_defaultOutputOption()
 	oo2 := &oo
 
 	assert.IsType(t, jpegEncoder{}, oo2.imageEncoder)
@@ -19,7 +19,7 @@ func Test_WithBuiltinImageEncoder(t *testing.T) {
 }
 
 func Test_WithCustomImageEncoder(t *testing.T) {
-	oo := *_defaultOutputOption
+	oo := *_defaultOutputOption()
 	oo2 := &oo
 
 	assert.IsType(t, jpegEncoder{}, oo2.imageEncoder)
@@ -28,7 +28,7 @@ func Test_WithCustomImageEncoder(t *testing.T) {
 }
 
 func Test_BgColor_FgColor(t *testing.T) {
-	oo := _defaultOutputOption
+	oo := _defaultOutputOption()
 
 	if oo.bgColor != color.White || oo.qrColor != color.Black {
 		t.Error("default value failed")

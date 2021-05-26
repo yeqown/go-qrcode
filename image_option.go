@@ -8,8 +8,8 @@ import (
 	"github.com/yeqown/go-qrcode/matrix"
 )
 
-// _defaultOutputOption default output image background color and etc options
-func _defaultOutputOption() *outputImageOptions {
+// defaultOutputOption default output image background color and etc options
+func defaultOutputOption() *outputImageOptions {
 	return &outputImageOptions{
 		bgColor:      color.White,     // white
 		qrColor:      color.Black,     // black

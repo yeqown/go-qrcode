@@ -34,7 +34,7 @@ func drawAndSaveToFile(name string, m matrix.Matrix, opt *outputImageOptions) er
 // drawAndSave save image into io.Writer
 func drawAndSave(w io.Writer, m matrix.Matrix, opt *outputImageOptions) (err error) {
 	if opt == nil {
-		opt = _defaultOutputOption
+		opt = defaultOutputOption()
 	}
 
 	img := draw(m, opt)

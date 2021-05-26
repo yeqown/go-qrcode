@@ -8,9 +8,10 @@ import (
 	"os"
 	"sync"
 
-	"github.com/yeqown/go-qrcode/matrix"
 	"github.com/yeqown/reedsolomon"
 	"github.com/yeqown/reedsolomon/binary"
+
+	"github.com/yeqown/go-qrcode/matrix"
 )
 
 var (
@@ -23,7 +24,7 @@ var (
 
 // New generate a QRCode struct to create
 func New(text string, opts ...ImageOption) (*QRCode, error) {
-	dst := _defaultOutputOption
+	dst := defaultOutputOption()
 	for _, opt := range opts {
 		opt.apply(dst)
 	}
@@ -46,7 +47,7 @@ func New(text string, opts ...ImageOption) (*QRCode, error) {
 // NewWithSpecV generate a QRCode struct with
 // specified `ver`(QR version) and `ecLv`(Error Correction level)
 func NewWithSpecV(text string, ver int, ecLv ecLevel, opts ...ImageOption) (*QRCode, error) {
-	dst := _defaultOutputOption
+	dst := defaultOutputOption()
 	for _, opt := range opts {
 		opt.apply(dst)
 	}

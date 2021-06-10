@@ -52,6 +52,7 @@ func WithFgColor(c color.Color) ImageOption {
 	return newFuncDialOption(func(oo *outputImageOptions) {
 		oo.qrColor = c
 		_stateToRGBA[matrix.StateTrue] = oo.qrColor
+		_stateToRGBA[matrix.StateFinder] = oo.qrColor
 	})
 }
 
@@ -60,6 +61,7 @@ func WithFgColorRGBHex(hex string) ImageOption {
 	return newFuncDialOption(func(oo *outputImageOptions) {
 		oo.qrColor = hexToRGBA(hex)
 		_stateToRGBA[matrix.StateTrue] = oo.qrColor
+		_stateToRGBA[matrix.StateFinder] = oo.qrColor
 	})
 }
 

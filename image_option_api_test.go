@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/yeqown/go-qrcode/matrix"
 )
 
 func Test_WithBuiltinImageEncoder(t *testing.T) {
@@ -42,10 +43,12 @@ func Test_BgColor_FgColor(t *testing.T) {
 	WithFgColor(color.White).apply(oo)
 	assert.Equal(t, color.White, oo.bgColor)
 	assert.Equal(t, color.White, oo.qrColor)
+	assert.Equal(t, color.White, _stateToRGBA[matrix.StateFinder])
 
 	WithFgColor(color.Black).apply(oo)
 	assert.Equal(t, color.White, oo.bgColor)
 	assert.Equal(t, color.Black, oo.qrColor)
+	assert.Equal(t, color.Black, _stateToRGBA[matrix.StateFinder])
 }
 
 func Test_defaultOutputOption(t *testing.T) {

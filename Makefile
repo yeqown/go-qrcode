@@ -6,6 +6,6 @@ release-osx:
 	cd draft/osx && tar -zcvf ../go-qrcode.osx.tar.gz .
 
 release-linux:
-	- mkdir -p draft/osx
+	- mkdir -p draft/linux
 	GOOS=linux GOARCH=amd64 go build -o draft/linux/go-qrcode ./cmd/go-qrcode.go
 	cd draft/linux && tar -zcvf ../go-qrcode.linux.tar.gz .

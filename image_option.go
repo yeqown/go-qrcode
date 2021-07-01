@@ -17,6 +17,8 @@ func defaultOutputOption() *outputImageOptions {
 		qrWidth:      20,              //
 		shape:        _shapeRectangle, //
 		imageEncoder: jpegEncoder{},
+		encMode:      EncModeByte,
+		ecLevel:      Quart,
 	}
 }
 
@@ -40,6 +42,12 @@ type outputImageOptions struct {
 
 	// imageEncoder specify which file format would be encoded the QR image.
 	imageEncoder ImageEncoder
+
+	// encMode specifies which encMode to use
+	encMode encMode
+
+	// ecLevel specifies which ecLevel to use
+	ecLevel ecLevel
 }
 
 func (oo *outputImageOptions) backgroundColor() color.Color {

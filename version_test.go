@@ -255,7 +255,7 @@ func Test_analyzeVersion(t *testing.T) {
 			args: args{
 				raw:   []byte("TEXT"),
 				ecLv:  Medium,
-				eMode: encModeAlphanumeric,
+				eMode: EncModeAlphanumeric,
 			},
 			want:    &v,
 			wantErr: false,

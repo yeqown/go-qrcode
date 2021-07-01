@@ -15,14 +15,14 @@ type encMode uint
 const (
 	// encModeNone mode ...
 	encModeNone encMode = 1 << iota
-	// encModeNumeric mode ...
-	encModeNumeric
-	// encModeAlphanumeric mode ...
-	encModeAlphanumeric
-	// encModeByte mode ...
-	encModeByte
-	// encModeJP mode ...
-	encModeJP
+	// EncModeNumeric mode ...
+	EncModeNumeric
+	// EncModeAlphanumeric mode ...
+	EncModeAlphanumeric
+	// EncModeByte mode ...
+	EncModeByte
+	// EncModeJP mode ...
+	EncModeJP
 )
 
 var (
@@ -35,13 +35,13 @@ func getEncModeName(mode encMode) string {
 	switch mode {
 	case encModeNone:
 		return "none"
-	case encModeNumeric:
+	case EncModeNumeric:
 		return "numeric"
-	case encModeAlphanumeric:
+	case EncModeAlphanumeric:
 		return "alphanumeric"
-	case encModeByte:
+	case EncModeByte:
 		return "byte"
-	case encModeJP:
+	case EncModeJP:
 		return "japan"
 	default:
 		return "unknown"
@@ -51,13 +51,13 @@ func getEncModeName(mode encMode) string {
 // getEncodeModeIndicator ...
 func getEncodeModeIndicator(mode encMode) *binary.Binary {
 	switch mode {
-	case encModeNumeric:
+	case EncModeNumeric:
 		return binary.New(false, false, false, true)
-	case encModeAlphanumeric:
+	case EncModeAlphanumeric:
 		return binary.New(false, false, true, false)
-	case encModeByte:
+	case EncModeByte:
 		return binary.New(false, true, false, false)
-	case encModeJP:
+	case EncModeJP:
 		return binary.New(true, false, false, false)
 	default:
 		panic("no indicator")
@@ -94,13 +94,13 @@ func (e *encoder) Encode(byts []byte) (*binary.Binary, error) {
 
 	// encode data with specified mode
 	switch e.mode {
-	case encModeNumeric:
+	case EncModeNumeric:
 		e.encodeNumeric()
-	case encModeAlphanumeric:
+	case EncModeAlphanumeric:
 		e.encodeAlphanumeric()
-	case encModeByte:
+	case EncModeByte:
 		e.encodeByte()
-	case encModeJP:
+	case EncModeJP:
 		panic("this has not been finished")
 	}
 
@@ -274,38 +274,38 @@ func encodeAlphanumericCharacter(v byte) uint32 {
 type analyzeEncFunc func(byte) bool
 
 // analyzeMode try to detect letter set of input data, so that encoder can determine which mode should be use.
-// case1: only numbers, use encModeNumeric.
-// case2: could not use encModeNumeric, but you can find all of them in character mapping, use encModeAlphanumeric.
-// case3: could not use encModeAlphanumeric, but you can find all of them in ISO-8859-1 character set, use encModeByte.
-// case4: could not use encModeByte, use encModeJP, no more choice.
+// case1: only numbers, use EncModeNumeric.
+// case2: could not use EncModeNumeric, but you can find all of them in character mapping, use EncModeAlphanumeric.
+// case3: could not use EncModeAlphanumeric, but you can find all of them in ISO-8859-1 character set, use EncModeByte.
+// case4: could not use EncModeByte, use EncModeJP, no more choice.
 //
 // Links: https://en.wikipedia.org/wiki/QR_code Storage section.
 func analyzeMode(raw []byte) encMode {
 	var (
 		analyzeFn analyzeEncFunc = analyzeNum
-		mode                     = encModeNumeric
+		mode                     = EncModeNumeric
 	)
 
 	// loop to check each character in raw data,
 	// from low mode to higher while current mode could bearing the input data.
 	for _, byt := range raw {
 		switch mode {
-		case encModeNumeric:
+		case EncModeNumeric:
 			if !analyzeFn(byt) {
-				mode = encModeAlphanumeric
+				mode = EncModeAlphanumeric
 				analyzeFn = analyzeAlphaNum
 			}
-		case encModeAlphanumeric:
+		case EncModeAlphanumeric:
 			if !analyzeFn(byt) {
-				mode = encModeByte
+				mode = EncModeByte
 				//analyzeFn = analyzeByte
 			}
-		case encModeByte:
+		case EncModeByte:
 			return mode
 			//if !analyzeFn(byt) {
-			//	mode = encModeJP
+			//	mode = EncModeJP
 			//}
-			//case encModeJP:
+			//case EncModeJP:
 			//	return mode
 		}
 	}

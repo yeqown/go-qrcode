@@ -163,3 +163,18 @@ func WithCustomImageEncoder(encoder ImageEncoder) ImageOption {
 		oo.imageEncoder = encoder
 	})
 }
+
+// WithEncodingMode to specify which encMode to use
+func WithEncodingMode(mode encMode) ImageOption {
+	return newFuncDialOption(func(oo *outputImageOptions) {
+		oo.encMode = mode
+	})
+}
+
+// WithBuiltinImageEncoder to use custom image encoder to encode image.Image into
+// io.Writer
+func WithErrorCorrectionLevel(level ecLevel) ImageOption {
+	return newFuncDialOption(func(oo *outputImageOptions) {
+		oo.ecLevel = level
+	})
+}

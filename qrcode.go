@@ -31,7 +31,8 @@ func New(text string, opts ...ImageOption) (*QRCode, error) {
 
 	qrc := &QRCode{
 		content:      text,
-		mode:         encModeByte,
+		mode:         dst.encMode,
+		ecLv:         dst.ecLevel,
 		needAnalyze:  true,
 		outputOption: dst,
 	}
@@ -55,8 +56,8 @@ func NewWithSpecV(text string, ver int, ecLv ecLevel, opts ...ImageOption) (*QRC
 	qrc := &QRCode{
 		content:      text,
 		ver:          ver,
-		mode:         encModeByte,
-		ecLv:         ecLv,
+		mode:         dst.encMode,
+		ecLv:         dst.ecLevel,
 		needAnalyze:  false,
 		outputOption: dst,
 	}
@@ -148,11 +149,10 @@ func (q *QRCode) init() error {
 
 // analyze choose version and encoder
 func (q *QRCode) analyze() error {
-	// choose error correction level
-	q.ecLv = Quart
-
-	// choose encode mode (num, alpha num, byte, Japanese)
+	if q.mode == 0 {
+		// choose encode mode (num, alpha num, byte, Japanese)
 	q.mode = analyzeEncodeModeFromRaw(q.rawData)
+	}
 
 	// analyze content to decide version etc.
 	analyzedV, err := analyzeVersion(q.rawData, q.ecLv, q.mode)

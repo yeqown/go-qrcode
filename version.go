@@ -246,13 +246,13 @@ func analyzeVersion(raw []byte, ecLv ecLevel, eMode encMode) (*version, error) {
 	for _, v := range versions {
 		if v.ECLevel == ecLv {
 			switch eMode {
-			case encModeNumeric:
+			case EncModeNumeric:
 				c = v.Cap.Numeric
-			case encModeAlphanumeric:
+			case EncModeAlphanumeric:
 				c = v.Cap.AlphaNumeric
-			case encModeByte:
+			case EncModeByte:
 				c = v.Cap.Byte
-			case encModeJP:
+			case EncModeJP:
 				c = v.Cap.JP
 			default:
 				return nil, errMissMatchedEncodeType

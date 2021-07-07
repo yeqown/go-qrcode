@@ -195,11 +195,16 @@ func Test_anlayzeMode(t *testing.T) {
 			args: args{raw: []byte("Övrigt aksldjlk Övrigt should JP encMode?")},
 			want: encModeByte,
 		},
+		{
+			name: "issue#28",
+			args: args{raw: []byte("a")},
+			want: encModeByte,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := analyzeMode(tt.args.raw); got != tt.want {
-				t.Errorf("analyzeMode() = %v, want %v", got, tt.want)
+			if got := analyzeEncodeModeFromRaw(tt.args.raw); got != tt.want {
+				t.Errorf("analyzeEncodeModeFromRaw() = %v, want %v", got, tt.want)
 			}
 		})
 	}

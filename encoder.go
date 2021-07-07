@@ -269,44 +269,46 @@ func encodeAlphanumericCharacter(v byte) uint32 {
 	return 0
 }
 
-// analyzeEncFunc returns true is current byte matched in current mode, otherwise means you should
-// use a bigger character set to check.
+// analyzeEncFunc returns true is current byte matched in current mode,
+// otherwise means you should use a bigger character set to check.
 type analyzeEncFunc func(byte) bool
 
-// analyzeMode try to detect letter set of input data, so that encoder can determine which mode should be use.
+// analyzeEncodeModeFromRaw try to detect letter set of input data,
+// so that encoder can determine which mode should be use.
+// reference: https://en.wikipedia.org/wiki/QR_code
+//
 // case1: only numbers, use encModeNumeric.
 // case2: could not use encModeNumeric, but you can find all of them in character mapping, use encModeAlphanumeric.
 // case3: could not use encModeAlphanumeric, but you can find all of them in ISO-8859-1 character set, use encModeByte.
 // case4: could not use encModeByte, use encModeJP, no more choice.
 //
-// Links: https://en.wikipedia.org/wiki/QR_code Storage section.
-func analyzeMode(raw []byte) encMode {
+func analyzeEncodeModeFromRaw(raw []byte) encMode {
+	analyzeFnMapping := map[encMode]analyzeEncFunc{
+		encModeNumeric:      analyzeNum,
+		encModeAlphanumeric: analyzeAlphaNum,
+		encModeByte:         nil,
+		encModeJP:           nil,
+	}
+
 	var (
-		analyzeFn analyzeEncFunc = analyzeNum
-		mode                     = encModeNumeric
+		f    analyzeEncFunc
+		mode = encModeNumeric
 	)
 
 	// loop to check each character in raw data,
 	// from low mode to higher while current mode could bearing the input data.
 	for _, byt := range raw {
-		switch mode {
-		case encModeNumeric:
-			if !analyzeFn(byt) {
-				mode = encModeAlphanumeric
-				analyzeFn = analyzeAlphaNum
-			}
-		case encModeAlphanumeric:
-			if !analyzeFn(byt) {
-				mode = encModeByte
-				//analyzeFn = analyzeByte
-			}
-		case encModeByte:
-			return mode
-			//if !analyzeFn(byt) {
-			//	mode = encModeJP
-			//}
-			//case encModeJP:
-			//	return mode
+	reAnalyze:
+		if f = analyzeFnMapping[mode]; f == nil {
+			break
+		}
+
+		// issue#28 @borislavone reports this bug.
+		// FIXED(@yeqown): next encMode analyze func did not check the previous byte,
+		// add goto statement to reanalyze previous byte which can't be analyzed in last encMode.
+		if !f(byt) {
+			mode <<= 1
+			goto reAnalyze
 		}
 	}
 

@@ -152,7 +152,7 @@ func (q *QRCode) analyze() error {
 	q.ecLv = Quart
 
 	// choose encode mode (num, alpha num, byte, Japanese)
-	q.mode = analyzeMode(q.rawData)
+	q.mode = analyzeEncodeModeFromRaw(q.rawData)
 
 	// analyze content to decide version etc.
 	analyzedV, err := analyzeVersion(q.rawData, q.ecLv, q.mode)

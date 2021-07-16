@@ -9,7 +9,7 @@ import (
 )
 
 func Test_WithBuiltinImageEncoder(t *testing.T) {
-	oo := defaultOutputOption()
+	oo := defaultOutputImageOption()
 
 	assert.IsType(t, jpegEncoder{}, oo.imageEncoder)
 	WithBuiltinImageEncoder(JPEG_FORMAT).apply(oo)
@@ -19,7 +19,7 @@ func Test_WithBuiltinImageEncoder(t *testing.T) {
 }
 
 func Test_WithCustomImageEncoder(t *testing.T) {
-	oo := defaultOutputOption()
+	oo := defaultOutputImageOption()
 
 	assert.IsType(t, jpegEncoder{}, oo.imageEncoder)
 	WithCustomImageEncoder(nil).apply(oo)
@@ -27,7 +27,7 @@ func Test_WithCustomImageEncoder(t *testing.T) {
 }
 
 func Test_BgColor_FgColor(t *testing.T) {
-	oo := defaultOutputOption()
+	oo := defaultOutputImageOption()
 
 	// check
 	assert.Equal(t, color.White, oo.bgColor)
@@ -52,7 +52,7 @@ func Test_BgColor_FgColor(t *testing.T) {
 }
 
 func Test_defaultOutputOption(t *testing.T) {
-	oo := defaultOutputOption()
+	oo := defaultOutputImageOption()
 
 	// Apply
 	rgba := color.RGBA{
@@ -66,6 +66,6 @@ func Test_defaultOutputOption(t *testing.T) {
 	assert.Equal(t, rgba, oo.bgColor)
 
 	// check default
-	oo2 := defaultOutputOption()
+	oo2 := defaultOutputImageOption()
 	assert.NotEqual(t, oo2.bgColor, oo.bgColor)
 }

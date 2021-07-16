@@ -10,9 +10,9 @@ import (
 
 func TestEncodeNum(t *testing.T) {
 	enc := encoder{
-		ecLv:    Low,
+		ecLv:    ErrorCorrectionLow,
 		mode:    EncModeNumeric,
-		version: loadVersion(1, Low),
+		version: loadVersion(1, ErrorCorrectionLow),
 	}
 
 	b, err := enc.Encode([]byte("12312312"))
@@ -25,9 +25,9 @@ func TestEncodeNum(t *testing.T) {
 
 func TestEncodeAlphanum(t *testing.T) {
 	enc := encoder{
-		ecLv:    Low,
+		ecLv:    ErrorCorrectionLow,
 		mode:    EncModeAlphanumeric,
-		version: loadVersion(1, Low),
+		version: loadVersion(1, ErrorCorrectionLow),
 	}
 
 	b, err := enc.Encode([]byte("AKJA*:/"))
@@ -40,9 +40,9 @@ func TestEncodeAlphanum(t *testing.T) {
 
 func TestEncodeByte(t *testing.T) {
 	enc := encoder{
-		ecLv:    Quart,
+		ecLv:    ErrorCorrectionQuart,
 		mode:    EncModeByte,
-		version: loadVersion(5, Quart),
+		version: loadVersion(5, ErrorCorrectionQuart),
 	}
 
 	b, err := enc.Encode([]byte("http://baidu.com?keyword=123123"))
@@ -198,7 +198,7 @@ func Test_anlayzeMode(t *testing.T) {
 		{
 			name: "issue#28",
 			args: args{raw: []byte("a")},
-			want: encModeByte,
+			want: EncModeByte,
 		},
 	}
 	for _, tt := range tests {

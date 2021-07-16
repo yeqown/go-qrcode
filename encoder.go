@@ -13,8 +13,10 @@ import (
 type encMode uint
 
 const (
-	// encModeNone mode ...
-	encModeNone encMode = 1 << iota
+	// a value of EncModeAuto will trigger a detection of the letter set from the input data,
+	EncModeAuto = 0
+	// EncModeNone mode ...
+	EncModeNone encMode = 1 << iota
 	// EncModeNumeric mode ...
 	EncModeNumeric
 	// EncModeAlphanumeric mode ...
@@ -33,7 +35,7 @@ var (
 // getEncModeName ...
 func getEncModeName(mode encMode) string {
 	switch mode {
-	case encModeNone:
+	case EncModeNone:
 		return "none"
 	case EncModeNumeric:
 		return "numeric"
@@ -284,10 +286,10 @@ type analyzeEncFunc func(byte) bool
 //
 func analyzeEncodeModeFromRaw(raw []byte) encMode {
 	analyzeFnMapping := map[encMode]analyzeEncFunc{
-		encModeNumeric:      analyzeNum,
-		encModeAlphanumeric: analyzeAlphaNum,
-		encModeByte:         nil,
-		encModeJP:           nil,
+		EncModeNumeric:      analyzeNum,
+		EncModeAlphanumeric: analyzeAlphaNum,
+		EncModeByte:         nil,
+		EncModeJP:           nil,
 	}
 
 	var (

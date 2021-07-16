@@ -32,15 +32,15 @@ func drawAndSaveToFile(name string, m matrix.Matrix, opt *outputImageOptions) er
 }
 
 // drawAndSave save image into io.Writer
-func drawAndSave(w io.Writer, m matrix.Matrix, opt *outputImageOptions) (err error) {
-	if opt == nil {
-		opt = defaultOutputOption()
+func drawAndSave(w io.Writer, m matrix.Matrix, imgOpt *outputImageOptions) (err error) {
+	if imgOpt == nil {
+		imgOpt = defaultOutputImageOption()
 	}
 
-	img := draw(m, opt)
+	img := draw(m, imgOpt)
 
 	// DONE(@yeqown): support file format specified config option
-	if err = opt.imageEncoder.Encode(w, img); err != nil {
+	if err = imgOpt.imageEncoder.Encode(w, img); err != nil {
 		err = fmt.Errorf("jpeg.Encode got err: %v", err)
 	}
 

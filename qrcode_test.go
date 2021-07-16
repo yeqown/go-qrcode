@@ -34,8 +34,13 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestNewWithSpecV(t *testing.T) {
-	qrc, err := NewWithSpecV("TestNewWithSpecV", 4, Quart)
+func TestNewWithConfig(t *testing.T) {
+
+	encOpts := defaultOutputEncoderOption()
+	encOpts.ecLevel = ErrorCorrectionLow
+	encOpts.encMode = EncModeNumeric
+
+	qrc, err := NewWithConfig("1234567", encOpts, WithQRWidth(20))
 	if err != nil {
 		t.Errorf("could not generate QRCode: %v", err)
 		t.Fail()

@@ -34,6 +34,27 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestNewWithSpecV(t *testing.T) {
+	qrc, err := NewWithSpecV("TestNewWithSpecV", 4, Quart)
+	if err != nil {
+		t.Errorf("could not generate QRCode: %v", err)
+		t.Fail()
+	}
+
+	// save file
+	if err := qrc.Save("./testdata/qrtest_spec.jpeg"); err != nil {
+		t.Errorf("could not save image: %v", err)
+		t.Fail()
+	}
+
+	// check file existed
+	_, err = os.Stat("./testdata/qrtest_spec.jpeg")
+	if err != nil {
+		t.Errorf("could not find image file: %v", err)
+		t.Fail()
+	}
+}
+
 func TestNewWithConfig(t *testing.T) {
 
 	encOpts := defaultOutputEncoderOption()

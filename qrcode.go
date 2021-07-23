@@ -47,11 +47,36 @@ func New(text string, opts ...ImageOption) (*QRCode, error) {
 	return qrc, nil
 }
 
+// NewWithSpecV generate a QRCode struct with
+// specified `ver`(QR version) and `ecLv`(Error Correction level)
+// Deprecated
+func NewWithSpecV(text string, ver int, ecLv ecLevel, opts ...ImageOption) (*QRCode, error) {
+	dst := defaultOutputImageOption()
+	for _, opt := range opts {
+		opt.apply(dst)
+	}
+
+	qrc := &QRCode{
+		content:      text,
+		ver:          ver,
+		mode:         EncModeByte,
+		ecLv:         ecLv,
+		needAnalyze:  false,
+		outputOption: dst,
+	}
+	// initialize QRCode instance
+	if err := qrc.init(); err != nil {
+		return nil, err
+	}
+
+	return qrc, nil
+}
+
 // NewWithConfig generate a QRCode struct with
 // specified `ver`(QR version) and `ecLv`(Error Correction level)
-func NewWithConfig(text string, encOpts *outputEncodingOptions, imgOpts ...ImageOption) (*QRCode, error) {
+func NewWithConfig(text string, encOpts *outputEncodingOptions, opts ...ImageOption) (*QRCode, error) {
 	dstImgOptions := defaultOutputImageOption()
-	for _, opt := range imgOpts {
+	for _, opt := range opts {
 		opt.apply(dstImgOptions)
 	}
 

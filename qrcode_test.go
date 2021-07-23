@@ -3,6 +3,8 @@ package qrcode
 import (
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNew(t *testing.T) {
@@ -57,9 +59,9 @@ func TestNewWithSpecV(t *testing.T) {
 
 func TestNewWithConfig(t *testing.T) {
 
-	encOpts := defaultOutputEncoderOption()
-	encOpts.ecLevel = ErrorCorrectionLow
-	encOpts.encMode = EncModeNumeric
+	encOpts := DefaultConfig()
+	encOpts.EcLevel = ErrorCorrectionLow
+	encOpts.EncMode = EncModeNumeric
 
 	qrc, err := NewWithConfig("1234567", encOpts, WithQRWidth(20))
 	if err != nil {
@@ -79,6 +81,22 @@ func TestNewWithConfig(t *testing.T) {
 		t.Errorf("could not find image file: %v", err)
 		t.Fail()
 	}
+}
+
+// Test_NewWithConfig_UnmatchedEncodeMode NewWithConfig will panic while encMode is
+// not matched to Config.EncMode, for example:
+// cfg.EncMode is EncModeAlphanumeric but source text is bytes encoding.
+func Test_NewWithConfig_UnmatchedEncodeMode(t *testing.T) {
+	cfg := DefaultConfig()
+	cfg.EncMode = EncModeAlphanumeric
+
+	assert.Panics(t, func() {
+		_, err := NewWithConfig("abcs", cfg, WithQRWidth(20))
+		if err != nil {
+			t.Errorf("could not generate QRCode: %v", err)
+			t.Fail()
+		}
+	})
 }
 
 func Test_New_WithOutputOption_bg_fg_width(t *testing.T) {

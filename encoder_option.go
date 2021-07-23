@@ -1,19 +1,23 @@
 package qrcode
 
-func defaultOutputEncoderOption() *outputEncodingOptions {
-	return &outputEncodingOptions{
-		encMode: EncModeAuto,
-		ecLevel: ErrorCorrectionQuart,
+// DefaultConfig with EncMode = EncModeAuto, EcLevel = ErrorCorrectionQuart
+func DefaultConfig() *Config {
+	return &outputEncodingOption{
+		EncMode: EncModeAuto,
+		EcLevel: ErrorCorrectionQuart,
 	}
 }
 
-type outputEncodingOptions struct {
+// Config alias of outputEncodingOption.
+type Config = outputEncodingOption
 
-	// encMode specifies which encMode to use
-	encMode encMode
+type outputEncodingOption struct {
 
-	// ecLevel specifies which ecLevel to use
-	ecLevel ecLevel
+	// EncMode specifies which encMode to use
+	EncMode encMode
+
+	// EcLevel specifies which ecLevel to use
+	EcLevel ecLevel
 
 	// PS: The version (which implicitly defines the byte capacity of the qrcode) is dynamically selected at runtime
 }

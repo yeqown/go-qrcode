@@ -35,7 +35,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewWithSpecV(t *testing.T) {
-	qrc, err := NewWithSpecV("TestNewWithSpecV", 4, Quart)
+	qrc, err := NewWithSpecV("TestNewWithSpecV", 4, ErrorCorrectionQuart)
 	if err != nil {
 		t.Errorf("could not generate QRCode: %v", err)
 		t.Fail()

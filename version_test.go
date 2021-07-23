@@ -205,11 +205,11 @@ func Test_loadVersion(t *testing.T) {
 			name: "case 0",
 			args: args{
 				lv:         1,
-				recoveryLv: Highest,
+				recoveryLv: ErrorCorrectionHighest,
 			},
 			want: version{
 				Ver:     1,
-				ECLevel: Highest,
+				ECLevel: ErrorCorrectionHighest,
 				Cap: capacity{
 					Numeric:      17,
 					AlphaNumeric: 10,
@@ -238,7 +238,7 @@ func Test_loadVersion(t *testing.T) {
 
 func Test_analyzeVersion(t *testing.T) {
 	// load(defaultVersionCfg)
-	v := loadVersion(1, Medium)
+	v := loadVersion(1, ErrorCorrectionMedium)
 	type args struct {
 		raw   []byte
 		ecLv  ecLevel
@@ -254,8 +254,8 @@ func Test_analyzeVersion(t *testing.T) {
 			name: "case 0",
 			args: args{
 				raw:   []byte("TEXT"),
-				ecLv:  Medium,
-				eMode: encModeAlphanumeric,
+				ecLv:  ErrorCorrectionMedium,
+				eMode: EncModeAlphanumeric,
 			},
 			want:    &v,
 			wantErr: false,

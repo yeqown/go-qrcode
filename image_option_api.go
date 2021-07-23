@@ -163,3 +163,4 @@ func WithCustomImageEncoder(encoder ImageEncoder) ImageOption {
 		oo.imageEncoder = encoder
 	})
 }
+

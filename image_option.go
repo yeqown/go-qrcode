@@ -8,8 +8,8 @@ import (
 	"github.com/yeqown/go-qrcode/matrix"
 )
 
-// defaultOutputOption default output image background color and etc options
-func defaultOutputOption() *outputImageOptions {
+// defaultOutputImageOption default output image background color and etc options
+func defaultOutputImageOption() *outputImageOptions {
 	return &outputImageOptions{
 		bgColor:      color.White,     // white
 		qrColor:      color.Black,     // black
@@ -40,6 +40,7 @@ type outputImageOptions struct {
 
 	// imageEncoder specify which file format would be encoded the QR image.
 	imageEncoder ImageEncoder
+
 }
 
 func (oo *outputImageOptions) backgroundColor() color.Color {

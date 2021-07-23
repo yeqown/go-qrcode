@@ -24,14 +24,17 @@ var (
 
 // New generate a QRCode struct to create
 func New(text string, opts ...ImageOption) (*QRCode, error) {
-	dst := defaultOutputOption()
+	dst := defaultOutputImageOption()
 	for _, opt := range opts {
 		opt.apply(dst)
 	}
 
+	encOpts := defaultOutputEncoderOption()
+
 	qrc := &QRCode{
 		content:      text,
-		mode:         encModeByte,
+		mode:         encOpts.encMode,
+		ecLv:         encOpts.ecLevel,
 		needAnalyze:  true,
 		outputOption: dst,
 	}
@@ -46,8 +49,9 @@ func New(text string, opts ...ImageOption) (*QRCode, error) {
 
 // NewWithSpecV generate a QRCode struct with
 // specified `ver`(QR version) and `ecLv`(Error Correction level)
+// Deprecated
 func NewWithSpecV(text string, ver int, ecLv ecLevel, opts ...ImageOption) (*QRCode, error) {
-	dst := defaultOutputOption()
+	dst := defaultOutputImageOption()
 	for _, opt := range opts {
 		opt.apply(dst)
 	}
@@ -55,10 +59,37 @@ func NewWithSpecV(text string, ver int, ecLv ecLevel, opts ...ImageOption) (*QRC
 	qrc := &QRCode{
 		content:      text,
 		ver:          ver,
-		mode:         encModeByte,
+		mode:         EncModeByte,
 		ecLv:         ecLv,
 		needAnalyze:  false,
 		outputOption: dst,
+	}
+	// initialize QRCode instance
+	if err := qrc.init(); err != nil {
+		return nil, err
+	}
+
+	return qrc, nil
+}
+
+// NewWithConfig generate a QRCode struct with
+// specified `ver`(QR version) and `ecLv`(Error Correction level)
+func NewWithConfig(text string, encOpts *outputEncodingOptions, opts ...ImageOption) (*QRCode, error) {
+	dstImgOptions := defaultOutputImageOption()
+	for _, opt := range opts {
+		opt.apply(dstImgOptions)
+	}
+
+	if encOpts == nil {
+		encOpts = defaultOutputEncoderOption()
+	}
+
+	qrc := &QRCode{
+		content:      text,
+		mode:         encOpts.encMode,
+		ecLv:         encOpts.ecLevel,
+		needAnalyze:  true,
+		outputOption: dstImgOptions,
 	}
 	// initialize QRCode instance
 	if err := qrc.init(); err != nil {
@@ -80,7 +111,7 @@ type QRCode struct {
 
 	v       version  // version means the size
 	ver     int      // version num
-	ecLv    ecLevel  // recoveryLevel
+	ecLv    ecLevel  // error correction level
 	mode    encMode  // encMode
 	encoder *encoder // encoder ptr to call it's methods ~
 
@@ -106,8 +137,8 @@ func (q *QRCode) init() error {
 	}
 	// or check need params
 
-	// choose version without auto analyze
 	if !q.needAnalyze {
+		// choose version without auto analyze
 		q.v = loadVersion(q.ver, q.ecLv)
 	}
 
@@ -146,13 +177,12 @@ func (q *QRCode) init() error {
 	return nil
 }
 
-// analyze choose version and encoder
+// analyze rawData abd based on AUTO settings choose version and encoder
 func (q *QRCode) analyze() error {
-	// choose error correction level
-	q.ecLv = Quart
-
-	// choose encode mode (num, alpha num, byte, Japanese)
+	if q.mode == EncModeAuto {
+		// choose encode mode (num, alpha num, byte, Japanese)
 	q.mode = analyzeEncodeModeFromRaw(q.rawData)
+	}
 
 	// analyze content to decide version etc.
 	analyzedV, err := analyzeVersion(q.rawData, q.ecLv, q.mode)

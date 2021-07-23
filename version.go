@@ -13,17 +13,17 @@ import (
 type ecLevel int
 
 const (
-	// Low :Level L: 7% error recovery.
-	Low ecLevel = iota + 1
+	// ErrorCorrectionLow :Level L: 7% error recovery.
+	ErrorCorrectionLow ecLevel = iota + 1
 
-	// Medium :Level M: 15% error recovery. Good default choice.
-	Medium
+	// ErrorCorrectionMedium :Level M: 15% error recovery. Good default choice.
+	ErrorCorrectionMedium
 
-	// Quart :Level Q: 25% error recovery.
-	Quart
+	// ErrorCorrectionQuart :Level Q: 25% error recovery.
+	ErrorCorrectionQuart
 
-	// Highest :Level H: 30% error recovery.
-	Highest
+	// ErrorCorrectionHighest :Level H: 30% error recovery.
+	ErrorCorrectionHighest
 
 	formatInfoBitsNum = 15 // format info bits num
 	verInfoBitsNum    = 18 // version info length bits num
@@ -198,13 +198,13 @@ func (v version) formatInfo(maskPattern int) *binary.Binary {
 	formatID := 0
 
 	switch v.ECLevel {
-	case Low:
+	case ErrorCorrectionLow:
 		formatID = 0x08 // 0b01000
-	case Medium:
+	case ErrorCorrectionMedium:
 		formatID = 0x00 // 0b00000
-	case Quart:
+	case ErrorCorrectionQuart:
 		formatID = 0x18 // 0b11000
-	case Highest:
+	case ErrorCorrectionHighest:
 		formatID = 0x10 // 0b10000
 	default:
 		log.Panicf("Invalid level %d", v.ECLevel)
@@ -246,13 +246,13 @@ func analyzeVersion(raw []byte, ecLv ecLevel, eMode encMode) (*version, error) {
 	for _, v := range versions {
 		if v.ECLevel == ecLv {
 			switch eMode {
-			case encModeNumeric:
+			case EncModeNumeric:
 				c = v.Cap.Numeric
-			case encModeAlphanumeric:
+			case EncModeAlphanumeric:
 				c = v.Cap.AlphaNumeric
-			case encModeByte:
+			case EncModeByte:
 				c = v.Cap.Byte
-			case encModeJP:
+			case EncModeJP:
 				c = v.Cap.JP
 			default:
 				return nil, errMissMatchedEncodeType

@@ -95,9 +95,21 @@ func WithBuiltinImageEncoder(format formatTyp) ImageOption
 func WithCustomImageEncoder(encoder ImageEncoder) ImageOption
 ```
 
-use options in `New` and `NewWithSpecV`. 
+use options in `New` and `NewWithConfig`. 
+> NOTICE: NewWithSpecV is deprecated
 ```go
-func New("text", WithQRWidth(x)) // x is uint8 (0 - 255)
+import (
+	qrcode "github.com/yeqown/go-qrcode"
+)
+
+// generating QR Code with source text and output image options.
+qrc, _ := qrcode.New("text", WithQRWidth(x)) // x is uint8 (0 - 255)
+
+// OR generating QR Code with specified ErrorCorrection Level and Encode Mode,
+// output image options are also available.
+qrc, _ := qrcode.NewWithConfig("text", config, WithQRWidth(x))
+
+qrc.Save("path/to/qrcode.png")
 ```
 
 following are some shots:

@@ -24,27 +24,7 @@ var (
 
 // New generate a QRCode struct to create
 func New(text string, opts ...ImageOption) (*QRCode, error) {
-	dst := defaultOutputImageOption()
-	for _, opt := range opts {
-		opt.apply(dst)
-	}
-
-	encOpts := defaultOutputEncoderOption()
-
-	qrc := &QRCode{
-		content:      text,
-		mode:         encOpts.encMode,
-		ecLv:         encOpts.ecLevel,
-		needAnalyze:  true,
-		outputOption: dst,
-	}
-
-	// initialize QRCode instance
-	if err := qrc.init(); err != nil {
-		return nil, err
-	}
-
-	return qrc, nil
+	return NewWithConfig(text, nil, opts...)
 }
 
 // NewWithSpecV generate a QRCode struct with
@@ -74,22 +54,22 @@ func NewWithSpecV(text string, ver int, ecLv ecLevel, opts ...ImageOption) (*QRC
 
 // NewWithConfig generate a QRCode struct with
 // specified `ver`(QR version) and `ecLv`(Error Correction level)
-func NewWithConfig(text string, encOpts *outputEncodingOptions, opts ...ImageOption) (*QRCode, error) {
-	dstImgOptions := defaultOutputImageOption()
+func NewWithConfig(text string, encOpts *Config, opts ...ImageOption) (*QRCode, error) {
+	dst := defaultOutputImageOption()
 	for _, opt := range opts {
-		opt.apply(dstImgOptions)
+		opt.apply(dst)
 	}
 
 	if encOpts == nil {
-		encOpts = defaultOutputEncoderOption()
+		encOpts = DefaultConfig()
 	}
 
 	qrc := &QRCode{
 		content:      text,
-		mode:         encOpts.encMode,
-		ecLv:         encOpts.ecLevel,
+		mode:         encOpts.EncMode,
+		ecLv:         encOpts.EcLevel,
 		needAnalyze:  true,
-		outputOption: dstImgOptions,
+		outputOption: dst,
 	}
 	// initialize QRCode instance
 	if err := qrc.init(); err != nil {
@@ -181,7 +161,7 @@ func (q *QRCode) init() error {
 func (q *QRCode) analyze() error {
 	if q.mode == EncModeAuto {
 		// choose encode mode (num, alpha num, byte, Japanese)
-	q.mode = analyzeEncodeModeFromRaw(q.rawData)
+		q.mode = analyzeEncodeModeFromRaw(q.rawData)
 	}
 
 	// analyze content to decide version etc.

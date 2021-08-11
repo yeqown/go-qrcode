@@ -26,7 +26,10 @@ func drawAndSaveToFile(name string, m matrix.Matrix, opt *outputImageOptions) er
 	if err != nil {
 		return fmt.Errorf("could not create file: %v", err)
 	}
-	defer f.Close()
+
+	defer func(f *os.File) {
+		err = f.Close()
+	}(f)
 
 	return drawAndSave(f, m, opt)
 }
@@ -128,15 +131,16 @@ func drawAndSave(w io.Writer, m matrix.Matrix, imgOpt *outputImageOptions) (err 
 //	return rgba
 //}
 
-// draw deal QRCode's matrix to be a image.Image
+// draw deal QRCode's matrix to be an image.Image
 func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 	if _debug {
 		fmt.Printf("matrix.Width()=%d, matrix.Height()=%d\n", mat.Width(), mat.Height())
 	}
 
+	top, right, bottom, left := opt.borderWidths[0], opt.borderWidths[1], opt.borderWidths[2], opt.borderWidths[3]
 	// w as image width, h as image height
-	w := mat.Width()*opt.qrBlockWidth() + 2*_defaultPadding
-	h := w
+	w := mat.Width()*opt.qrBlockWidth() + left + right
+	h := mat.Width()*opt.qrBlockWidth() + top + bottom
 	// rgba := image.NewRGBA(image.Rect(0, 0, w, h))
 	dc := gg.NewContext(w, h)
 
@@ -159,8 +163,8 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 	mat.Iterate(matrix.ROW, func(x int, y int, v matrix.State) {
 		// Draw the block
 		ctx.upperLeft = image.Point{
-			X: x*opt.qrBlockWidth() + _defaultPadding,
-			Y: y*opt.qrBlockWidth() + _defaultPadding,
+			X: x*opt.qrBlockWidth() + left,
+			Y: y*opt.qrBlockWidth() + top,
 		}
 		ctx.color = opt.stateRGBA(v)
 		// DONE(@yeqown): make this abstract to Shapes

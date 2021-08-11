@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"github.com/yeqown/go-qrcode/matrix"
 )
 
@@ -68,4 +69,28 @@ func Test_defaultOutputOption(t *testing.T) {
 	// check default
 	oo2 := defaultOutputImageOption()
 	assert.NotEqual(t, oo2.bgColor, oo.bgColor)
+}
+
+func Test_WithBorderWidth(t *testing.T) {
+	oo := defaultOutputImageOption()
+
+	// zero parameter
+	WithBorderWidth().apply(oo)
+	assert.Equal(t, [4]int{_defaultPadding, _defaultPadding, _defaultPadding, _defaultPadding}, oo.borderWidths)
+
+	// one parameter
+	WithBorderWidth(1).apply(oo)
+	assert.Equal(t, [4]int{1, 1, 1, 1}, oo.borderWidths)
+
+	// two parameters
+	WithBorderWidth(1, 2).apply(oo)
+	assert.Equal(t, [4]int{1, 2, 1, 2}, oo.borderWidths)
+
+	// three parameters
+	WithBorderWidth(1, 2, 3).apply(oo)
+	assert.Equal(t, [4]int{1, 2, 1, 2}, oo.borderWidths)
+
+	// four parameters
+	WithBorderWidth(1, 2, 3, 4).apply(oo)
+	assert.Equal(t, [4]int{1, 2, 3, 4}, oo.borderWidths)
 }

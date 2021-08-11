@@ -152,7 +152,7 @@ func WithBuiltinImageEncoder(format formatTyp) ImageOption {
 	})
 }
 
-// WithBuiltinImageEncoder to use custom image encoder to encode image.Image into
+// WithCustomImageEncoder to use custom image encoder to encode image.Image into
 // io.Writer
 func WithCustomImageEncoder(encoder ImageEncoder) ImageOption {
 	return newFuncDialOption(func(oo *outputImageOptions) {
@@ -164,3 +164,30 @@ func WithCustomImageEncoder(encoder ImageEncoder) ImageOption {
 	})
 }
 
+// WithBorderWidth specify the both 4 sides' border width. Notice that
+// WithBorderWidth(a) means all border width use this variable `a`,
+// WithBorderWidth(a, b) mean top/bottom equal to `a`, left/right equal to `b`.
+// WithBorderWidth(a, b, c, d) mean top, right, bottom, left.
+func WithBorderWidth(widths ...int) ImageOption {
+	apply := func(arr *[4]int, top, right, bottom, left int) {
+		arr[0] = top
+		arr[1] = right
+		arr[2] = bottom
+		arr[3] = left
+	}
+
+	return newFuncDialOption(func(oo *outputImageOptions) {
+		n := len(widths)
+		switch n {
+		case 0:
+			apply(&oo.borderWidths, _defaultPadding, _defaultPadding, _defaultPadding, _defaultPadding)
+		case 1:
+			apply(&oo.borderWidths, widths[0], widths[0], widths[0], widths[0])
+		case 2, 3:
+			apply(&oo.borderWidths, widths[0], widths[1], widths[0], widths[1])
+		default:
+			// 4+
+			apply(&oo.borderWidths, widths[0], widths[1], widths[2], widths[3])
+		}
+	})
+}

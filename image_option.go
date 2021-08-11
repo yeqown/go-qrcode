@@ -17,6 +17,7 @@ func defaultOutputImageOption() *outputImageOptions {
 		qrWidth:      20,              //
 		shape:        _shapeRectangle, //
 		imageEncoder: jpegEncoder{},
+		borderWidths: [4]int{_defaultPadding, _defaultPadding, _defaultPadding, _defaultPadding},
 	}
 }
 
@@ -41,6 +42,9 @@ type outputImageOptions struct {
 	// imageEncoder specify which file format would be encoded the QR image.
 	imageEncoder ImageEncoder
 
+	// borderWidths indicates the border width of the output image. the order is
+	// top, right, bottom, left same as the WithBorder
+	borderWidths [4]int
 }
 
 func (oo *outputImageOptions) backgroundColor() color.Color {

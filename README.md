@@ -19,6 +19,8 @@ QR code (abbreviated from Quick Response Code) is the trademark for a type of ma
 
 - [x] `WithLogoImage`, `WithLogoImageFilePNG`, `WithLogoImageFileJPEG` help you add an icon at the central of QR Code.
 
+- [x] `WithBorderWidth` allows to specify any width of 4 sides around the qrcode.
+
 ### Install
 
 ```sh
@@ -93,6 +95,12 @@ func WithBuiltinImageEncoder(format formatTyp) ImageOption
 // WithCustomImageEncoder to use custom image encoder to encode image.Image into
 // io.Writer
 func WithCustomImageEncoder(encoder ImageEncoder) ImageOption
+
+// WithBorderWidth specify the both 4 sides' border width. Notice that
+// WithBorderWidth(a) means all border width use this variable `a`,
+// WithBorderWidth(a, b) mean top/bottom equal to `a`, left/right equal to `b`.
+// WithBorderWidth(a, b, c, d) mean top, right, bottom, left.
+func WithBorderWidth(widths ...int) ImageOption
 ```
 
 use options in `New` and `NewWithConfig`. 

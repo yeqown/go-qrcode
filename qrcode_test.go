@@ -154,3 +154,19 @@ func Test_New_WithOutputOption_Shape(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func Test_New_WithBorderWidth(t *testing.T) {
+	qrc, err := New("Test_New_WithOutputOption_Shape",
+		WithBorderWidth(10, 20, 30, 40),
+	)
+	if err != nil {
+		t.Errorf("could not generate QRCode: %v", err)
+		t.Fail()
+	}
+
+	// save file
+	if err = qrc.Save("./testdata/qrtest_border_width.jpeg"); err != nil {
+		t.Errorf("could not save image: %v", err)
+		t.Fail()
+	}
+}

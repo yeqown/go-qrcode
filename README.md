@@ -8,17 +8,11 @@ QR code (abbreviated from Quick Response Code) is the trademark for a type of ma
 ### Features
 
 - [x] Normally generate QR code across `version 1` to `version 40`.
-
 - [x] Automatically analyze QR version by source text.
-
 - [x] Specifying cell shape allowably with `WithCustomShape`, `WithCircleShape` (default is `rectangle`)
-
 - [x] Specifying output file's format with `WithBuiltinImageEncoder`, `WithCustomImageEncoder` (default is `JPEG`)
-
 - [x] Not only shape of cell, but also color of QR Code background and foreground color.
-
 - [x] `WithLogoImage`, `WithLogoImageFilePNG`, `WithLogoImageFileJPEG` help you add an icon at the central of QR Code.
-
 - [x] `WithBorderWidth` allows to specify any width of 4 sides around the qrcode.
 
 ### Install
@@ -122,9 +116,13 @@ qrc.Save("path/to/qrcode.png")
 
 following are some shots:
 
-<img src="./testdata/qrtest_fg_bg.jpeg" width="100px">
-<img src="./testdata/qrtest_icon.jpeg" width="100px">
-<img src="./testdata/qrtest_circle.jpeg" width="100px">
+<div>
+<img src="./testdata/qrtest_fg_bg.jpeg" width="200px" align="left">
+<img src="./testdata/qrtest_icon.jpeg" width="200px" align="left">
+<img src="./testdata/qrtest_circle.jpeg" width="200px">
+</div>
+
+<br>
 
 ### Documention
 

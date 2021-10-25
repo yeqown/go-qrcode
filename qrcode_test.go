@@ -117,6 +117,24 @@ func Test_New_WithOutputOption_bg_fg_width(t *testing.T) {
 	}
 }
 
+func Test_New_WithBigger_Logo(t *testing.T) {
+	qrc, err := New("Test_New_WithBigger_Logo",
+		WithBgColorRGBHex("#ffffff"),
+		WithFgColorRGBHex("#000000"),
+		WithLogoImageFilePNG("./testdata/big_logo.png"), // png required
+	)
+	if err != nil {
+		t.Errorf("could not generate QRCode: %v", err)
+		t.Fail()
+	}
+
+	// save file
+	if err := qrc.Save("./testdata/qrtest_bigger_icon.jpeg"); err != nil {
+		t.Errorf("could not save image: %v", err)
+		t.Fail()
+	}
+}
+
 func Test_New_WithOutputOption_Logo(t *testing.T) {
 	SetDebugMode()
 

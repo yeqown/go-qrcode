@@ -1,16 +1,18 @@
 package qrcode
 
 import (
+	"bytes"
 	"fmt"
 	"image"
 	"image/color"
+	"image/png"
 	"io"
-	"log"
 	"os"
 
 	"github.com/fogleman/gg"
 
 	"github.com/yeqown/go-qrcode/matrix"
+	dr "golang.org/x/image/draw"
 )
 
 // Draw image with matrix
@@ -193,9 +195,31 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 		logoWidth, logoHeight := lowerRight.X-upperLeft.X, lowerRight.Y-upperLeft.Y
 
 		if !validLogoImage(w, h, logoWidth, logoHeight) {
-			log.Printf("w=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/5 of QRCode \n",
-				w, h, logoWidth, logoHeight)
-			goto done
+			// We will resize image logo if the image is bigger than 1/5
+
+			// Calculate new size
+			logoWidth = w / 5 - 1
+			logoHeight = w / 5 - 1
+
+			// Generate base
+			dst := image.NewRGBA(image.Rect(0, 0, logoWidth, logoHeight))
+
+			// Draw resized image
+			dr.NearestNeighbor.Scale(dst, dst.Rect, opt.logo, opt.logo.Bounds(), dr.Over, nil)
+
+			// Encode to output
+			var output bytes.Buffer
+			err := png.Encode(&output, dst)
+			if err != nil {
+				goto done
+			}
+
+			// Put the resized image into options
+			opt.logo, _, err = image.Decode(bytes.NewReader(output.Bytes()))
+			if err != nil {
+				goto done
+			}
+			//opt.logo = logo
 		}
 
 		// DONE(@yeqown): calculate the xOffset and yOffset

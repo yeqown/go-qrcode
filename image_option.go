@@ -14,6 +14,7 @@ func defaultOutputImageOption() *outputImageOptions {
 		bgColor:      color.White,     // white
 		qrColor:      color.Black,     // black
 		logo:         nil,             //
+		autoresize:   false,		   //
 		qrWidth:      20,              //
 		shape:        _shapeRectangle, //
 		imageEncoder: jpegEncoder{},
@@ -32,6 +33,9 @@ type outputImageOptions struct {
 	// logo this icon image would be put the center of QR Code image
 	// NOTE: logo only should has 1/5 size of QRCode image
 	logo image.Image
+
+	// autoresize determines if the icon will be resized if it's bigger than 1/5
+	autoresize	bool
 
 	// qrWidth width of each qr block
 	qrWidth int

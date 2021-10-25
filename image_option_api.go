@@ -72,6 +72,13 @@ func WithLogoImage(img image.Image) ImageOption {
 	})
 }
 
+// WithAutoResize allow bigger images to be resized
+func WithAutoResize() ImageOption {
+	return newFuncDialOption(func(oo *outputImageOptions) {
+		oo.autoresize = true
+	})
+}
+
 // WithLogoImageFileJPEG load image from file, jpeg is required.
 // image should only has 1/5 width of QRCode at most
 func WithLogoImageFileJPEG(f string) ImageOption {

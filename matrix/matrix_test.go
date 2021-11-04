@@ -167,3 +167,29 @@ func Test_stateSliceMatched(t *testing.T) {
 		})
 	}
 }
+
+// go test -run=NONE -bench Benchmark_Iterate -count 10 > old.txt
+// after change to `m.Iterate(COLUMN, rowIteration)`
+// go test -run=NONE -bench Benchmark_Iterate -count 10 > new.txt
+// benchstat old.txt new.txt
+func Benchmark_Iterate(b *testing.B) {
+	// initialize
+	size := 100
+	m := New(size, size)
+	for i := 0; i < size; i++ {
+		for j := 0; j < size; j++ {
+			_ = m.Set(i, j, StateTrue)
+		}
+	}
+	b.ResetTimer()
+
+	rowIteration := func(x, y int, s State) {
+		_, _ = x, y
+		_ = s
+	}
+
+	for i := 0; i < b.N; i++ {
+		//m.Iterate(ROW, rowIteration)
+		m.Iterate(COLUMN, rowIteration)
+	}
+}

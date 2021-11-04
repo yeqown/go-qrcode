@@ -90,15 +90,15 @@ func (oo *outputImageOptions) getShape() IShape {
 }
 
 // preCalculateAttribute this function must reference to draw function.
-func (oo *outputImageOptions) preCalculateAttribute(w int) *Attribute {
+func (oo *outputImageOptions) preCalculateAttribute(dimension int) *Attribute {
 	if oo == nil {
 		return nil
 	}
 
 	top, right, bottom, left := oo.borderWidths[0], oo.borderWidths[1], oo.borderWidths[2], oo.borderWidths[3]
 	return &Attribute{
-		W:          w*oo.qrBlockWidth() + right + left,
-		H:          w*oo.qrBlockWidth() + top + bottom,
+		W:          dimension*oo.qrBlockWidth() + right + left,
+		H:          dimension*oo.qrBlockWidth() + top + bottom,
 		Borders:    oo.borderWidths,
 		BlockWidth: oo.qrBlockWidth(),
 	}

@@ -58,8 +58,7 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 	top, right, bottom, left := opt.borderWidths[0], opt.borderWidths[1], opt.borderWidths[2], opt.borderWidths[3]
 	// w as image width, h as image height
 	w := mat.Width()*opt.qrBlockWidth() + left + right
-	h := mat.Width()*opt.qrBlockWidth() + top + bottom
-	// rgba := image.NewRGBA(image.Rect(0, 0, w, h))
+	h := mat.Height()*opt.qrBlockWidth() + top + bottom
 	dc := gg.NewContext(w, h)
 
 	// draw background

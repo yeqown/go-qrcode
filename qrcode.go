@@ -634,7 +634,7 @@ func (q *QRCode) Save(saveToPath string) (err error) {
 
 // SaveTo QRCode image into `w`(io.Writer)
 func (q *QRCode) SaveTo(w io.Writer) error {
-	return drawAndSave(w, *q.mat, q.outputOption)
+	return drawTo(w, *q.mat, q.outputOption)
 }
 
 // Attribute pre-calculate attribute of QR Code image, before actually draw it into image.

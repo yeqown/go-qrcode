@@ -85,7 +85,7 @@ func parseVersionsFromCSV(r *csv.Reader) ([]version, error) {
 			Ver:           ver,
 			ECLevel:       levelToInt(row[lvIdx]),
 			RemainderBits: reminderBitsCache[ver],
-			Capacity: capcity{
+			Capacity: capacity{
 				Numeric:      str2Int(row[capNumericIdx]),
 				AlphaNumeric: str2Int(row[capAlphaNumericIdx]),
 				Byte:         str2Int(row[capByteIdx]),
@@ -122,7 +122,7 @@ func parseVersionsFromCSV(r *csv.Reader) ([]version, error) {
 	return versions, nil
 }
 
-type capcity struct {
+type capacity struct {
 	Numeric      int
 	AlphaNumeric int
 	Byte         int
@@ -139,7 +139,7 @@ type version struct {
 	Ver           int
 	ECLevel       int
 	RemainderBits int
-	Capacity      capcity
+	Capacity      capacity
 	Groups        []group
 }
 

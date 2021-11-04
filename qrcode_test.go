@@ -1,6 +1,7 @@
 package qrcode
 
 import (
+	"log"
 	"os"
 	"testing"
 
@@ -168,5 +169,23 @@ func Test_New_WithBorderWidth(t *testing.T) {
 	if err = qrc.Save("./testdata/qrtest_border_width.jpeg"); err != nil {
 		t.Errorf("could not save image: %v", err)
 		t.Fail()
+	}
+}
+
+// Test_Issue40
+// https://github.com/yeqown/go-qrcode/issues/40
+func Test_Issue40(t *testing.T) {
+	qrc, err := New("https://baidu.com/")
+	if err != nil {
+		panic(err)
+	}
+
+	err = qrc.Save("./testdata/issue40_1.png")
+	if err != nil {
+		log.Println(err)
+	}
+	err = qrc.Save("./testdata/issue40_2.png")
+	if err != nil {
+		log.Println(err)
 	}
 }

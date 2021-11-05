@@ -3,6 +3,7 @@ package qrcode
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"image/png"
 	"io"
 	"os"
 	"testing"
@@ -209,4 +210,40 @@ func hashFile(filename string) (string, error) {
 	}
 
 	return hex.EncodeToString(h.Sum(nil)), nil
+}
+
+func statImage(filename string) (w, h int, err error) {
+	fd, err := os.Open(filename)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	img, err := png.Decode(fd)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	rect := img.Bounds()
+	w, h = rect.Dx(), rect.Dy()
+	return
+}
+
+func Test_QRCode_Attribute(t *testing.T) {
+	qrc, err := New("https://baidu.com",
+		WithBuiltinImageEncoder(PNG_FORMAT),
+		WithQRWidth(13),
+		WithBorderWidth(1, 2, 3, 4),
+	)
+	require.NoError(t, err)
+	attr, err := qrc.Attribute()
+	require.NoError(t, err)
+	t.Logf("attr: %+v", attr)
+
+	err = qrc.Save("./testdata/attr.png")
+	require.NoError(t, err)
+
+	w, h, err := statImage("./testdata/attr.png")
+	require.NoError(t, err)
+	assert.Equal(t, w, attr.W)
+	assert.Equal(t, h, attr.H)
 }

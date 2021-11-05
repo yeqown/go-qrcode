@@ -89,6 +89,21 @@ func (oo *outputImageOptions) getShape() IShape {
 	return oo.shape
 }
 
+// preCalculateAttribute this function must reference to draw function.
+func (oo *outputImageOptions) preCalculateAttribute(dimension int) *Attribute {
+	if oo == nil {
+		return nil
+	}
+
+	top, right, bottom, left := oo.borderWidths[0], oo.borderWidths[1], oo.borderWidths[2], oo.borderWidths[3]
+	return &Attribute{
+		W:          dimension*oo.qrBlockWidth() + right + left,
+		H:          dimension*oo.qrBlockWidth() + top + bottom,
+		Borders:    oo.borderWidths,
+		BlockWidth: oo.qrBlockWidth(),
+	}
+}
+
 var (
 	// _stateToRGBA state map tp color.Gray16
 	_stateToRGBA = map[matrix.State]color.Color{

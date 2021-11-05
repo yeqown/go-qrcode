@@ -20,6 +20,8 @@ var (
 
 	// once to load versions config file
 	//once sync.Once
+
+	ErrInvalidStateOfQRCode = fmt.Errorf("invalid state of qrcode")
 )
 
 // New generate a QRCode struct to create
@@ -632,7 +634,17 @@ func (q *QRCode) Save(saveToPath string) (err error) {
 
 // SaveTo QRCode image into `w`(io.Writer)
 func (q *QRCode) SaveTo(w io.Writer) error {
-	return drawAndSave(w, *q.mat, q.outputOption)
+	return drawTo(w, *q.mat, q.outputOption)
+}
+
+// Attribute pre-calculate attribute of QR Code image, before actually draw it into image.
+// avoid raising an error, you should use New and likely functions to initialize *QRCode.
+func (q *QRCode) Attribute() (*Attribute, error) {
+	if q.outputOption == nil || q.mat == nil {
+		return nil, ErrInvalidStateOfQRCode
+	}
+
+	return q.outputOption.preCalculateAttribute(q.mat.Width()), nil
 }
 
 // draw from bitset to matrix.Matrix, calculate all mask modula score,

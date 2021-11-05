@@ -131,7 +131,8 @@ func drawAndSave(w io.Writer, m matrix.Matrix, imgOpt *outputImageOptions) (err 
 //	return rgba
 //}
 
-// draw deal QRCode's matrix to be an image.Image
+// draw deal QRCode's matrix to be an image.Image. Notice that if anyone changed this function,
+// please also check the function outputImageOptions.preCalculateAttribute().
 func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 	if _debug {
 		fmt.Printf("matrix.Width()=%d, matrix.Height()=%d\n", mat.Width(), mat.Height())
@@ -208,4 +209,14 @@ done:
 
 func validLogoImage(qrWidth, qrHeight, logoWidth, logoHeight int) bool {
 	return qrWidth >= 5*logoWidth && qrHeight >= 5*logoHeight
+}
+
+// Attribute contains basic information of generated image.
+type Attribute struct {
+	// width and height of image
+	W, H int
+	// in the order of "top, right, bottom, left"
+	Borders [4]int
+	// the length of  block edges
+	BlockWidth int
 }

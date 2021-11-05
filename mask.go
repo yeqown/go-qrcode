@@ -126,7 +126,8 @@ func rule2(mat *matrix.Matrix) int {
 }
 
 // 如果存在看起来类似于取景器模式的模式，则第三规则给QR码一个大的惩罚
-// dark-light-dark-dark-dark-light-dark // 1011101 0000 or 0000 1011101
+// dark-light-dark-dark-dark-light-dark
+// 1011101 0000 or 0000 1011101
 func rule3(mat *matrix.Matrix) int {
 	var (
 		score      int
@@ -204,27 +205,29 @@ func abs(x int) int {
 }
 
 type mask struct {
-	mat  *matrix.Matrix    // matrix
-	mode maskPatternModulo // mode
+	mat      *matrix.Matrix    // matrix
+	mode     maskPatternModulo // mode
+	moduloFn moduloFunc        // moduloFn masking function
 }
 
 // newMask ...
-func newMask(m *matrix.Matrix, mode maskPatternModulo) *mask {
-	mask := &mask{
-		mat:  m.Copy(),
-		mode: mode,
+func newMask(mat *matrix.Matrix, mode maskPatternModulo) *mask {
+	m := &mask{
+		mat:      mat.Copy(),
+		mode:     mode,
+		moduloFn: getModuloFunc(mode),
 	}
-	mask.init()
-	return mask
+	m.masking()
+
+	return m
 }
 
 // moduloFunc to define what's modulo func
 type moduloFunc func(int, int) bool
 
-// init generate maks by mode
-func (m *mask) init() {
-	var f moduloFunc
-	switch m.mode {
+func getModuloFunc(mode maskPatternModulo) (f moduloFunc) {
+	f = nil
+	switch mode {
 	case modulo0:
 		f = modulo0Func
 	case modulo1:
@@ -243,13 +246,23 @@ func (m *mask) init() {
 		f = modulo7Func
 	}
 
+	return
+}
+
+// init generate maks by mode
+func (m *mask) masking() {
+	moduloFn := m.moduloFn
+	if moduloFn == nil {
+		panic("impossible panic, contact maintainer plz")
+	}
+
 	m.mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
 		// skip the function modules
 		if state, _ := m.mat.Get(x, y); state != matrix.StateInit {
 			_ = m.mat.Set(x, y, matrix.StateInit)
 			return
 		}
-		if f(x, y) {
+		if moduloFn(x, y) {
 			_ = m.mat.Set(x, y, matrix.StateTrue)
 		} else {
 			_ = m.mat.Set(x, y, matrix.StateFalse)

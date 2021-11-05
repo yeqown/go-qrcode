@@ -3,21 +3,29 @@ package qrcode
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/yeqown/go-qrcode/matrix"
 )
 
 func TestMask(t *testing.T) {
-	qrc, _ := New("baidu.com google.com qq.com sina.com apple.com")
-	qrc.initMatrix()
+	qrc := &QRCode{
+		content:      "baidu.com google.com qq.com sina.com apple.com",
+		mode:         DefaultConfig().EncMode,
+		ecLv:         DefaultConfig().EcLevel,
+		needAnalyze:  true,
+		outputOption: defaultOutputImageOption(),
+	}
+	err := qrc.init()
+	require.NoError(t, err)
 
 	var stateInitCnt int
-
 	qrc.mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
 		if s == matrix.StateInit {
 			stateInitCnt++
 		}
 	})
-	t.Logf("all state init count: %d", stateInitCnt)
+	t.Logf("all StateInit block count: %d", stateInitCnt)
 
 	cpyMat := qrc.mat.Copy()
 	_ = drawAndSaveToFile("./testdata/mask_origin.jpeg", *cpyMat, nil)

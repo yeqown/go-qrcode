@@ -86,7 +86,7 @@ func NewWithConfig(text string, encOpts *Config, opts ...ImageOption) (*QRCode, 
 }
 
 // QRCode contains fields to generate QRCode matrix, outputImageOptions to Draw image,
-// and etc.
+// etc.
 type QRCode struct {
 	content string // input text content
 	rawData []byte // raw Data to transfer
@@ -99,7 +99,7 @@ type QRCode struct {
 	ver     int      // version num
 	ecLv    ecLevel  // error correction level
 	mode    encMode  // encMode
-	encoder *encoder // encoder ptr to call it's methods ~
+	encoder *encoder // encoder ptr to call its methods ~
 
 	needAnalyze bool // auto analyze form content or specified `mode, recoverLv, ver`
 
@@ -116,7 +116,7 @@ func (q *QRCode) init() error {
 	//})
 	q.rawData = []byte(q.content)
 	if q.needAnalyze {
-		// analyze the input data to choose adapt version
+		// analyze the input data to choose to adapt version
 		if err := q.analyze(); err != nil {
 			return fmt.Errorf("could not analyze the data: %v", err)
 		}
@@ -159,6 +159,9 @@ func (q *QRCode) init() error {
 
 	// append remainder bits
 	q.dataBSet.AppendNumBools(q.v.RemainderBits, false)
+
+	// initial the 2d matrix
+	q.prefillMatrix()
 
 	return nil
 }
@@ -329,9 +332,9 @@ func (q *QRCode) arrangeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 	debugLogf("ec bitsets: %s", q.ecBSet.String())
 }
 
-// InitMatrix with version info: ref to:
+// prefillMatrix with version info: ref to:
 // http://www.thonky.com/qr-code-tutorial/module-placement-matrix
-func (q *QRCode) initMatrix() {
+func (q *QRCode) prefillMatrix() {
 	dimension := q.v.Dimension()
 	if q.mat == nil {
 		q.mat = matrix.New(dimension, dimension)
@@ -515,6 +518,10 @@ func reserveFormatBlock(m *matrix.Matrix, dimension int) {
 		_ = m.Set(dimension-pos, 8, matrix.StateFormat) // top-right-row
 		_ = m.Set(8, dimension-pos, matrix.StateFormat) // bottom-left-column
 	}
+
+	// fix(@yeqown): b4b5ae3 reduced two format reversed blocks on top-left-column and top-left-row.
+	_ = m.Set(0, 8, matrix.StateFormat)
+	_ = m.Set(8, 0, matrix.StateFormat)
 }
 
 // reserveVersionBlock maintain the position in matrix for version info
@@ -665,9 +672,6 @@ func (q *QRCode) masking() {
 	)
 
 	dimension := q.v.Dimension()
-
-	// initial the 2d matrix
-	q.initMatrix()
 
 	// init mask and mats
 	for i := 0; i < 8; i++ {

@@ -1,10 +1,14 @@
 package qrcode
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"io"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNew(t *testing.T) {
@@ -169,4 +173,40 @@ func Test_New_WithBorderWidth(t *testing.T) {
 		t.Errorf("could not save image: %v", err)
 		t.Fail()
 	}
+}
+
+// Test_Issue40
+// https://github.com/yeqown/go-qrcode/issues/40
+func Test_Issue40(t *testing.T) {
+	qrc, err := New("https://baidu.com/")
+	require.NoError(t, err)
+	err = qrc.Save("./testdata/issue40_1.png")
+	require.NoError(t, err)
+	err = qrc.Save("./testdata/issue40_2.png")
+	require.NoError(t, err)
+
+	h1, err := hashFile("./testdata/issue40_1.png")
+	require.NoError(t, err)
+	h2, err := hashFile("./testdata/issue40_2.png")
+	require.NoError(t, err)
+	t.Logf("hash1=%s, hash2=%s", h1, h2)
+	assert.Equal(t, h1, h2)
+}
+
+func hashFile(filename string) (string, error) {
+	h := md5.New()
+
+	fd1, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	bytes, err := io.ReadAll(fd1)
+	if err != nil {
+		return "", err
+	}
+	if _, err = h.Write(bytes); err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(h.Sum(nil)), nil
 }

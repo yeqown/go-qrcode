@@ -49,6 +49,8 @@ func NewWithSpecV(text string, ver int, ecLv ecLevel, opts ...ImageOption) (*QRC
 		return nil, err
 	}
 
+	qrc.masking()
+
 	return qrc, nil
 }
 
@@ -75,6 +77,8 @@ func NewWithConfig(text string, encOpts *Config, opts ...ImageOption) (*QRCode, 
 	if err := qrc.init(); err != nil {
 		return nil, err
 	}
+
+	qrc.masking()
 
 	return qrc, nil
 }
@@ -628,13 +632,12 @@ func (q *QRCode) Save(saveToPath string) (err error) {
 
 // SaveTo QRCode image into `w`(io.Writer)
 func (q *QRCode) SaveTo(w io.Writer) error {
-	q.draw()
 	return drawAndSave(w, *q.mat, q.outputOption)
 }
 
 // draw from bitset to matrix.Matrix, calculate all mask modula score,
 // then decide which mask to use according to the mask's score (the lowest one).
-func (q *QRCode) draw() {
+func (q *QRCode) masking() {
 	type maskScore struct {
 		Score int
 		Idx   int

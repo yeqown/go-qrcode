@@ -633,6 +633,8 @@ func (q *QRCode) Save(saveToPath string) (err error) {
 		return fmt.Errorf("save failed, err=%v", err)
 	}
 
+	defer fd.Close()
+
 	return q.SaveTo(fd)
 
 	//q.Draw()

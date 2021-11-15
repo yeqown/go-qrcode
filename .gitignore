@@ -1,12 +1,16 @@
 vendor/
 draft/
+testdata/
+js/
+.idea/
+.vscode/
+
 # example/
 *.png
 default.jpeg
 # *.json
 *.log
 .DS_store
-js/
-default.jpeg
-.idea/
 tmp.png
+
+go.sum

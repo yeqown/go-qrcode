@@ -1,4 +1,4 @@
-package qrcode
+package standard
 
 import (
 	"fmt"
@@ -8,55 +8,132 @@ import (
 	"log"
 	"os"
 
-	"github.com/fogleman/gg"
+	"github.com/yeqown/go-qrcode/v2"
+	"github.com/yeqown/go-qrcode/v2/matrix"
 
-	"github.com/yeqown/go-qrcode/matrix"
+	"github.com/fogleman/gg"
+	"github.com/pkg/errors"
 )
+
+var _ qrcode.Writer = (*Writer)(nil)
 
 var (
-	_defaultFilename = "default.jpeg"
-	_defaultPadding  = 40
+	ErrNilWriter = errors.New("nil writer")
 )
 
-// drawAndSaveToFile image with matrix
-func drawAndSaveToFile(name string, m matrix.Matrix, opt *outputImageOptions) error {
-	f, err := os.Create(name)
+// Writer is a writer that writes QR Code to io.Writer.
+type Writer struct {
+	option *outputImageOptions
+
+	wr io.Writer
+}
+
+func New(filename string, opts ...ImageOption) (*Writer, error) {
+	if _, err := os.Stat(filename); err != nil && os.IsExist(err) {
+		// custom path got: "file exists"
+		log.Printf("could not find path: %s, then save to %s", filename, _defaultFilename)
+		filename = _defaultFilename
+	}
+
+	fd, err := os.Create(filename)
 	if err != nil {
-		return fmt.Errorf("could not create file: %v", err)
+		return nil, errors.Wrap(err, "create file failed")
 	}
 
 	defer func(f *os.File) {
 		err = f.Close()
-	}(f)
+	}(fd)
 
-	return drawTo(f, m, opt)
+	return NewWithWriter(fd, opts...), nil
 }
 
-// drawTo save image into io.Writer
-func drawTo(w io.Writer, m matrix.Matrix, opt *outputImageOptions) (err error) {
-	if opt == nil {
-		opt = defaultOutputImageOption()
+func NewWithWriter(w io.Writer, opts ...ImageOption) *Writer {
+	dst := defaultOutputImageOption()
+	for _, opt := range opts {
+		opt.apply(dst)
 	}
 
-	img := draw(m, opt)
+	if w == nil {
+		panic("wr could not be nil")
+	}
+
+	return &Writer{
+		option: dst,
+		wr:     w,
+	}
+}
+
+const (
+	_defaultFilename = "default.jpeg"
+	_defaultPadding  = 40
+)
+
+func (w Writer) Write(mat matrix.Matrix) error {
+	return drawTo(w.wr, mat, w.option)
+}
+
+func (w Writer) Attribute(dimension int) *Attribute {
+	return w.option.preCalculateAttribute(dimension)
+}
+
+func drawTo(w io.Writer, mat matrix.Matrix, option *outputImageOptions) (err error) {
+	if option == nil {
+		option = defaultOutputImageOption()
+	}
+
+	if w == nil {
+		return ErrNilWriter
+	}
+
+	img := draw(mat, option)
 
 	// DONE(@yeqown): support file format specified config option
-	if err = opt.imageEncoder.Encode(w, img); err != nil {
-		err = fmt.Errorf("jpeg.Encode got err: %v", err)
+	if err = option.imageEncoder.Encode(w, img); err != nil {
+		err = fmt.Errorf("imageEncoder.Encode failed: %v", err)
 	}
 
 	return
 }
 
+//// drawAndSaveToFile image with matrix
+//func drawAndSaveToFile(name string, m matrix.Matrix, opt *outputImageOptions) error {
+//	f, err := os.Create(name)
+//	if err != nil {
+//		return fmt.Errorf("could not create file: %v", err)
+//	}
+//
+//	defer func(f *os.File) {
+//		err = f.Close()
+//	}(f)
+//
+//	return drawTo(f, m, opt)
+//}
+
+//// drawTo save image into io.Writer
+//func drawTo(w io.Writer, m matrix.Matrix, opt *outputImageOptions) (err error) {
+//	if opt == nil {
+//		opt = defaultOutputImageOption()
+//	}
+//
+//	img := draw(m, opt)
+//
+//	// DONE(@yeqown): support file format specified config option
+//	if err = opt.imageEncoder.Encode(w, img); err != nil {
+//		err = fmt.Errorf("jpeg.Encode got err: %v", err)
+//	}
+//
+//	return
+//}
+
 // draw deal QRCode's matrix to be an image.Image. Notice that if anyone changed this function,
 // please also check the function outputImageOptions.preCalculateAttribute().
 func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
-	if _debug {
-		fmt.Printf("matrix.Width()=%d, matrix.Height()=%d\n", mat.Width(), mat.Height())
-	}
+	//if v2._debug {
+	//	fmt.Printf("matrix.Width()=%d, matrix.Height()=%d\n", mat.Width(), mat.Height())
+	//}
 
 	top, right, bottom, left := opt.borderWidths[0], opt.borderWidths[1], opt.borderWidths[2], opt.borderWidths[3]
-	// w as image width, h as image height
+	// wr as image width, h as image height
 	w := mat.Width()*opt.qrBlockWidth() + left + right
 	h := mat.Height()*opt.qrBlockWidth() + top + bottom
 	dc := gg.NewContext(w, h)
@@ -110,7 +187,7 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 		logoWidth, logoHeight := lowerRight.X-upperLeft.X, lowerRight.Y-upperLeft.Y
 
 		if !validLogoImage(w, h, logoWidth, logoHeight) {
-			log.Printf("w=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/5 of QRCode \n",
+			log.Printf("wr=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/5 of QRCode \n",
 				w, h, logoWidth, logoHeight)
 			goto done
 		}

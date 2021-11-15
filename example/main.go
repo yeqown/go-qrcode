@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	qrcode "github.com/yeqown/go-qrcode"
+	qrcode "github.com/yeqown/go-qrcode/v2"
 )
 
 func main() {

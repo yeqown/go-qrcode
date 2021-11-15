@@ -1,25 +1,26 @@
 package main
 
 import (
-	qrcode "github.com/yeqown/go-qrcode"
+	"github.com/yeqown/go-qrcode/v2"
+	"github.com/yeqown/go-qrcode/writer/standard"
 )
 
 type smallerCircle struct {
 	smallerPercent float64
 }
 
-func (sc *smallerCircle) DrawFinder(ctx *qrcode.DrawContext) {
+func (sc *smallerCircle) DrawFinder(ctx *standard.DrawContext) {
 	backup := sc.smallerPercent
 	sc.smallerPercent = 1.0
 	sc.Draw(ctx)
 	sc.smallerPercent = backup
 }
 
-func newShape(radiusPercent float64) qrcode.IShape {
+func newShape(radiusPercent float64) standard.IShape {
 	return &smallerCircle{smallerPercent: radiusPercent}
 }
 
-func (sc *smallerCircle) Draw(ctx *qrcode.DrawContext) {
+func (sc *smallerCircle) Draw(ctx *standard.DrawContext) {
 	w, h := ctx.Edge()
 	upperLeft := ctx.UpperLeft()
 	color := ctx.Color()
@@ -43,13 +44,18 @@ func (sc *smallerCircle) Draw(ctx *qrcode.DrawContext) {
 
 func main() {
 	shape := newShape(0.7)
-	qrc, err := qrcode.New("with-custom-shape", qrcode.WithCustomShape(shape))
+	qrc, err := qrcode.New("with-custom-shape")
 	// qrc, err := qrcode.New("with-custom-shape", qrcode.WithCircleShape())
 	if err != nil {
 		panic(err)
 	}
 
-	err = qrc.Save("./smaller.png")
+	w, err := standard.New("./smaller.png", standard.WithCustomShape(shape))
+	if err != nil {
+		panic(err)
+	}
+
+	err = qrc.Save(w)
 	if err != nil {
 		panic(err)
 	}

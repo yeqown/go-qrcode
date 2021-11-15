@@ -1,4 +1,4 @@
-package qrcode
+package standard
 
 import (
 	"image"

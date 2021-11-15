@@ -1,4 +1,4 @@
-package qrcode
+package standard
 
 import (
 	"image/color"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/yeqown/go-qrcode/matrix"
+	"github.com/yeqown/go-qrcode/v2/matrix"
 )
 
 func Test_WithBuiltinImageEncoder(t *testing.T) {

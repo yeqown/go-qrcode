@@ -1,7 +1,7 @@
 package qrcode
 
 import (
-	"github.com/yeqown/go-qrcode/matrix"
+	"github.com/yeqown/go-qrcode/v2/matrix"
 )
 
 // maskPatternModulo ...

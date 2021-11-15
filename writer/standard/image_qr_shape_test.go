@@ -1,4 +1,4 @@
-package qrcode
+package standard
 
 import (
 	"image"
@@ -70,5 +70,5 @@ func Test_gg(t *testing.T) {
 	dc.DrawCircle(50, 50, 40)
 	dc.SetColor(color.Black)
 	dc.Fill()
-	_ = dc.SavePNG("out.png")
+	_ = dc.SavePNG("./testdata/out.png")
 }

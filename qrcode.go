@@ -2,78 +2,44 @@ package qrcode
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"math"
-	"os"
 	"sync"
 
 	"github.com/yeqown/reedsolomon"
 	"github.com/yeqown/reedsolomon/binary"
 
-	"github.com/yeqown/go-qrcode/matrix"
+	"github.com/yeqown/go-qrcode/v2/matrix"
 )
 
 var (
 	// _debug mode flag
 	_debug = false
-
-	// once to load versions config file
-	//once sync.Once
-
-	ErrInvalidStateOfQRCode = fmt.Errorf("invalid state of qrcode")
 )
 
 // New generate a QRCode struct to create
-func New(text string, opts ...ImageOption) (*QRCode, error) {
-	return NewWithConfig(text, nil, opts...)
+func New(text string) (*QRCode, error) {
+	dst := DefaultEncodingOption()
+	return build(text, *dst)
 }
 
-// NewWithSpecV generate a QRCode struct with
+// NewWith generate a QRCode struct with
 // specified `ver`(QR version) and `ecLv`(Error Correction level)
-// Deprecated
-func NewWithSpecV(text string, ver int, ecLv ecLevel, opts ...ImageOption) (*QRCode, error) {
-	dst := defaultOutputImageOption()
+func NewWith(text string, opts ...EncodeOption) (*QRCode, error) {
+	dst := DefaultEncodingOption()
 	for _, opt := range opts {
 		opt.apply(dst)
 	}
 
-	qrc := &QRCode{
-		content:      text,
-		ver:          ver,
-		mode:         EncModeByte,
-		ecLv:         ecLv,
-		needAnalyze:  false,
-		outputOption: dst,
-	}
-	// initialize QRCode instance
-	if err := qrc.init(); err != nil {
-		return nil, err
-	}
-
-	qrc.masking()
-
-	return qrc, nil
+	return build(text, *dst)
 }
 
-// NewWithConfig generate a QRCode struct with
-// specified `ver`(QR version) and `ecLv`(Error Correction level)
-func NewWithConfig(text string, encOpts *Config, opts ...ImageOption) (*QRCode, error) {
-	dst := defaultOutputImageOption()
-	for _, opt := range opts {
-		opt.apply(dst)
-	}
-
-	if encOpts == nil {
-		encOpts = DefaultConfig()
-	}
-
+func build(text string, option encodingOption) (*QRCode, error) {
 	qrc := &QRCode{
-		content:      text,
-		mode:         encOpts.EncMode,
-		ecLv:         encOpts.EcLevel,
-		needAnalyze:  true,
-		outputOption: dst,
+		content:     text,
+		mode:        option.EncMode,
+		ecLv:        option.EcLevel,
+		needAnalyze: true,
 	}
 	// initialize QRCode instance
 	if err := qrc.init(); err != nil {
@@ -102,9 +68,22 @@ type QRCode struct {
 	encoder *encoder // encoder ptr to call its methods ~
 
 	needAnalyze bool // auto analyze form content or specified `mode, recoverLv, ver`
+}
 
-	// outputOption option to draw image
-	outputOption *outputImageOptions
+func (q *QRCode) Save(w Writer) error {
+	if w == nil {
+		w = nonWriter{}
+	}
+
+	return w.Write(*q.mat)
+}
+
+func (q *QRCode) Dimension() int {
+	if q.mat == nil {
+		return 0
+	}
+
+	return q.mat.Width()
 }
 
 func (q *QRCode) init() error {
@@ -616,46 +595,6 @@ func (q *QRCode) fillIntoMatrix(m *matrix.Matrix, dimension int) {
 	debugLogf("fillDone and x: %d, y: %d, pos: %d, total: %d", x, y, pos, l)
 }
 
-// Save QRCode image into saveToPath
-// DONE(@yeqown): use SaveTo rather than drawAndSaveToFile
-func (q *QRCode) Save(saveToPath string) (err error) {
-	var fd io.WriteCloser
-
-	if _, err = os.Stat(saveToPath); err != nil && os.IsExist(err) {
-		// custom path got: "file exists"
-		log.Printf("could not find path: %s, then save to %s",
-			saveToPath, _defaultFilename)
-		saveToPath = _defaultFilename
-	}
-
-	fd, err = os.Create(saveToPath)
-	if err != nil {
-		return fmt.Errorf("save failed, err=%v", err)
-	}
-
-	defer fd.Close()
-
-	return q.SaveTo(fd)
-
-	//q.Draw()
-	//return drawAndSaveToFile(saveToPath, *q.mat, q.outputOption)
-}
-
-// SaveTo QRCode image into `w`(io.Writer)
-func (q *QRCode) SaveTo(w io.Writer) error {
-	return drawTo(w, *q.mat, q.outputOption)
-}
-
-// Attribute pre-calculate attribute of QR Code image, before actually draw it into image.
-// avoid raising an error, you should use New and likely functions to initialize *QRCode.
-func (q *QRCode) Attribute() (*Attribute, error) {
-	if q.outputOption == nil || q.mat == nil {
-		return nil, ErrInvalidStateOfQRCode
-	}
-
-	return q.outputOption.preCalculateAttribute(q.mat.Width()), nil
-}
-
 // draw from bitset to matrix.Matrix, calculate all mask modula score,
 // then decide which mask to use according to the mask's score (the lowest one).
 func (q *QRCode) masking() {
@@ -690,14 +629,14 @@ func (q *QRCode) masking() {
 
 			// debug output
 			if _debug {
-				_ = drawAndSaveToFile(fmt.Sprintf("draft/mats_%d.jpeg", i), *mats[i], nil)
-				_ = drawAndSaveToFile(fmt.Sprintf("draft/mask_%d.jpeg", i), *masks[i].mat, nil)
+				//_ = standard.DebugDraw(fmt.Sprintf("draft/mats_%d.jpeg", i), *mats[i], nil)
+				//_ = standard.DebugDraw(fmt.Sprintf("draft/mask_%d.jpeg", i), *masks[i].mat, nil)
 			}
 
 			// xor with mask
 			q.xorMask(mats[i], masks[i])
 			if _debug {
-				_ = drawAndSaveToFile(fmt.Sprintf("draft/mats_mask_%d.jpeg", i), *mats[i], nil)
+				//_ = standard.DebugDraw(fmt.Sprintf("draft/mats_mask_%d.jpeg", i), *mats[i], nil)
 			}
 
 			// fill format info
@@ -716,7 +655,7 @@ func (q *QRCode) masking() {
 			}
 
 			if _debug {
-				_ = drawAndSaveToFile(fmt.Sprintf("draft/qrcode_mask_%d.jpeg", i), *mats[i], nil)
+				//_ = standard.DebugDraw(fmt.Sprintf("draft/qrcode_mask_%d.jpeg", i), *mats[i], nil)
 			}
 			wg.Done()
 		}(i)
@@ -809,15 +748,6 @@ func (q *QRCode) fillFormatInfo(m *matrix.Matrix, mode maskPatternModulo, dimens
 		}
 	}
 }
-
-//
-//func (q *QRCode) debugDraw() {
-//	if !_debug {
-//		return
-//	}
-//	_ = drawAndSaveToFile("./testdata/qrtest_loop.jpeg", *q.mat)
-//	time.Sleep(time.Millisecond * 100)
-//}
 
 // SetDebugMode open debug mode
 func SetDebugMode() {

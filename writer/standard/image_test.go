@@ -1,11 +1,14 @@
-package qrcode
+package standard
 
 import (
 	"image/color"
+	"os"
 	"reflect"
 	"testing"
 
-	"github.com/yeqown/go-qrcode/matrix"
+	"github.com/yeqown/go-qrcode/v2/matrix"
+
+	"github.com/stretchr/testify/require"
 )
 
 func Test_image_draw(t *testing.T) {
@@ -15,10 +18,10 @@ func Test_image_draw(t *testing.T) {
 		_ = m.Set(x, 3, matrix.StateTrue)
 	}
 
-	if err := drawAndSaveToFile("./testdata/default.jpeg", *m, nil); err != nil {
-		t.Errorf("want nil, but err: %v", err)
-		t.Fail()
-	}
+	fd, err := os.Create("./testdata/default.jpeg")
+	require.NoError(t, err)
+	err = drawTo(fd, *m, nil)
+	require.NoError(t, err)
 }
 
 func Test_stateRGBA(t *testing.T) {

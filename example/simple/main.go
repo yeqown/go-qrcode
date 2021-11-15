@@ -1,18 +1,26 @@
 package main
 
-import "github.com/yeqown/go-qrcode"
+import (
+	"github.com/yeqown/go-qrcode/writer/standard"
+
+	"github.com/yeqown/go-qrcode/v2"
+)
 
 func main() {
-	config := qrcode.Config{
-		EncMode: qrcode.EncModeByte,
-		EcLevel: qrcode.ErrorCorrectionQuart,
-	}
-	qrc, err := qrcode.NewWithConfig("github.com/yeqown/qo-qrcode", &config, qrcode.WithQRWidth(40))
+	qrc, err := qrcode.NewWith("github.com/yeqown/qo-qrcode",
+		qrcode.WithEncodingMode(qrcode.EncModeByte),
+		qrcode.WithErrorCorrectionLevel(qrcode.ErrorCorrectionQuart),
+	)
 	if err != nil {
 		panic(err)
 	}
 
-	if err = qrc.Save("./a.png"); err != nil {
+	w, err := standard.New("./simple.png", standard.WithQRWidth(40))
+	if err != nil {
+		panic(err)
+	}
+
+	if err = qrc.Save(w); err != nil {
 		panic(err)
 	}
 }

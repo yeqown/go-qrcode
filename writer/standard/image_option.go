@@ -1,12 +1,16 @@
-package qrcode
+package standard
 
 import (
 	"fmt"
 	"image"
 	"image/color"
 
-	"github.com/yeqown/go-qrcode/matrix"
+	"github.com/yeqown/go-qrcode/v2/matrix"
 )
+
+type ImageOption interface {
+	apply(o *outputImageOptions)
+}
 
 // defaultOutputImageOption default output image background color and etc options
 func defaultOutputImageOption() *outputImageOptions {
@@ -54,16 +58,6 @@ func (oo *outputImageOptions) backgroundColor() color.Color {
 
 	return oo.bgColor
 }
-
-// DEPRECATED
-// qrColor would be save into `_stateToRGBA`
-//func (oo *outputImageOptions) foregroundColor() color.Color {
-//	if oo == nil || oo.qrColor == nil {
-//		return color.Black
-//	}
-//
-//	return oo.qrColor
-//}
 
 func (oo *outputImageOptions) logoImage() image.Image {
 	if oo == nil || oo.logo == nil {

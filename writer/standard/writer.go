@@ -25,9 +25,10 @@ var (
 type Writer struct {
 	option *outputImageOptions
 
-	wr io.Writer
+	closer io.WriteCloser
 }
 
+// New creates a standard writer.
 func New(filename string, opts ...ImageOption) (*Writer, error) {
 	if _, err := os.Stat(filename); err != nil && os.IsExist(err) {
 		// custom path got: "file exists"
@@ -35,31 +36,27 @@ func New(filename string, opts ...ImageOption) (*Writer, error) {
 		filename = _defaultFilename
 	}
 
-	fd, err := os.Create(filename)
+	fd, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return nil, errors.Wrap(err, "create file failed")
 	}
 
-	defer func(f *os.File) {
-		err = f.Close()
-	}(fd)
-
 	return NewWithWriter(fd, opts...), nil
 }
 
-func NewWithWriter(w io.Writer, opts ...ImageOption) *Writer {
+func NewWithWriter(writeCloser io.WriteCloser, opts ...ImageOption) *Writer {
 	dst := defaultOutputImageOption()
 	for _, opt := range opts {
 		opt.apply(dst)
 	}
 
-	if w == nil {
-		panic("wr could not be nil")
+	if writeCloser == nil {
+		panic("writeCloser could not be nil")
 	}
 
 	return &Writer{
 		option: dst,
-		wr:     w,
+		closer: writeCloser,
 	}
 }
 
@@ -69,7 +66,23 @@ const (
 )
 
 func (w Writer) Write(mat matrix.Matrix) error {
-	return drawTo(w.wr, mat, w.option)
+	defer func() {
+		_ = w.Close()
+	}()
+
+	return drawTo(w.closer, mat, w.option)
+}
+
+func (w Writer) Close() error {
+	if w.closer == nil {
+		return nil
+	}
+
+	if err := w.closer.Close(); !errors.Is(err, os.ErrClosed) {
+		return err
+	}
+
+	return nil
 }
 
 func (w Writer) Attribute(dimension int) *Attribute {
@@ -95,36 +108,6 @@ func drawTo(w io.Writer, mat matrix.Matrix, option *outputImageOptions) (err err
 	return
 }
 
-//// drawAndSaveToFile image with matrix
-//func drawAndSaveToFile(name string, m matrix.Matrix, opt *outputImageOptions) error {
-//	f, err := os.Create(name)
-//	if err != nil {
-//		return fmt.Errorf("could not create file: %v", err)
-//	}
-//
-//	defer func(f *os.File) {
-//		err = f.Close()
-//	}(f)
-//
-//	return drawTo(f, m, opt)
-//}
-
-//// drawTo save image into io.Writer
-//func drawTo(w io.Writer, m matrix.Matrix, opt *outputImageOptions) (err error) {
-//	if opt == nil {
-//		opt = defaultOutputImageOption()
-//	}
-//
-//	img := draw(m, opt)
-//
-//	// DONE(@yeqown): support file format specified config option
-//	if err = opt.imageEncoder.Encode(w, img); err != nil {
-//		err = fmt.Errorf("jpeg.Encode got err: %v", err)
-//	}
-//
-//	return
-//}
-
 // draw deal QRCode's matrix to be an image.Image. Notice that if anyone changed this function,
 // please also check the function outputImageOptions.preCalculateAttribute().
 func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
@@ -133,7 +116,7 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 	//}
 
 	top, right, bottom, left := opt.borderWidths[0], opt.borderWidths[1], opt.borderWidths[2], opt.borderWidths[3]
-	// wr as image width, h as image height
+	// closer as image width, h as image height
 	w := mat.Width()*opt.qrBlockWidth() + left + right
 	h := mat.Height()*opt.qrBlockWidth() + top + bottom
 	dc := gg.NewContext(w, h)
@@ -187,7 +170,7 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 		logoWidth, logoHeight := lowerRight.X-upperLeft.X, lowerRight.Y-upperLeft.Y
 
 		if !validLogoImage(w, h, logoWidth, logoHeight) {
-			log.Printf("wr=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/5 of QRCode \n",
+			log.Printf("closer=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/5 of QRCode \n",
 				w, h, logoWidth, logoHeight)
 			goto done
 		}

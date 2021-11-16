@@ -75,6 +75,12 @@ func (q *QRCode) Save(w Writer) error {
 		w = nonWriter{}
 	}
 
+	defer func() {
+		if err := w.Close(); err != nil {
+			log.Printf("[WARNNING] [go-qrcode] close writer failed: %v\n", err)
+		}
+	}()
+
 	return w.Write(*q.mat)
 }
 

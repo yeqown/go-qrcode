@@ -18,7 +18,7 @@ const (
 
 // ImageEncoder is an interface which describes the rule how to encode image.Image into io.Writer
 type ImageEncoder interface {
-	// Encode specify which format to encode image into wr io.Writer.
+	// Encode specify which format to encode image into io.Writer.
 	Encode(w io.Writer, img image.Image) error
 }
 

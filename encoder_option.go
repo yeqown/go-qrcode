@@ -34,6 +34,7 @@ func newFnEncodingOption(fn func(*encodingOption)) fnEncodingOption {
 	return fnEncodingOption{fn: fn}
 }
 
+// WithEncodingMode sets the encoding mode.
 func WithEncodingMode(mode encMode) EncodeOption {
 	return newFnEncodingOption(func(option *encodingOption) {
 		if name := getEncModeName(mode); name == "" {
@@ -44,6 +45,7 @@ func WithEncodingMode(mode encMode) EncodeOption {
 	})
 }
 
+// WithErrorCorrectionLevel sets the error correction level.
 func WithErrorCorrectionLevel(ecLevel ecLevel) EncodeOption {
 	return newFnEncodingOption(func(option *encodingOption) {
 		if ecLevel < ErrorCorrectionLow || ecLevel > ErrorCorrectionHighest {

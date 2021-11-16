@@ -4,7 +4,8 @@ import (
 	"flag"
 	"fmt"
 
-	qrcode "github.com/yeqown/go-qrcode/v2"
+	"github.com/yeqown/go-qrcode/v2"
+	"github.com/yeqown/go-qrcode/writer/standard"
 )
 
 var (
@@ -21,8 +22,14 @@ func main() {
 		return
 	}
 
+	w, err := standard.New(*outputFlag)
+	if err != nil {
+		fmt.Printf("standard writer failed: %v", err)
+		return
+	}
+
 	// save file
-	if err := qrc.Save(*outputFlag); err != nil {
+	if err := qrc.Save(w); err != nil {
 		fmt.Printf("could not save image: %v", err)
 	}
 }

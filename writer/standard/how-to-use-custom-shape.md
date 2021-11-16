@@ -1,12 +1,12 @@
 ## How to use custom shape
 
-[Source Code](../example/with-custom-shape/main.go)
+[Source Code](../../example/with-custom-shape/main.go)
 
 first step, you must define your own shape to QRCode, which consists of two part:
 * normal cell (of course, there are many types, separator, timing, alignment patter, data, format and version etc)
 * finder cell (to help recognizer to locate the matrix's position)
 
-<img src="./qrcode_structure.png" align="center" width="50%" />
+<img src="../../assets/qrcode_structure.png" align="center" width="50%" />
 
 ```go
 type IShape interface {

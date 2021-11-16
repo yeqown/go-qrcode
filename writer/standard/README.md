@@ -69,3 +69,8 @@ func WithCustomImageEncoder(encoder ImageEncoder) ImageOption
 // WithBorderWidth(a, b, c, d) mean top, right, bottom, left.
 func WithBorderWidth(widths ...int) ImageOption
 ```
+
+### extension
+
+- [How to customize QR Code shape](./how-to-use-custom-shape.md)
+- [How to customize ImageEncoder](./how-to-use-image-encoder.md)

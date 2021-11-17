@@ -160,7 +160,6 @@ func Test_Attribute(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// TODO(@yeqown): Add Dimension method
 	attr := w.Attribute(qrc.Dimension())
 	t.Logf("attr: %+v", attr)
 

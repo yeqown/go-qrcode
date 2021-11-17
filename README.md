@@ -100,15 +100,16 @@ following are some shots:
 
 <br>
 
-### Documention
+### Built-in Writers
 
-Jump to [go.dev/github/yeqown/go-qrcode](https://godoc.org/github.com/yeqown/go-qrcode)
+- [Standard Writer](./writer/standard/README.md), prints QRCode into file and stream
+- [Terminal Writer](./writer/terminal/README.md), prints QRCode into terminal
 
-* [How to use `WithCustomShape`](./docs/how-to-use-custom-shape.md) 
+Of course, you can also code your own writer, just implement [Writer](./writer/README.md) interface.
 
 ### Links
 
-* [QR Code tutori](https://www.thonky.com/qr-code-tutorial/)
+* [QRCode Tourist](https://www.thonky.com/qr-code-tutorial/)
 * [QRCode Wiki](https://en.wikipedia.org/wiki/QR_code)
-* [二维码详解（QR Code）](https://zhuanlan.zhihu.com/p/21463650)
-* [数据编码](https://zhuanlan.zhihu.com/p/25432676)
+* [二维码详解 (QRCode analysis in CN-zh)](https://zhuanlan.zhihu.com/p/21463650)
+* [数据编码 (How to encode data payload in QRCode in CN-zh)](https://zhuanlan.zhihu.com/p/25432676)

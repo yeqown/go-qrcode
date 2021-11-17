@@ -18,7 +18,7 @@ writer, err := standard.New("filename", options...)
 
 // or use io.WriteCloser
 var w io.WriterCloser
-writer2, err := standard.New(w, options...)
+writer2, err := standard.NewWith(w, options...)
 ```
 
 ### Options

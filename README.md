@@ -93,10 +93,11 @@ func WithErrorCorrectionLevel(ecLevel ecLevel) EncodeOption {}
 following are some shots:
 
 <div>
-<img src="./assets/example_fg_bg.jpeg" width="200px" align="left">
-<img src="./assets/example_logo.jpeg" width="200px" align="left">
-<img src="./assets/example_circle.jpeg" width="200px" align="left">
-<img src="./assets/example_transparent.png" width="200px">
+
+<img src="./assets/example_fg_bg.jpeg" width="160px" align="left" title="with bg-fg color">
+<img src="./assets/example_logo.jpeg" width="160px" align="left" title="with logo image">
+<img src="./assets/example_circle.jpeg" width="160px" align="left" title="customize block shape">
+<img src="./assets/example_transparent.png" width="160px" title="with transparent bg">
 </div>
 
 <br>

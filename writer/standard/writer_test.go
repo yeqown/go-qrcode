@@ -60,7 +60,8 @@ func Test_New_WithOutputOption_Logo(t *testing.T) {
 	w, err := New("./testdata/qrtest_logo.jpeg",
 		WithBgColorRGBHex("#b8de6f"),
 		WithFgColorRGBHex("#f1e189"),
-		WithLogoImageFilePNG("./testdata/logo.png"), // png required
+		WithLogoImageFileJPEG("./testdata/logo.jpeg"),
+		//WithLogoImageFilePNG("./testdata/logo.png"), // png required
 	)
 
 	// save file

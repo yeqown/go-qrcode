@@ -5,8 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/yeqown/go-qrcode/v2/matrix"
 )
 
 func Test_WithBuiltinImageEncoder(t *testing.T) {
@@ -31,25 +29,23 @@ func Test_BgColor_FgColor(t *testing.T) {
 	oo := defaultOutputImageOption()
 
 	// check
-	assert.Equal(t, color.White, oo.bgColor)
-	assert.Equal(t, color.Black, oo.qrColor)
+	assert.Equal(t, color_WHITE, oo.bgColor)
+	assert.Equal(t, color_BLACK, oo.qrColor)
 
 	// apply color
-	WithBgColor(color.Black).apply(oo)
-	assert.Equal(t, color.Black, oo.bgColor)
-	assert.Equal(t, color.Black, oo.qrColor)
+	WithBgColor(color_BLACK).apply(oo)
+	assert.Equal(t, color_BLACK, oo.bgColor)
+	assert.Equal(t, color_BLACK, oo.qrColor)
 
 	// apply color
-	WithBgColor(color.White).apply(oo)
-	WithFgColor(color.White).apply(oo)
-	assert.Equal(t, color.White, oo.bgColor)
-	assert.Equal(t, color.White, oo.qrColor)
-	assert.Equal(t, color.White, _stateToRGBA[matrix.StateFinder])
+	WithBgColor(color_WHITE).apply(oo)
+	WithFgColor(color_WHITE).apply(oo)
+	assert.Equal(t, color_WHITE, oo.bgColor)
+	assert.Equal(t, color_WHITE, oo.qrColor)
 
-	WithFgColor(color.Black).apply(oo)
-	assert.Equal(t, color.White, oo.bgColor)
-	assert.Equal(t, color.Black, oo.qrColor)
-	assert.Equal(t, color.Black, _stateToRGBA[matrix.StateFinder])
+	WithFgColor(color_BLACK).apply(oo)
+	assert.Equal(t, color_WHITE, oo.bgColor)
+	assert.Equal(t, color_BLACK, oo.qrColor)
 }
 
 func Test_defaultOutputOption(t *testing.T) {
@@ -93,4 +89,15 @@ func Test_WithBorderWidth(t *testing.T) {
 	// four parameters
 	WithBorderWidth(1, 2, 3, 4).apply(oo)
 	assert.Equal(t, [4]int{1, 2, 3, 4}, oo.borderWidths)
+}
+
+func Test_WithBgTransparent(t *testing.T) {
+	oo := defaultOutputImageOption()
+
+	// check default
+	assert.False(t, oo.bgTransparent)
+
+	// apply
+	WithBgTransparent().apply(oo)
+	assert.True(t, oo.bgTransparent)
 }

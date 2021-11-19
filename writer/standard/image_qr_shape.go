@@ -13,7 +13,7 @@ var (
 )
 
 type IShape interface {
-	// Draw to fill the IShape of qrcode.
+	// Draw the shape of QRCode block in IShape implemented way.
 	Draw(ctx *DrawContext)
 
 	// DrawFinder to fill the finder pattern of QRCode, what's finder? google it for more information.

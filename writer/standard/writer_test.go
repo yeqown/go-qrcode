@@ -8,6 +8,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/yeqown/go-qrcode/v2/matrix"
+
 	"github.com/yeqown/go-qrcode/v2"
 
 	"github.com/stretchr/testify/assert"
@@ -95,7 +97,7 @@ func Test_New_WithBorderWidth(t *testing.T) {
 // Test_Issue40
 // https://github.com/yeqown/go-qrcode/issues/40
 func Test_Issue40(t *testing.T) {
-	qrc, err := qrcode.New("https://baidu.com/")
+	qrc, err := qrcode.New("https://yeqown.xyzom/")
 	require.NoError(t, err)
 	w1, err := New("./testdata/issue40_1.png")
 	require.NoError(t, err)
@@ -150,7 +152,7 @@ func statImage(filename string) (w, h int, err error) {
 }
 
 func Test_Attribute(t *testing.T) {
-	qrc, err := qrcode.New("https://baidu.com")
+	qrc, err := qrcode.New("https://yeqown.xyzom")
 	require.NoError(t, err)
 
 	w, err := New("./testdata/attr.png",
@@ -170,4 +172,32 @@ func Test_Attribute(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, width, attr.W)
 	assert.Equal(t, height, attr.H)
+}
+
+func Test_image_draw(t *testing.T) {
+	m := matrix.New(20, 20)
+	// set all 3rd column as black else be white
+	for x := 0; x < m.Width(); x++ {
+		_ = m.Set(x, 3, matrix.StateTrue)
+	}
+
+	fd, err := os.Create("./testdata/default.jpeg")
+	require.NoError(t, err)
+	err = drawTo(fd, *m, nil)
+	require.NoError(t, err)
+}
+
+func Test_writer_WithBgTransparent(t *testing.T) {
+	qrc, err := qrcode.New("https://yeqown.xyzom")
+	require.NoError(t, err)
+
+	w, err := New("./testdata/transparent.png",
+		WithBuiltinImageEncoder(PNG_FORMAT),
+		WithBorderWidth(20),
+		WithBgTransparent(),
+	)
+	require.NoError(t, err)
+
+	err = qrc.Save(w)
+	assert.NoError(t, err)
 }

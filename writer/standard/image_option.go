@@ -15,26 +15,29 @@ type ImageOption interface {
 // defaultOutputImageOption default output image background color and etc options
 func defaultOutputImageOption() *outputImageOptions {
 	return &outputImageOptions{
-		bgColor:      color.White,     // white
-		qrColor:      color.Black,     // black
-		logo:         nil,             //
-		qrWidth:      20,              //
-		shape:        _shapeRectangle, //
-		imageEncoder: jpegEncoder{},
-		borderWidths: [4]int{_defaultPadding, _defaultPadding, _defaultPadding, _defaultPadding},
+		bgColor:       color_WHITE,     // white
+		bgTransparent: false,           // not transparent
+		qrColor:       color_BLACK,     // black
+		logo:          nil,             //
+		qrWidth:       20,              //
+		shape:         _shapeRectangle, //
+		imageEncoder:  jpegEncoder{},
+		borderWidths:  [4]int{_defaultPadding, _defaultPadding, _defaultPadding, _defaultPadding},
 	}
 }
 
 // outputImageOptions to output QR code image
 type outputImageOptions struct {
-	// bgColors
-	bgColor color.Color
+	// bgColor is the background color of the QR code image.
+	bgColor color.RGBA
+	// bgTransparent only affects on PNG_FORMAT
+	bgTransparent bool
 
-	// qrColor
-	qrColor color.Color
+	// qrColor is the foreground color of the QR code.
+	qrColor color.RGBA
 
 	// logo this icon image would be put the center of QR Code image
-	// NOTE: logo only should has 1/5 size of QRCode image
+	// NOTE: logo only should have 1/5 size of QRCode image
 	logo image.Image
 
 	// qrWidth width of each qr block
@@ -51,9 +54,13 @@ type outputImageOptions struct {
 	borderWidths [4]int
 }
 
-func (oo *outputImageOptions) backgroundColor() color.Color {
-	if oo == nil || oo.bgColor == nil {
-		return color.White
+func (oo *outputImageOptions) backgroundColor() color.RGBA {
+	if oo == nil {
+		return color_WHITE
+	}
+
+	if oo.bgTransparent {
+		(&oo.bgColor).A = 0x00
 	}
 
 	return oo.bgColor
@@ -99,33 +106,44 @@ func (oo *outputImageOptions) preCalculateAttribute(dimension int) *Attribute {
 }
 
 var (
-	// _stateToRGBA state map tp color.Gray16
-	_stateToRGBA = map[matrix.State]color.Color{
-		matrix.StateFalse: hexToRGBA("#ffffff"),
-		matrix.StateTrue:  hexToRGBA("#000000"),
-		matrix.StateInit:  hexToRGBA("#cdc9c3"),
-		//matrix.StateVersion: hexToRGBA("#444444"),
-		//matrix.StateFormat: hexToRGBA("#555555"),
-		//matrix.StateFinder: hexToRGBA("#2BA859"),
-		matrix.StateFinder: hexToRGBA("#000000"),
-	}
-
-	// _defaultStateColor default color of undefined matrix.State
-	// it shouldn't be used.
-	_defaultStateColor = hexToRGBA("#ff414d")
+	color_WHITE = parseFromHex("#ffffff")
+	color_BLACK = parseFromHex("#000000")
 )
 
-// stateRGBA get color.Color by value State
-func (oo *outputImageOptions) stateRGBA(v matrix.State) color.Color {
-	if v, ok := _stateToRGBA[v]; ok {
-		return v
+var (
+	// _STATE_MAPPING mapping matrix.State to color.RGBA in debug mode.
+	_STATE_MAPPING = map[matrix.State]color.RGBA{
+		matrix.StateFalse:   parseFromHex("#ffffff"), // [bg]
+		matrix.StateInit:    parseFromHex("#cdc9c3"), // [bg]
+		matrix.StateTrue:    parseFromHex("#000000"), // [fg]
+		matrix.StateVersion: parseFromHex("#444444"), // [fg]
+		matrix.StateFormat:  parseFromHex("#555555"), // [fg]
+		matrix.StateFinder:  parseFromHex("#2BA859"), // [fg]
+	}
+)
+
+// translateToRGBA get color.RGBA by value State, if not found, return outputImageOptions.qrColor.
+// NOTE: this function decides the state should use qrColor or bgColor.
+func (oo *outputImageOptions) translateToRGBA(s matrix.State) (rgba color.RGBA) {
+	// TODO(@yeqown): use _STATE_MAPPING to replace this function while in debug mode
+	// or some special flag.
+	switch s {
+	case matrix.StateFalse, matrix.StateInit:
+		if oo.bgTransparent {
+			(&oo.bgColor).A = 0x00
+		}
+		rgba = oo.bgColor
+	case matrix.StateTrue, matrix.StateFinder, matrix.StateVersion, matrix.StateFormat:
+		fallthrough
+	default:
+		rgba = oo.qrColor
 	}
 
-	return _defaultStateColor
+	return rgba
 }
 
-// hexToRGBA convert hex string into color.RGBA
-func hexToRGBA(s string) color.RGBA {
+// parseFromHex convert hex string into color.RGBA
+func parseFromHex(s string) color.RGBA {
 	c := color.RGBA{
 		R: 0,
 		G: 0,
@@ -151,4 +169,19 @@ func hexToRGBA(s string) color.RGBA {
 	}
 
 	return c
+}
+
+func parseFromColor(c color.Color) color.RGBA {
+	rgba, ok := c.(color.RGBA)
+	if ok {
+		return rgba
+	}
+
+	r, g, b, a := c.RGBA()
+	return color.RGBA{
+		R: uint8(r),
+		G: uint8(g),
+		B: uint8(b),
+		A: uint8(a),
+	}
 }

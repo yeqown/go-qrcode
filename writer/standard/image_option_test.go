@@ -2,72 +2,63 @@ package standard
 
 import (
 	"image/color"
-	"os"
 	"reflect"
 	"testing"
 
 	"github.com/yeqown/go-qrcode/v2/matrix"
-
-	"github.com/stretchr/testify/require"
 )
 
-func Test_image_draw(t *testing.T) {
-	m := matrix.New(20, 20)
-	// set all 3rd column as black else be white
-	for x := 0; x < m.Width(); x++ {
-		_ = m.Set(x, 3, matrix.StateTrue)
-	}
-
-	fd, err := os.Create("./testdata/default.jpeg")
-	require.NoError(t, err)
-	err = drawTo(fd, *m, nil)
-	require.NoError(t, err)
-}
-
 func Test_stateRGBA(t *testing.T) {
+	oo := defaultOutputImageOption()
+
 	type args struct {
 		v matrix.State
 	}
 	tests := []struct {
 		name string
 		args args
-		want color.Color
+		want color.RGBA
 	}{
 		{
 			name: "case 1",
 			args: args{v: matrix.StateFalse},
-			want: _stateToRGBA[matrix.StateFalse],
+			want: oo.bgColor,
 		},
 		{
 			name: "case 2",
 			args: args{v: matrix.StateInit},
-			want: _stateToRGBA[matrix.StateInit],
+			want: oo.bgColor,
 		},
 		{
 			name: "case 3",
 			args: args{v: matrix.StateTrue},
-			want: _stateToRGBA[matrix.StateTrue],
+			want: oo.qrColor,
 		},
 		{
 			name: "case 4",
 			args: args{v: matrix.StateFormat},
-			want: _defaultStateColor,
+			want: oo.qrColor,
 		},
 		{
 			name: "case 5",
 			args: args{v: matrix.StateVersion},
-			want: _defaultStateColor,
+			want: oo.qrColor,
 		},
 		{
 			name: "case 6",
 			args: args{v: matrix.State(0x6767)},
-			want: _defaultStateColor,
+			want: oo.qrColor,
+		},
+		{
+			name: "case 7",
+			args: args{v: matrix.StateFinder},
+			want: oo.qrColor,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := new(outputImageOptions).stateRGBA(tt.args.v); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("stateRGBA() = %v, want %v", got, tt.want)
+			if got := oo.translateToRGBA(tt.args.v); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("translateToRGBA() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -106,8 +97,41 @@ func Test_hexToRGBA(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := hexToRGBA(tt.args.s); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("hexToRGBA() = %v, want %v", got, tt.want)
+			if got := parseFromHex(tt.args.s); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("parseFromHex() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_parseFromColor(t *testing.T) {
+	type args struct {
+		c color.Color
+	}
+	tests := []struct {
+		name string
+		args args
+		want color.RGBA
+	}{
+		{
+			name: "case 0",
+			args: args{
+				c: color.RGBA{R: 17, G: 34, B: 51, A: 255},
+			},
+			want: color.RGBA{R: 17, G: 34, B: 51, A: 255},
+		},
+		{
+			name: "case 1",
+			args: args{
+				c: color.Gray16{Y: 17},
+			},
+			want: color.RGBA{R: 17, G: 17, B: 17, A: 255},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := parseFromColor(tt.args.c); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("parseFromColor() = %v, want %v", got, tt.want)
 			}
 		})
 	}

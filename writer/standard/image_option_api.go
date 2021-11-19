@@ -7,8 +7,6 @@ import (
 	"image/jpeg"
 	"image/png"
 	"os"
-
-	"github.com/yeqown/go-qrcode/v2/matrix"
 )
 
 // funcOption wraps a function that modifies outputImageOptions into an
@@ -27,49 +25,66 @@ func newFuncOption(f func(oo *outputImageOptions)) *funcOption {
 	}
 }
 
+// WithBgTransparent makes the background transparent.
+func WithBgTransparent() ImageOption {
+	return newFuncOption(func(oo *outputImageOptions) {
+		oo.bgTransparent = true
+	})
+}
+
 // WithBgColor background color
 func WithBgColor(c color.Color) ImageOption {
 	return newFuncOption(func(oo *outputImageOptions) {
-		oo.bgColor = c
-		_stateToRGBA[matrix.StateFalse] = oo.bgColor
+		if c == nil {
+			return
+		}
+
+		oo.bgColor = parseFromColor(c)
 	})
 }
 
 // WithBgColorRGBHex background color
 func WithBgColorRGBHex(hex string) ImageOption {
 	return newFuncOption(func(oo *outputImageOptions) {
-		oo.bgColor = hexToRGBA(hex)
-		_stateToRGBA[matrix.StateFalse] = oo.bgColor
+		if hex == "" {
+			return
+		}
+
+		oo.bgColor = parseFromHex(hex)
 	})
 }
 
 // WithFgColor QR color
 func WithFgColor(c color.Color) ImageOption {
 	return newFuncOption(func(oo *outputImageOptions) {
-		oo.qrColor = c
-		_stateToRGBA[matrix.StateTrue] = oo.qrColor
-		_stateToRGBA[matrix.StateFinder] = oo.qrColor
+		if c == nil {
+			return
+		}
+
+		oo.qrColor = parseFromColor(c)
 	})
 }
 
 // WithFgColorRGBHex Hex string to set QR Color
 func WithFgColorRGBHex(hex string) ImageOption {
 	return newFuncOption(func(oo *outputImageOptions) {
-		oo.qrColor = hexToRGBA(hex)
-		_stateToRGBA[matrix.StateTrue] = oo.qrColor
-		_stateToRGBA[matrix.StateFinder] = oo.qrColor
+		oo.qrColor = parseFromHex(hex)
 	})
 }
 
 // WithLogoImage image should only has 1/5 width of QRCode at most
 func WithLogoImage(img image.Image) ImageOption {
 	return newFuncOption(func(oo *outputImageOptions) {
+		if img == nil {
+			return
+		}
+
 		oo.logo = img
 	})
 }
 
 // WithLogoImageFileJPEG load image from file, jpeg is required.
-// image should only has 1/5 width of QRCode at most
+// image should only have 1/5 width of QRCode at most
 func WithLogoImageFileJPEG(f string) ImageOption {
 	return newFuncOption(func(oo *outputImageOptions) {
 		fd, err := os.Open(f)
@@ -89,7 +104,7 @@ func WithLogoImageFileJPEG(f string) ImageOption {
 }
 
 // WithLogoImageFilePNG load image from file, PNG is required.
-// image should only has 1/5 width of QRCode at most
+// image should only have 1/5 width of QRCode at most
 func WithLogoImageFilePNG(f string) ImageOption {
 	return newFuncOption(func(oo *outputImageOptions) {
 		fd, err := os.Open(f)

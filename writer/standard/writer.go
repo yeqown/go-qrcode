@@ -111,10 +111,6 @@ func drawTo(w io.Writer, mat matrix.Matrix, option *outputImageOptions) (err err
 // draw deal QRCode's matrix to be an image.Image. Notice that if anyone changed this function,
 // please also check the function outputImageOptions.preCalculateAttribute().
 func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
-	//if v2._debug {
-	//	fmt.Printf("matrix.Width()=%d, matrix.Height()=%d\n", mat.Width(), mat.Height())
-	//}
-
 	top, right, bottom, left := opt.borderWidths[0], opt.borderWidths[1], opt.borderWidths[2], opt.borderWidths[3]
 	// closer as image width, h as image height
 	w := mat.Width()*opt.qrBlockWidth() + left + right
@@ -143,7 +139,7 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 			X: x*opt.qrBlockWidth() + left,
 			Y: y*opt.qrBlockWidth() + top,
 		}
-		ctx.color = opt.stateRGBA(v)
+		ctx.color = opt.translateToRGBA(v)
 		// DONE(@yeqown): make this abstract to Shapes
 
 		switch v {
@@ -152,15 +148,7 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 		default:
 			shape.Draw(ctx)
 		}
-
-		//if x == y && _debug {
-		//	_ = dc.SavePNG(fmt.Sprintf("./.debug/%d.png", x))
-		//}
 	})
-
-	//if _debug {
-	//	fmt.Printf("save as tmp.png, err=%v\n", dc.SavePNG("./tmp.png"))
-	//}
 
 	// DONE(@yeqown): add logo image
 	if opt.logoImage() != nil {
@@ -175,8 +163,8 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 			goto done
 		}
 
-		// DONE(@yeqown): calculate the xOffset and yOffset
-		// which point(xOffset, yOffset) should icon upper-left to start
+		// DONE(@yeqown): calculate the xOffset and yOffset which point(xOffset, yOffset)
+		//should icon upper-left to start
 		dc.DrawImage(opt.logoImage(), (w-logoWidth)/2, (h-logoHeight)/2)
 	}
 done:

@@ -24,6 +24,9 @@ writer2, err := standard.NewWith(w, options...)
 ### Options
 
 ```go
+// WithBgTransparent makes the background transparent.
+func WithBgTransparent() ImageOption {}
+
 // WithBgColor background color
 func WithBgColor(c color.Color) ImageOption {}
 

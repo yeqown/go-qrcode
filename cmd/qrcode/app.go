@@ -92,6 +92,7 @@ type fileOutputOptions struct {
 	blockSize     uint8
 	borders       [4]int
 	isCircleShape bool
+	transparent   bool
 }
 
 func (foo fileOutputOptions) applyOptions() []standard.ImageOption {
@@ -113,6 +114,10 @@ func (foo fileOutputOptions) applyOptions() []standard.ImageOption {
 		options = append(options, standard.WithCircleShape())
 	}
 
+	if foo.transparent {
+		options = append(options, standard.WithBgTransparent())
+	}
+
 	return options
 }
 
@@ -128,6 +133,7 @@ func parseGenerateContextFrom(c *cli.Context) *generateContext {
 			blockSize:     uint8(c.Uint("block")),
 			borders:       [4]int{},
 			isCircleShape: c.Bool("circle"),
+			transparent:   c.Bool("transparent"),
 		},
 		TOO: &terminalOutputOptions{},
 	}
@@ -186,6 +192,12 @@ func prepareFlags() []cli.Flag {
 		&cli.BoolFlag{
 			Name:        "circle",
 			Usage:       "--circle",
+			Value:       false,
+			DefaultText: "false",
+		},
+		&cli.BoolFlag{
+			Name:        "transparent",
+			Usage:       "--transparent",
 			Value:       false,
 			DefaultText: "false",
 		},

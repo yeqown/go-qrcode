@@ -63,6 +63,7 @@ func Test_New_WithOutputOption_Logo(t *testing.T) {
 		WithLogoImageFileJPEG("./testdata/logo.jpeg"),
 		//WithLogoImageFilePNG("./testdata/logo.png"), // png required
 	)
+	require.NoError(t, err)
 
 	// save file
 	err = qrc.Save(w)

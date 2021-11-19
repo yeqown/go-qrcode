@@ -22,10 +22,16 @@ jobs:
       run: go build -v ./...
 
     - name: Test qrcode
+      working-directory: .
       run: go test -v ./...
+      continue-on-error: false
 
     - name: Test writer/standard
-      run: cd ./writer/standard && go mod tidy && go test -v ./...
-      
+      working-directory: ./writer/standard
+      run: go mod tidy && mkdir testdata && go test -v ./...
+      continue-on-error: false
+
     - name: Test writer/terminal
-      run: ./writer/terminal && go mod tidy && go test -v ./...
+      working-directory: ./writer/terminal
+      run: go mod tidy && mkdir testdata && go test -v ./...
+      continue-on-error: false

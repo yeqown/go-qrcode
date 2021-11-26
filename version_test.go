@@ -3,7 +3,10 @@ package qrcode
 import (
 	"math/rand"
 	"reflect"
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -62,8 +65,10 @@ func Test_loadVersion(t *testing.T) {
 }
 
 func Test_analyzeVersion(t *testing.T) {
-	// load(defaultVersionCfg)
-	v := loadVersion(1, ErrorCorrectionMedium)
+	v1 := loadVersion(1, ErrorCorrectionMedium)
+	v2 := loadVersion(5, ErrorCorrectionMedium)
+	v3 := loadVersion(23, ErrorCorrectionMedium)
+
 	type args struct {
 		raw   []byte
 		ecLv  ecLevel
@@ -82,7 +87,27 @@ func Test_analyzeVersion(t *testing.T) {
 				ecLv:  ErrorCorrectionMedium,
 				eMode: EncModeAlphanumeric,
 			},
-			want:    &v,
+			want:    &v1,
+			wantErr: false,
+		},
+		{
+			name: "case 1",
+			args: args{
+				raw:   []byte(strings.Repeat("TEXT", 30)),
+				ecLv:  ErrorCorrectionMedium,
+				eMode: EncModeAlphanumeric,
+			},
+			want:    &v2,
+			wantErr: false,
+		},
+		{
+			name: "case 2",
+			args: args{
+				raw:   []byte(strings.Repeat("TEXT", 300)),
+				ecLv:  ErrorCorrectionMedium,
+				eMode: EncModeAlphanumeric,
+			},
+			want:    &v3,
 			wantErr: false,
 		},
 	}
@@ -97,5 +122,119 @@ func Test_analyzeVersion(t *testing.T) {
 				t.Errorf("analyzeVersion() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func Test_binarySearchVersion(t *testing.T) {
+	t.Logf("length of versions: %d", len(versions))
+
+	find := func(v int, ec ecLevel) func(cursor version) int {
+		return func(cursor version) int {
+			if cursor.Ver == v && cursor.ECLevel == ec {
+				return 0
+			}
+
+			if cursor.Ver > v || cursor.ECLevel > ec {
+				return -1
+			}
+
+			return 1
+		}
+	}
+
+	tests := []struct {
+		name string
+		ecLv ecLevel
+		v    int
+		want int
+	}{
+		{
+			name: "case 0",
+			ecLv: ErrorCorrectionLow,
+			v:    1,
+			want: 0,
+		},
+		{
+			name: "case 1",
+			ecLv: ErrorCorrectionHighest,
+			v:    40,
+			want: 159,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, found := binarySearchVersion(tt.v, find(tt.v, tt.ecLv))
+			require.True(t, found)
+			require.Equal(t, versions[tt.want], got)
+		})
+	}
+}
+
+func Test_binarySearchVersion_all(t *testing.T) {
+	for _, v := range versions {
+		hit, found := binarySearchVersion(v.Ver, func(cursor version) int {
+			if cursor.Ver == v.Ver && cursor.ECLevel == v.ECLevel {
+				return 0
+			}
+
+			// less
+			if cursor.Ver > v.Ver || cursor.ECLevel > v.ECLevel {
+				return -1
+			}
+
+			return 1
+		})
+
+		if !found {
+			t.Errorf("binarySearchVersions() failed to find version %d", v.Ver)
+		}
+		assert.Equal(t, v, hit)
+	}
+}
+
+// // go test -run=NONE -bench . -count 10 > new/old.txt
+func Benchmark_loadVersion_top(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		loadVersion(2, ErrorCorrectionMedium)
+		loadVersion(5, ErrorCorrectionMedium)
+	}
+}
+
+func Benchmark_loadVersion_waist(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		loadVersion(25, ErrorCorrectionMedium)
+		loadVersion(15, ErrorCorrectionMedium)
+	}
+}
+
+func Benchmark_loadVersion_bottom(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		loadVersion(40, ErrorCorrectionHighest)
+		loadVersion(35, ErrorCorrectionHighest)
+	}
+}
+
+func Benchmark_analyzeVersion_short(b *testing.B) {
+	source := []byte("text")
+
+	for i := 0; i < b.N; i++ {
+		_, _ = analyzeVersion(source, ErrorCorrectionMedium, EncModeByte)
+	}
+}
+
+func Benchmark_analyzeVersion_middle(b *testing.B) {
+	source := []byte(strings.Repeat("text", 30))
+
+	for i := 0; i < b.N; i++ {
+		_, _ = analyzeVersion(source, ErrorCorrectionMedium, EncModeByte)
+	}
+}
+
+func Benchmark_analyzeVersion_long(b *testing.B) {
+	source := []byte(strings.Repeat("text", 300))
+
+	for i := 0; i < b.N; i++ {
+		_, _ = analyzeVersion(source, ErrorCorrectionMedium, EncModeByte)
 	}
 }

@@ -2,7 +2,6 @@ package qrcode
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"strconv"
 
@@ -192,33 +191,100 @@ func (v version) formatInfo(maskPattern int) *binary.Binary {
 	return result
 }
 
-// loadVersion get version config from config
-// TODO(@yeqown): speed up this function
-func loadVersion(lv int, ecLv ecLevel) version {
-	for _, v := range versions {
-		if v.Ver == lv && v.ECLevel == ecLv {
-			return v
+// binarySearchVersion speed up searching target version in versions.
+// initVer to set the low and high bound of the search range.
+// compare represents the function to compare the target version with the cursor version.
+// negative means lower direction, positive means higher direction, zero mean hit.
+func binarySearchVersion(initVer int, compare func(version) int) (hit version, found bool) {
+	low := 0
+	high := len(versions) - 1
+
+	if initVer > 0 {
+		// each version only has 4 items in versions array,
+		// and them are ordered[ASC] already.
+		high = initVer*4 - 1
+		low = (initVer - 1) * 4
+	}
+
+	for low <= high {
+		mid := (low + high) / 2
+		r := compare(versions[mid])
+		if r == 0 {
+			hit = versions[mid]
+			found = true
+			break
+		}
+
+		if r > 0 {
+			// move toward higher direction
+			low = mid + 1
+		} else {
+			// move toward lower direction
+			high = mid
 		}
 	}
+
+	return hit, found
+}
+
+func loadVersion(lv int, ec ecLevel) version {
+	find := func(v int, ec ecLevel) func(cursor version) int {
+		return func(cursor version) int {
+			if cursor.Ver == v && cursor.ECLevel == ec {
+				return 0
+			}
+
+			if cursor.Ver > v || cursor.ECLevel > ec {
+				return -1
+			}
+
+			return 1
+		}
+	}
+
+	hit, found := binarySearchVersion(lv, find(lv, ec))
+	if found {
+		return hit
+	}
+
 	panic(errMissMatchedVersion)
 }
 
-// analyzeVersionAuto sourceRawBytes abd based on AUTO settings choose version and encoder
-func analyzeVersionAuto(source []byte, mode encMode) (v int, ec ecLevel, err error) {
-	// use default EC level
-	ec = ErrorCorrectionQuart
+//// loadVersion get version config from config
+//func loadVersion(lv int, ecLv ecLevel) version {
+//	for _, v := range versions {
+//		if v.Ver == lv && v.ECLevel == ecLv {
+//			return v
+//		}
+//	}
+//	panic(errMissMatchedVersion)
+//}
 
-	// analyzeVersionAuto sourceText to decide version etc.
-	var analyzed *version
-	analyzed, err = analyzeVersion(source, ec, mode)
-	if err != nil {
-		err = fmt.Errorf("could not analyzeVersion: %v", err)
-		return 0, ec, err
-	}
-	v = analyzed.Ver
-
-	return v, ec, nil
-}
+//// analyzeVersion the text, and decide which version should be chosen
+//// ref to: http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
+//func analyzeVersion(raw []byte, ec ecLevel, mode encMode) (*version, error) {
+//	want, mark := len(raw), 0
+//	simillar := func(cursor version) int {
+//		if cursor.ECLevel != ec {
+//
+//		}
+//		return 0
+//	}
+//
+//	// list all valid (ec level matched and has more capacity) version candidates,
+//	// then select the most suitable one.
+//	var found bool
+//	var candidates []version
+//	for found {
+//		_, found := binarySearchVersion(-1, simillar)
+//	}
+//	if found {
+//		return &hit, nil
+//	}
+//	debugLogf("mismatched version, version's length: %d, ec: %v", len(versions), ec)
+//
+//	return nil, errMissMatchedVersion
+//}
 
 // analyzeVersion the text, and decide which version should be chosen
 // ref to: http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
@@ -251,11 +317,6 @@ func analyzeVersion(raw []byte, ec ecLevel, mode encMode) (*version, error) {
 
 	return nil, errMissMatchedVersion
 }
-
-// // SetVersionCfgFile set custom version config file
-// func SetVersionCfgFile(fp string) {
-// 	defaultVersionCfg = fp
-// }
 
 var (
 	// https://www.thonky.com/qr-code-tutorial/alignment-pattern-locations

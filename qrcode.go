@@ -6,10 +6,10 @@ import (
 	"math"
 	"sync"
 
+	"github.com/yeqown/go-qrcode/v2/matrix"
+
 	"github.com/yeqown/reedsolomon"
 	"github.com/yeqown/reedsolomon/binary"
-
-	"github.com/yeqown/go-qrcode/v2/matrix"
 )
 
 var (
@@ -20,7 +20,7 @@ var (
 // New generate a QRCode struct to create
 func New(text string) (*QRCode, error) {
 	dst := DefaultEncodingOption()
-	return build(text, *dst)
+	return build(text, dst)
 }
 
 // NewWith generate a QRCode struct with
@@ -31,15 +31,19 @@ func NewWith(text string, opts ...EncodeOption) (*QRCode, error) {
 		opt.apply(dst)
 	}
 
-	return build(text, *dst)
+	return build(text, dst)
 }
 
-func build(text string, option encodingOption) (*QRCode, error) {
+func build(text string, option *encodingOption) (*QRCode, error) {
 	qrc := &QRCode{
-		content:     text,
-		mode:        option.EncMode,
-		ecLv:        option.EcLevel,
-		needAnalyze: true,
+		sourceText:     text,
+		sourceRawBytes: []byte(text),
+		dataBSet:       nil,
+		mat:            nil,
+		ecBSet:         nil,
+		v:              version{},
+		encodingOption: option,
+		encoder:        nil,
 	}
 	// initialize QRCode instance
 	if err := qrc.init(); err != nil {
@@ -54,20 +58,16 @@ func build(text string, option encodingOption) (*QRCode, error) {
 // QRCode contains fields to generate QRCode matrix, outputImageOptions to Draw image,
 // etc.
 type QRCode struct {
-	content string // input text content
-	rawData []byte // raw Data to transfer
+	sourceText     string // sourceText input text
+	sourceRawBytes []byte // raw Data to transfer
 
 	dataBSet *binary.Binary // final data bit stream of encode data
 	mat      *matrix.Matrix // matrix grid to store final bitmap
 	ecBSet   *binary.Binary // final error correction bitset
 
-	v       version  // version means the size
-	ver     int      // version num
-	ecLv    ecLevel  // error correction level
-	mode    encMode  // encMode
-	encoder *encoder // encoder ptr to call its methods ~
-
-	needAnalyze bool // auto analyze form content or specified `mode, recoverLv, ver`
+	encodingOption *encodingOption
+	encoder        *encoder // encoder ptr to call its methods ~
+	v              version  // indicate the QR version to encode.
 }
 
 func (q *QRCode) Save(w Writer) error {
@@ -92,38 +92,23 @@ func (q *QRCode) Dimension() int {
 	return q.mat.Width()
 }
 
-func (q *QRCode) init() error {
-	//once.Do(func() {
-	// once load versions config file into memory
-	// if err := load(defaultVersionCfg); err != nil {
-	// 	panic(err)
-	// }
-	//})
-	q.rawData = []byte(q.content)
-	if q.needAnalyze {
-		// analyze the input data to choose to adapt version
-		if err := q.analyze(); err != nil {
-			return fmt.Errorf("could not analyze the data: %v", err)
-		}
-	}
-	// or check need params
-
-	if !q.needAnalyze {
-		// choose version without auto analyze
-		q.v = loadVersion(q.ver, q.ecLv)
+// init fill QRCode instance from settings and sourceText.
+func (q *QRCode) init() (err error) {
+	// choose encode mode (num, alpha num, byte, Japanese)
+	if q.encodingOption.EncMode == EncModeAuto {
+		q.encodingOption.EncMode = analyzeEncodeModeFromRaw(q.sourceRawBytes)
 	}
 
+	// choose version
+	if _, err = q.calcVersion(); err != nil {
+		return fmt.Errorf("init: calc version failed: %v", err)
+	}
 	q.mat = matrix.New(q.v.Dimension(), q.v.Dimension())
-	q.encoder = &encoder{
-		mode:    q.mode,
-		ecLv:    q.ecLv,
-		version: q.v,
-	}
+	_ = q.applyEncoder()
 
 	var (
 		dataBlocks []dataBlock // data encoding blocks
 		ecBlocks   []ecBlock   // error correction blocks
-		err        error       // global error var
 	)
 
 	// data encoding, and be split into blocks
@@ -138,33 +123,47 @@ func (q *QRCode) init() error {
 
 	// arrange data blocks and EC blocks
 	q.arrangeBits(dataBlocks, ecBlocks)
-
 	// append ec bits after data bits
 	q.dataBSet.Append(q.ecBSet)
-
 	// append remainder bits
 	q.dataBSet.AppendNumBools(q.v.RemainderBits, false)
-
 	// initial the 2d matrix
 	q.prefillMatrix()
 
 	return nil
 }
 
-// analyze rawData abd based on AUTO settings choose version and encoder
-func (q *QRCode) analyze() error {
-	if q.mode == EncModeAuto {
-		// choose encode mode (num, alpha num, byte, Japanese)
-		q.mode = analyzeEncodeModeFromRaw(q.rawData)
+// calcVersion
+func (q *QRCode) calcVersion() (ver *version, err error) {
+	var needAnalyze = true
+
+	opt := q.encodingOption
+	if opt.Version >= 1 && opt.Version <= 40 &&
+		opt.EcLevel >= ErrorCorrectionLow && opt.EcLevel <= ErrorCorrectionHighest {
+		// only version and EC level are specified, can skip analyzeVersionAuto
+		needAnalyze = false
 	}
 
-	// analyze content to decide version etc.
-	analyzedV, err := analyzeVersion(q.rawData, q.ecLv, q.mode)
-	if err != nil {
-		return fmt.Errorf("could not analyzeVersion: %v", err)
+	// automatically parse version
+	if needAnalyze {
+		// analyzeVersion the input data to choose to adapt version
+		analyzed, err2 := analyzeVersion(q.sourceRawBytes, opt.EcLevel, opt.EncMode)
+		if err2 != nil {
+			err = fmt.Errorf("calcVersion: analyzeVersionAuto failed: %v", err2)
+			return nil, err
+		}
+		opt.Version = analyzed.Ver
 	}
-	q.v = *analyzedV
-	q.ver = (*analyzedV).Ver
+
+	q.v = loadVersion(opt.Version, opt.EcLevel)
+
+	return
+}
+
+// applyEncoder
+func (q *QRCode) applyEncoder() error {
+	q.encoder = newEncoder(q.encodingOption.EncMode, q.encodingOption.EcLevel, q.v)
+
 	return nil
 }
 
@@ -174,7 +173,7 @@ func (q *QRCode) dataEncoding() (blocks []dataBlock, err error) {
 	var (
 		bset *binary.Binary
 	)
-	bset, err = q.encoder.Encode(q.rawData)
+	bset, err = q.encoder.Encode(q.sourceRawBytes)
 	if err != nil {
 		err = fmt.Errorf("could not encode data: %v", err)
 		return

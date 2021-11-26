@@ -13,6 +13,9 @@ func DefaultEncodingOption() *encodingOption {
 }
 
 type encodingOption struct {
+	// Version of target QR code.
+	Version int
+
 	// EncMode specifies which encMode to use
 	EncMode encMode
 
@@ -53,5 +56,16 @@ func WithErrorCorrectionLevel(ecLevel ecLevel) EncodeOption {
 		}
 
 		option.EcLevel = ecLevel
+	})
+}
+
+// WithVersion sets the version of target QR code.
+func WithVersion(version int) EncodeOption {
+	return newFnEncodingOption(func(option *encodingOption) {
+		if version < 1 || version > 40 {
+			return
+		}
+
+		option.Version = version
 	})
 }

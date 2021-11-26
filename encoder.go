@@ -80,6 +80,16 @@ type encoder struct {
 	version version // QR version ref
 }
 
+func newEncoder(m encMode, ec ecLevel, v version) *encoder {
+	return &encoder{
+		dst:     nil,
+		data:    nil,
+		mode:    m,
+		ecLv:    ec,
+		version: v,
+	}
+}
+
 // Encode ...
 // 1. encode raw data into bitset
 // 2. append _defaultPadding data
@@ -172,7 +182,7 @@ func (e *encoder) encodeByte() {
 func (e *encoder) breakUpInto8bit() {
 	// fill ending code (max 4bit)
 	// depends on max capacity of current version and EC level
-	maxCap := e.version.NumTotalCodewrods() * 8
+	maxCap := e.version.NumTotalCodewords() * 8
 	if less := maxCap - e.dst.Len(); less < 0 {
 		err := fmt.Errorf(
 			"wrong version(%d) cap(%d bits) and could not contain all bits: %d bits",
@@ -294,7 +304,7 @@ func analyzeEncodeModeFromRaw(raw []byte) encMode {
 
 	var (
 		f    analyzeEncFunc
-		mode                     = EncModeNumeric
+		mode = EncModeNumeric
 	)
 
 	// loop to check each character in raw data,
@@ -306,7 +316,7 @@ func analyzeEncodeModeFromRaw(raw []byte) encMode {
 		}
 
 		// issue#28 @borislavone reports this bug.
-		// FIXED(@yeqown): next encMode analyze func did not check the previous byte,
+		// FIXED(@yeqown): next encMode analyzeVersionAuto func did not check the previous byte,
 		// add goto statement to reanalyze previous byte which can't be analyzed in last encMode.
 		if !f(byt) {
 			mode <<= 1

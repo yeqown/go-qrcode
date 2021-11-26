@@ -2,6 +2,7 @@ package qrcode
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strconv"
 
@@ -81,35 +82,6 @@ var (
 	}
 )
 
-func init() {
-	// if _debug {
-	// 	if err := load(defaultVersionCfg); err != nil {
-	// 		panic(err)
-	// 	}
-	// }
-
-	//for ver := 1; ver <= 40; ver++ {
-	//	loadAlignmentPatternLoc(ver)
-	//}
-}
-
-// load versionCfg.json (versions config file) into `[]versions`
-// func load(pathToCfg string) error {
-// 	versions = make([]version, 0)
-
-// 	fd, err := os.OpenFile(pathToCfg, os.O_RDONLY, 0644)
-// 	if err != nil {
-// 		return fmt.Errorf("could not open config file: %v", err)
-// 	}
-
-// 	b, err := ioutil.ReadAll(fd)
-// 	if err != nil {
-// 		return fmt.Errorf("could not read file: %v", err)
-// 	}
-
-// 	return json.Unmarshal(b, &versions)
-// }
-
 // capacity struct includes data type max capacity
 type capacity struct {
 	Numeric      int `json:"n"` // num capacity
@@ -157,8 +129,8 @@ func (v version) Dimension() int {
 	return v.Ver*4 + 17
 }
 
-// NumTotalCodewrods total data codewords
-func (v version) NumTotalCodewrods() int {
+// NumTotalCodewords total data codewords
+func (v version) NumTotalCodewords() int {
 	var total int
 	for _, g := range v.Groups {
 		total = total + (g.NumBlocks * g.NumDataCodewords)
@@ -221,6 +193,7 @@ func (v version) formatInfo(maskPattern int) *binary.Binary {
 }
 
 // loadVersion get version config from config
+// TODO(@yeqown): speed up this function
 func loadVersion(lv int, ecLv ecLevel) version {
 	for _, v := range versions {
 		if v.Ver == lv && v.ECLevel == ecLv {
@@ -230,41 +203,52 @@ func loadVersion(lv int, ecLv ecLevel) version {
 	panic(errMissMatchedVersion)
 }
 
-// analyzeVersion the text, and decide which version should be choose
-// ref to: http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
-func analyzeVersion(raw []byte, ecLv ecLevel, eMode encMode) (*version, error) {
-	if len(versions) == 0 {
-		panic("did not loaded the versions config success")
+// analyzeVersionAuto sourceRawBytes abd based on AUTO settings choose version and encoder
+func analyzeVersionAuto(source []byte, mode encMode) (v int, ec ecLevel, err error) {
+	// use default EC level
+	ec = ErrorCorrectionQuart
+
+	// analyzeVersionAuto sourceText to decide version etc.
+	var analyzed *version
+	analyzed, err = analyzeVersion(source, ec, mode)
+	if err != nil {
+		err = fmt.Errorf("could not analyzeVersion: %v", err)
+		return 0, ec, err
 	}
+	v = analyzed.Ver
 
-	var (
-		// target    version
-		length = len(raw)
-		c      int
-	)
+	return v, ec, nil
+}
 
+// analyzeVersion the text, and decide which version should be chosen
+// ref to: http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
+func analyzeVersion(raw []byte, ec ecLevel, mode encMode) (*version, error) {
+	want, mark := len(raw), 0
 	for _, v := range versions {
-		if v.ECLevel == ecLv {
-			switch eMode {
-			case EncModeNumeric:
-				c = v.Cap.Numeric
-			case EncModeAlphanumeric:
-				c = v.Cap.AlphaNumeric
-			case EncModeByte:
-				c = v.Cap.Byte
-			case EncModeJP:
-				c = v.Cap.JP
-			default:
-				return nil, errMissMatchedEncodeType
-			}
-			// c bigger than data length
-			if c > length {
-				return &v, nil
-			}
+		if ec != v.ECLevel {
+			continue
+		}
+
+		switch mode {
+		case EncModeNumeric:
+			mark = v.Cap.Numeric
+		case EncModeAlphanumeric:
+			mark = v.Cap.AlphaNumeric
+		case EncModeByte:
+			mark = v.Cap.Byte
+		case EncModeJP:
+			mark = v.Cap.JP
+		default:
+			return nil, errMissMatchedEncodeType
+		}
+
+		// c bigger than data length
+		if mark > want {
+			return &v, nil
 		}
 	}
+	debugLogf("mismatched version, version's length: %d, ec: %v", len(versions), ec)
 
-	debugLogf("mismatched version, version's length: %d, ecLv: %v", len(versions), ecLv)
 	return nil, errMissMatchedVersion
 }
 

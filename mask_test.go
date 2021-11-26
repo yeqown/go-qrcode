@@ -10,10 +10,8 @@ import (
 
 func TestMask(t *testing.T) {
 	qrc := &QRCode{
-		content:     "baidu.com google.com qq.com sina.com apple.com",
-		mode:        DefaultEncodingOption().EncMode,
-		ecLv:        DefaultEncodingOption().EcLevel,
-		needAnalyze: true,
+		sourceText:     "baidu.com google.com qq.com sina.com apple.com",
+		encodingOption: DefaultEncodingOption(),
 	}
 	err := qrc.init()
 	require.NoError(t, err)

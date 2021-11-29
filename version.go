@@ -228,26 +228,19 @@ func binarySearchVersion(initVer int, compare func(*version) int) (hit version, 
 	return hit, found
 }
 
+// loadVersion get version config by specified version indicator and error correction level.
+// we can speed up this process, by shrink the range to search.
 func loadVersion(lv int, ec ecLevel) version {
-	find := func(v int, ec ecLevel) func(cursor *version) int {
-		return func(cursor *version) int {
-			if cursor.Ver == v && cursor.ECLevel == ec {
-				return 0
-			}
+	// each version only has 4 items in versions array,
+	// and them are ordered[ASC] already.
+	high := lv*4 - 1
+	low := (lv - 1) * 4
 
-			if cursor.Ver > v || cursor.ECLevel > ec {
-				return -1
-			}
-
-			return 1
+	for i := low; i <= high; i++ {
+		if versions[i].ECLevel == ec {
+			return versions[i]
 		}
 	}
-
-	hit, found := binarySearchVersion(lv, find(lv, ec))
-	if found {
-		return hit
-	}
-
 	panic(errMissMatchedVersion)
 }
 

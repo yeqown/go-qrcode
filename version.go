@@ -30,9 +30,10 @@ const (
 )
 
 var (
-	// default versions config file path
-	// defaultVersionCfg        = "./versionCfg.json"
-	errMissMatchedVersion    = errors.New("could not match version! check the versionCfg.json file")
+	errInvalidErrorCorrectionLevel = errors.New("invalid error correction level")
+	errAnalyzeVersionFailed        = errors.New("could not match version! " +
+		"check your content length is in limitation of encode mode and error correction level")
+	errMissMatchedVersion    = errors.New("could not match version")
 	errMissMatchedEncodeType = errors.New("could not match the encode type")
 	// versions                 []version
 	// Each QR Code contains a 15-bit Format Information value.  The 15 bits
@@ -192,10 +193,10 @@ func (v version) formatInfo(maskPattern int) *binary.Binary {
 }
 
 // binarySearchVersion speed up searching target version in versions.
-// initVer to set the low and high bound of the search range.
+// initVer to set the low and high bound of the search range. TODO(@yeqown): refactor initVer as low, high
 // compare represents the function to compare the target version with the cursor version.
 // negative means lower direction, positive means higher direction, zero mean hit.
-func binarySearchVersion(initVer int, compare func(version) int) (hit version, found bool) {
+func binarySearchVersion(initVer int, compare func(*version) int) (hit version, found bool) {
 	low := 0
 	high := len(versions) - 1
 
@@ -208,7 +209,7 @@ func binarySearchVersion(initVer int, compare func(version) int) (hit version, f
 
 	for low <= high {
 		mid := (low + high) / 2
-		r := compare(versions[mid])
+		r := compare(&versions[mid])
 		if r == 0 {
 			hit = versions[mid]
 			found = true
@@ -228,8 +229,8 @@ func binarySearchVersion(initVer int, compare func(version) int) (hit version, f
 }
 
 func loadVersion(lv int, ec ecLevel) version {
-	find := func(v int, ec ecLevel) func(cursor version) int {
-		return func(cursor version) int {
+	find := func(v int, ec ecLevel) func(cursor *version) int {
+		return func(cursor *version) int {
 			if cursor.Ver == v && cursor.ECLevel == ec {
 				return 0
 			}
@@ -250,72 +251,50 @@ func loadVersion(lv int, ec ecLevel) version {
 	panic(errMissMatchedVersion)
 }
 
-//// loadVersion get version config from config
-//func loadVersion(lv int, ecLv ecLevel) version {
-//	for _, v := range versions {
-//		if v.Ver == lv && v.ECLevel == ecLv {
-//			return v
-//		}
-//	}
-//	panic(errMissMatchedVersion)
-//}
-
-//// analyzeVersion the text, and decide which version should be chosen
-//// ref to: http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
-//func analyzeVersion(raw []byte, ec ecLevel, mode encMode) (*version, error) {
-//	want, mark := len(raw), 0
-//	simillar := func(cursor version) int {
-//		if cursor.ECLevel != ec {
+// analyzeVersion the raw text, and then decide which version should be chosen
+// according to the text length , error correction level and encode mode to choose the
+// closest capacity of version.
 //
-//		}
-//		return 0
-//	}
-//
-//	// list all valid (ec level matched and has more capacity) version candidates,
-//	// then select the most suitable one.
-//	var found bool
-//	var candidates []version
-//	for found {
-//		_, found := binarySearchVersion(-1, simillar)
-//	}
-//	if found {
-//		return &hit, nil
-//	}
-//	debugLogf("mismatched version, version's length: %d, ec: %v", len(versions), ec)
-//
-//	return nil, errMissMatchedVersion
-//}
-
-// analyzeVersion the text, and decide which version should be chosen
-// ref to: http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
+// check out http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
+// for more details.
 func analyzeVersion(raw []byte, ec ecLevel, mode encMode) (*version, error) {
+	step := 0
+	switch ec {
+	case ErrorCorrectionLow:
+		step = 0
+	case ErrorCorrectionMedium:
+		step = 1
+	case ErrorCorrectionQuart:
+		step = 2
+	case ErrorCorrectionHighest:
+		step = 3
+	default:
+		return nil, errInvalidErrorCorrectionLevel
+	}
+
 	want, mark := len(raw), 0
-	for _, v := range versions {
-		if ec != v.ECLevel {
-			continue
-		}
+	for ; step < 160; step += 4 {
 
 		switch mode {
 		case EncModeNumeric:
-			mark = v.Cap.Numeric
+			mark = versions[step].Cap.Numeric
 		case EncModeAlphanumeric:
-			mark = v.Cap.AlphaNumeric
+			mark = versions[step].Cap.AlphaNumeric
 		case EncModeByte:
-			mark = v.Cap.Byte
+			mark = versions[step].Cap.Byte
 		case EncModeJP:
-			mark = v.Cap.JP
+			mark = versions[step].Cap.JP
 		default:
 			return nil, errMissMatchedEncodeType
 		}
 
-		// c bigger than data length
-		if mark > want {
-			return &v, nil
+		if mark >= want {
+			return &versions[step], nil
 		}
 	}
 	debugLogf("mismatched version, version's length: %d, ec: %v", len(versions), ec)
 
-	return nil, errMissMatchedVersion
+	return nil, errAnalyzeVersionFailed
 }
 
 var (

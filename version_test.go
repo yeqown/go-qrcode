@@ -128,8 +128,8 @@ func Test_analyzeVersion(t *testing.T) {
 func Test_binarySearchVersion(t *testing.T) {
 	t.Logf("length of versions: %d", len(versions))
 
-	find := func(v int, ec ecLevel) func(cursor version) int {
-		return func(cursor version) int {
+	find := func(v int, ec ecLevel) func(cursor *version) int {
+		return func(cursor *version) int {
 			if cursor.Ver == v && cursor.ECLevel == ec {
 				return 0
 			}
@@ -173,7 +173,7 @@ func Test_binarySearchVersion(t *testing.T) {
 
 func Test_binarySearchVersion_all(t *testing.T) {
 	for _, v := range versions {
-		hit, found := binarySearchVersion(v.Ver, func(cursor version) int {
+		hit, found := binarySearchVersion(v.Ver, func(cursor *version) int {
 			if cursor.Ver == v.Ver && cursor.ECLevel == v.ECLevel {
 				return 0
 			}

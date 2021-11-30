@@ -3,6 +3,7 @@ module example
 go 1.17
 
 require (
+	github.com/yeqown/go-qrcode v1.5.10
 	github.com/yeqown/go-qrcode/v2 v2.0.0-beta
 	github.com/yeqown/go-qrcode/writer/standard v1.0.0-beta
 	github.com/yeqown/go-qrcode/writer/terminal v1.0.0-beta

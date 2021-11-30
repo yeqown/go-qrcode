@@ -109,6 +109,17 @@ following are some shots:
 
 Of course, you can also code your own writer, just implement [Writer](./writer/README.md) interface.
 
+### Migrating from v1
+
+`go-qrcode.v2` is a major upgrade from v1, and it is not backward compatible. `v2` redesigned
+the API, and it is more flexible and powerful. Features are split into different modules (according to functionality).
+
+- github.com/yeqown/go-qrcode/v2 **_core_** 
+- github.com/yeqown/go-qrcode/writer/standard **_writer/imageFile_**
+- github.com/yeqown/go-qrcode/writer/terminal **_writer/terminal_**
+
+Check [example/migrating-from-v1](./example/migrating-from-v1/main.go) for more details.
+
 ### Links
 
 * [QRCode Tourist](https://www.thonky.com/qr-code-tutorial/)

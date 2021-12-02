@@ -128,68 +128,106 @@ func Test_analyzeVersion(t *testing.T) {
 func Test_binarySearchVersion(t *testing.T) {
 	t.Logf("length of versions: %d", len(versions))
 
-	find := func(v int, ec ecLevel) func(cursor *version) int {
-		return func(cursor *version) int {
-			if cursor.Ver == v && cursor.ECLevel == ec {
-				return 0
-			}
-
-			if cursor.Ver > v || cursor.ECLevel > ec {
-				return -1
-			}
-
-			return 1
-		}
+	type args struct {
+		low, high int
+		v         int
+		ecLv      ecLevel
 	}
 
 	tests := []struct {
 		name string
-		ecLv ecLevel
+		args args
 		v    int
+		// the position of the expected version in versions array
+		// [0...159]
 		want int
 	}{
 		{
 			name: "case 0",
-			ecLv: ErrorCorrectionLow,
-			v:    1,
+			args: args{
+				low:  0,
+				high: _VERSIONS_ITEM_COUNT,
+				ecLv: ErrorCorrectionLow,
+				v:    1,
+			},
 			want: 0,
 		},
 		{
 			name: "case 1",
-			ecLv: ErrorCorrectionHighest,
-			v:    40,
+			args: args{
+				low:  0,
+				high: _VERSIONS_ITEM_COUNT,
+				ecLv: ErrorCorrectionHighest,
+				v:    40,
+			},
 			want: 159,
+		},
+		{
+			name: "case 2",
+			args: args{
+				low:  -1,
+				high: 200,
+				ecLv: ErrorCorrectionHighest,
+				v:    40,
+			},
+			want: 159,
+		},
+		{
+			name: "case 3",
+			args: args{
+				low:  180,
+				high: 0,
+				ecLv: ErrorCorrectionHighest,
+				v:    40,
+			},
+			want: -1,
+		},
+		{
+			name: "case 4",
+			args: args{
+				low:  180,
+				high: 0,
+				ecLv: ErrorCorrectionHighest,
+				v:    40,
+			},
+			want: -1,
+		},
+		{
+			name: "case 5",
+			args: args{
+				low:  0,
+				high: _VERSIONS_ITEM_COUNT,
+				ecLv: ErrorCorrectionLow,
+				v:    3,
+			},
+			want: 8,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, found := binarySearchVersion(tt.v, find(tt.v, tt.ecLv))
-			require.True(t, found)
-			require.Equal(t, versions[tt.want], got)
+			got, found := binarySearchVersion(tt.args.low, tt.args.high, defaultBinaryCompare(tt.args.v, tt.args.ecLv))
+
+			if tt.want >= 0 && tt.want <= _VERSIONS_ITEM_COUNT {
+				require.True(t, found)
+				require.Equal(t, versions[tt.want], got)
+				return
+			}
+
+			// could not find
+			require.False(t, found)
+			require.Equal(t, emptyVersion, got)
 		})
 	}
 }
 
 func Test_binarySearchVersion_all(t *testing.T) {
 	for _, v := range versions {
-		hit, found := binarySearchVersion(v.Ver, func(cursor *version) int {
-			if cursor.Ver == v.Ver && cursor.ECLevel == v.ECLevel {
-				return 0
-			}
-
-			// less
-			if cursor.Ver > v.Ver || cursor.ECLevel > v.ECLevel {
-				return -1
-			}
-
-			return 1
-		})
-
-		if !found {
-			t.Errorf("binarySearchVersions() failed to find version %d", v.Ver)
-		}
+		hit, found := binarySearchVersion(0, _VERSIONS_ITEM_COUNT, defaultBinaryCompare(v.Ver, v.ECLevel))
+		assert.True(t, found)
 		assert.Equal(t, v, hit)
+
+		//t.Logf("finding: version=%d, ecLevel=%d", v.Ver, v.ECLevel)
 	}
 }
 

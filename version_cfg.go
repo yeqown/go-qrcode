@@ -1,5 +1,13 @@
 package qrcode
 
+const (
+	_VERSION_COUNT       = 40  // (40 versions)
+	_VERSIONS_ITEM_COUNT = 160 // (40 versions x 4 error correction level)
+)
+
+// versions contains information about each QR Code version.
+// NOTICE: item in version array MUST keep sorted according to
+// QR Version sequential as the first key and Error Correction Level as the second (ASC).
 var versions = []version{
 	{
 		Ver:     1,

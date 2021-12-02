@@ -192,19 +192,23 @@ func (v version) formatInfo(maskPattern int) *binary.Binary {
 	return result
 }
 
+var emptyVersion = version{Ver: -1}
+
 // binarySearchVersion speed up searching target version in versions.
-// initVer to set the low and high bound of the search range. TODO(@yeqown): refactor initVer as low, high
+// low, high to set the left and right bound of the search range (min:0 to max:159).
 // compare represents the function to compare the target version with the cursor version.
 // negative means lower direction, positive means higher direction, zero mean hit.
-func binarySearchVersion(initVer int, compare func(*version) int) (hit version, found bool) {
-	low := 0
-	high := len(versions) - 1
+func binarySearchVersion(low, high int, compare func(*version) int) (hit version, found bool) {
+	// left low and high in a valid range
+	if low > high || low > _VERSIONS_ITEM_COUNT || high < 0 {
+		return emptyVersion, false
+	}
 
-	if initVer > 0 {
-		// each version only has 4 items in versions array,
-		// and them are ordered[ASC] already.
-		high = initVer*4 - 1
-		low = (initVer - 1) * 4
+	if low < 0 {
+		low = 0
+	}
+	if high >= _VERSIONS_ITEM_COUNT {
+		high = len(versions) - 1
 	}
 
 	for low <= high {
@@ -226,6 +230,20 @@ func binarySearchVersion(initVer int, compare func(*version) int) (hit version, 
 	}
 
 	return hit, found
+}
+
+// defaultBinaryCompare built-in compare function for binary search.
+func defaultBinaryCompare(ver int, ec ecLevel) func(cursor *version) int {
+	return func(cursor *version) int {
+		switch r := ver - cursor.Ver; r {
+		case 0:
+		default:
+			// v is bigger return positive; otherwise return negative.
+			return r
+		}
+
+		return int(ec - cursor.ECLevel)
+	}
 }
 
 // loadVersion get version config by specified version indicator and error correction level.

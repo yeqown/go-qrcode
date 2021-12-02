@@ -24,6 +24,7 @@ func TestMask(t *testing.T) {
 	})
 	t.Logf("all StateInit block count: %d", stateInitCnt)
 
+	SetDebugMode()
 	cpyMat := qrc.mat.Copy()
 	_ = debugDraw("./assets/mask_origin.jpeg", *cpyMat)
 

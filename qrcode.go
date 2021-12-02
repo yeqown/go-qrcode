@@ -12,11 +12,6 @@ import (
 	"github.com/yeqown/reedsolomon/binary"
 )
 
-var (
-	// _debug mode flag
-	_debug = false
-)
-
 // New generate a QRCode struct to create
 func New(text string) (*QRCode, error) {
 	dst := DefaultEncodingOption()
@@ -234,12 +229,11 @@ func (q *QRCode) errorCorrectionEncoding(dataBlocks []dataBlock) (blocks []ecBlo
 
 // arrangeBits ... and save into dataBSet
 func (q *QRCode) arrangeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
-	if _debug {
-		log.Println("before arrange")
+	if debugEnabled() {
+		log.Println("arrangeBits called, before")
 		for i := 0; i < len(ecBlocks); i++ {
 			debugLogf("ec block_%d: %v", i, ecBlocks[i])
 		}
-
 		for i := 0; i < len(dataBlocks); i++ {
 			debugLogf("data block_%d: %v", i, dataBlocks[i])
 		}
@@ -311,7 +305,7 @@ func (q *QRCode) arrangeBits(dataBlocks []dataBlock, ecBlocks []ecBlock) {
 		}
 	}
 
-	debugLogf("after arrange")
+	debugLogf("arrangeBits called, after")
 	debugLogf("data bitsets: %s", q.dataBSet.String())
 	debugLogf("ec bitsets: %s", q.ecBSet.String())
 }
@@ -632,17 +626,13 @@ func (q *QRCode) masking() {
 			// fill bitset into matrix
 			q.fillIntoMatrix(mats[i], dimension)
 
-			// debug output
-			if _debug {
-				//_ = standard.DebugDraw(fmt.Sprintf("draft/mats_%d.jpeg", i), *mats[i], nil)
-				//_ = standard.DebugDraw(fmt.Sprintf("draft/mask_%d.jpeg", i), *masks[i].mat, nil)
-			}
+			_ = debugDraw(fmt.Sprintf("draft/mats_%d.jpeg", i), *mats[i])
+			_ = debugDraw(fmt.Sprintf("draft/mask_%d.jpeg", i), *masks[i].mat)
 
 			// xor with mask
 			q.xorMask(mats[i], masks[i])
-			if _debug {
-				//_ = standard.DebugDraw(fmt.Sprintf("draft/mats_mask_%d.jpeg", i), *mats[i], nil)
-			}
+
+			_ = debugDraw(fmt.Sprintf("draft/mats_mask_%d.jpeg", i), *mats[i])
 
 			// fill format info
 			q.fillFormatInfo(mats[i], maskPatternModulo(i), dimension)
@@ -659,9 +649,8 @@ func (q *QRCode) masking() {
 				Idx:   i,
 			}
 
-			if _debug {
-				//_ = standard.DebugDraw(fmt.Sprintf("draft/qrcode_mask_%d.jpeg", i), *mats[i], nil)
-			}
+			_ = debugDraw(fmt.Sprintf("draft/qrcode_mask_%d.jpeg", i), *mats[i])
+
 			wg.Done()
 		}(i)
 	}
@@ -752,16 +741,4 @@ func (q *QRCode) fillFormatInfo(m *matrix.Matrix, mode maskPatternModulo, dimens
 			y = 5
 		}
 	}
-}
-
-// SetDebugMode open debug mode
-func SetDebugMode() {
-	_debug = true
-}
-
-func debugLogf(fmt string, v ...interface{}) {
-	if !_debug {
-		return
-	}
-	log.Printf(fmt, v...)
 }

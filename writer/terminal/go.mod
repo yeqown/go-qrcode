@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/nsf/termbox-go v1.1.1
-	github.com/yeqown/go-qrcode/v2 v2.0.0-beta
+	github.com/yeqown/go-qrcode/v2 v2.0.1
 )
 
 require (

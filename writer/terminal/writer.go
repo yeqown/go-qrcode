@@ -11,8 +11,7 @@ var _ qrcode.Writer = (*Writer)(nil)
 
 // Writer implements qrcode.Writer based on termbox to print QRCode into
 // terminal / console.
-type Writer struct {
-}
+type Writer struct{}
 
 func New() *Writer {
 	w := &Writer{}
@@ -50,10 +49,10 @@ func (w Writer) drawBlock(x, y, padding int, fg termbox.Attribute, bg termbox.At
 }
 
 func (w Writer) Write(mat matrix.Matrix) error {
-	width, height, whratio := terminalSize()
-	_ = width
-	_ = height
-	_ = whratio
+	//width, height, whratio := terminalSize()
+	//_ = width
+	//_ = height
+	//_ = whratio
 
 	ww, hh := mat.Width(), mat.Height()
 	bg := termbox.ColorWhite

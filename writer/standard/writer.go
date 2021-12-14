@@ -66,10 +66,6 @@ const (
 )
 
 func (w Writer) Write(mat matrix.Matrix) error {
-	defer func() {
-		_ = w.Close()
-	}()
-
 	return drawTo(w.closer, mat, w.option)
 }
 

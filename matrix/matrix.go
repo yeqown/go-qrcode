@@ -20,26 +20,26 @@ const (
 type State uint16
 
 const (
-	// StateFalse 0xffff FALSE
-	StateFalse State = 0xffff
+	// StateInit represents the initial block state of the matrix
+	StateInit State = iota
+	// ZERO represents the initial state.
+	// Deprecated: use StateInit instead
+	ZERO = StateInit
 
-	// ZERO 0x0 FALSE
-	ZERO State = 0xeeee
+	// StateFalse represents the block has been set to false
+	StateFalse State = 0x1
 
-	// StateTrue 0x0 TRUE
-	StateTrue State = 0x0
+	// StateTrue represents the block has been set to TRUE
+	StateTrue State = 0x2
 
-	// StateInit 0x9999 use for initial state
-	StateInit State = 0x9999
+	// StateVersion indicates the version block of matrix
+	StateVersion State = 0x3
 
-	// StateVersion 0x4444
-	StateVersion State = 0x4444
+	// StateFormat indicates the format block of matrix
+	StateFormat State = 0x4
 
-	// StateFormat 0x7777 for persisted state
-	StateFormat State = 0x7777
-
-	// StateFinder 0x8000 to locate matrix and recognize it.
-	StateFinder State = 0x8000
+	// StateFinder indicates the finder block of matrix
+	StateFinder State = 0x5
 )
 
 func (s State) String() string {
@@ -153,13 +153,13 @@ func (m *Matrix) Set(w, h int, c State) error {
 	return nil
 }
 
-// Get state value from matrix with postion (x, y)
+// Get state value from matrix with position {x, y}
 func (m *Matrix) Get(w, h int) (State, error) {
 	if w >= m.width || w < 0 {
-		return ZERO, ErrorOutRangeOfW
+		return StateInit, ErrorOutRangeOfW
 	}
 	if h >= m.height || h < 0 {
-		return ZERO, ErrorOutRangeOfH
+		return StateInit, ErrorOutRangeOfH
 	}
 	return m.mat[w][h], nil
 }

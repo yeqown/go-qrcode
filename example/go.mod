@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/yeqown/go-qrcode v1.5.10
 	github.com/yeqown/go-qrcode/v2 v2.0.1
-	github.com/yeqown/go-qrcode/writer/standard v1.0.0-beta
+	github.com/yeqown/go-qrcode/writer/standard v1.1.1
 	github.com/yeqown/go-qrcode/writer/terminal v1.0.0-beta
 )
 
@@ -19,6 +19,6 @@ require (
 	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5 // indirect
 )
 
-//replace github.com/yeqown/go-qrcode/v2 v2.0.1 => ../
-//replace github.com/yeqown/go-qrcode/writer/standard v1.0.0-beta => ../writer/standard
+replace github.com/yeqown/go-qrcode/v2 => ../
+replace github.com/yeqown/go-qrcode/writer/standard => ../writer/standard
 //replace github.com/yeqown/go-qrcode/writer/terminal v1.0.0-beta => ../writer/terminal

@@ -513,65 +513,60 @@ func reserveVersionBlock(m *matrix.Matrix, dimension int) {
 	}
 }
 
-// fillIntoMatrix fill q.dataBSet bitset stream into q.mat, ref to:
-// http://www.thonky.com/qr-code-tutorial/module-placement-matrix
-func (q *QRCode) fillIntoMatrix(m *matrix.Matrix, dimension int) {
+// fillDataBinary fill q.dataBSet binary stream into q.mat.
+// References:
+//	* http://www.thonky.com/qr-code-tutorial/module-placement-matrix#Place-the-Data-Bits
+//
+func (q *QRCode) fillDataBinary(m *matrix.Matrix, dimension int) {
 	var (
+		// x always move from right, left right loop (2 rows), y move upward, downward, upward loop
 		x, y      = dimension - 1, dimension - 1
 		l         = q.dataBSet.Len()
 		upForward = true
-		mod2, pos int
-
-		setState, state matrix.State
-		// turn      = false // if last loop, changed forward, this is true
-		// downForward = false
-		// once sync.Once
-		err error
+		pos       int
 	)
 
 	for i := 0; pos < l; i++ {
-		// debugLogf("fillIntoMatrix: dimension: %d, len: %d: pos: %d", dimension, l, pos)
-
-		state, err = m.Get(x, y)
-		if err == matrix.ErrorOutRangeOfW {
-			break
-		}
-
+		// debugLogf("fillDataBinary: dimension: %d, len: %d: pos: %d", dimension, l, pos)
+		set := matrix.StateFalse
 		if q.dataBSet.At(pos) {
-			setState = matrix.StateTrue
-		} else {
-			setState = matrix.StateFalse
+			set = matrix.StateTrue
 		}
 
+		state, err := m.Get(x, y)
+		if err != nil {
+			if err == matrix.ErrorOutRangeOfW {
+				break
+			}
+
+			if err == matrix.ErrorOutRangeOfH {
+				// turn around while y is out of range.
+				x = x - 2
+				switch upForward {
+				case true:
+					y = y + 1
+				default:
+					y = y - 1
+				}
+
+				if x == 7 || x == 6 {
+					x = x - 1
+				}
+				upForward = !upForward
+				state, err = m.Get(x, y) // renew state value after turn around writing direction.
+			}
+		}
+
+		// data bit should only be set into un-set block in matrix.
 		if state == matrix.StateInit {
-			_ = m.Set(x, y, setState)
+			_ = m.Set(x, y, set)
 			pos++
-			// debugLogf("normal set turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
-		} else if state == matrix.ZERO {
-			// turn forward and the new forward's block first pos as value
-			if upForward {
-				x = x - 2
-				y = y + 1
-			} else {
-				x = x - 2
-				y = y - 1
-			}
-
-			if x == 7 || x == 6 {
-				x = x - 1
-			}
-
-			upForward = !upForward
-			// debugLogf("unmoral state turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
-			if s, _ := m.Get(x, y); s == matrix.StateInit {
-				_ = m.Set(x, y, setState)
-				pos++
-			}
+			debugLogf("normal set turn forward: upForward: %v, x: %d, y: %d", upForward, x, y)
 		}
 
 		// DO NOT CHANGE FOLLOWING CODE FOR NOW !!!
 		// change x, y
-		mod2 = i % 2
+		mod2 := i % 2
 
 		// in one 8bit block
 		if upForward {
@@ -624,7 +619,7 @@ func (q *QRCode) masking() {
 		wg.Add(1)
 		go func(i int) {
 			// fill bitset into matrix
-			q.fillIntoMatrix(mats[i], dimension)
+			q.fillDataBinary(mats[i], dimension)
 
 			_ = debugDraw(fmt.Sprintf("draft/mats_%d.jpeg", i), *mats[i])
 			_ = debugDraw(fmt.Sprintf("draft/mask_%d.jpeg", i), *masks[i].mat)

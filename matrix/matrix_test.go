@@ -3,31 +3,23 @@ package matrix
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMatrix(t *testing.T) {
 	m := New(3, 3)
 	m.print()
 
-	if err := m.Set(2, 4, ZERO); err == nil {
-		t.Errorf("want err, got nil")
-		t.Fail()
-	}
+	err := m.Set(2, 4, StateTrue)
+	assert.Error(t, err)
 
-	// if err := m.Reset(2, 4); err == nil {
-	// 	t.Errorf("want err, got nil")
-	// 	t.Fail()
-	// }
+	err = m.Set(2, 2, StateTrue)
+	assert.NoError(t, err)
 
-	if err := m.Set(2, 2, StateInit); err != nil {
-		t.Errorf("want nil, got err: %v", err)
-		t.Fail()
-	}
-
-	if v, err := m.Get(2, 2); err != nil || v != StateInit {
-		t.Errorf("want true, got %v and err: %v", v, err)
-		t.Fail()
-	}
+	v, err2 := m.Get(2, 2)
+	assert.NoError(t, err2)
+	assert.Equal(t, StateTrue, v)
 
 	m.print()
 	// m.Reset(2, 2)
@@ -78,12 +70,12 @@ func TestState_String(t *testing.T) {
 		{
 			name: "case 1",
 			s:    StateFalse,
-			want: "0xFFFF",
+			want: "0x1",
 		},
 		{
 			name: "case 2",
 			s:    StateTrue,
-			want: "0x0",
+			want: "0x2",
 		},
 	}
 	for _, tt := range tests {

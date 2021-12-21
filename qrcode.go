@@ -663,9 +663,9 @@ func (q *QRCode) masking() {
 	q.mat = mats[markMatsIdx]
 }
 
-// all mask patter and check the maskScore choose the the lowest mask result
+// all mask patter and check the maskScore choose the lowest mask result
 func (q *QRCode) xorMask(m *matrix.Matrix, mask *mask) {
-	mask.mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
+	mask.mat.Iterate(matrix.COLUMN, func(x, y int, s matrix.State) {
 		// skip the empty place
 		if s == matrix.StateInit {
 			return

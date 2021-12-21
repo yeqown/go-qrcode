@@ -27,21 +27,24 @@ const (
 	modulo7
 )
 
-// calculateScore calculate the maskScore of masking result ...
+// calculateScore calculate a score after masking matrix.
+//
+// reference:
+// - https://www.thonky.com/qr-code-tutorial/data-masking#Determining-the-Best-Mask
 func calculateScore(mat *matrix.Matrix) int {
 	debugLogf("calculate maskScore starting")
-	score1 := rule1(mat.Copy())
-	score2 := rule2(mat.Copy())
-	score3 := rule3(mat.Copy())
-	score4 := rule4(mat.Copy())
+	score1 := rule1(mat)
+	score2 := rule2(mat)
+	score3 := rule3(mat)
+	score4 := rule4(mat)
 
-	debugLogf("maskScore: %d", score1+score2+score3+score4)
+	debugLogf("maskScore: rule1=%d, rule2=%d, rule3=%d, rule4=%d", score1, score2, score3, score4)
 	return score1 + score2 + score3 + score4
 }
 
 // 第一条规则为一行（或列）中的每组五个或更多相同颜色的模块提供QR代码。
 func rule1(mat *matrix.Matrix) int {
-	// Row socre
+
 	var (
 		score          int
 		rowCurState    matrix.State
@@ -50,7 +53,7 @@ func rule1(mat *matrix.Matrix) int {
 		colCurState    matrix.State
 		colCurColorCnt int
 	)
-
+	// row score
 	mat.Iterate(matrix.ROW, func(x, y int, value matrix.State) {
 		if x == 0 {
 			rowCurColorCnt = 0
@@ -193,7 +196,7 @@ func rule4(mat *matrix.Matrix) int {
 		totalCnt             = mat.Width() * mat.Height()
 		darkCnt, darkPercent int
 	)
-	mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
+	mat.Iterate(matrix.COLUMN, func(x, y int, s matrix.State) {
 		if s == matrix.StateTrue {
 			darkCnt++
 		}
@@ -275,7 +278,7 @@ func (m *mask) masking() {
 		panic("impossible panic, contact maintainer plz")
 	}
 
-	m.mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
+	m.mat.Iterate(matrix.COLUMN, func(x, y int, s matrix.State) {
 		// skip the function modules
 		if state, _ := m.mat.Get(x, y); state != matrix.StateInit {
 			_ = m.mat.Set(x, y, matrix.StateInit)

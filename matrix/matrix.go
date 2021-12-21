@@ -169,7 +169,8 @@ func (m *Matrix) Get(w, h int) (State, error) {
 // IterateFunc ...
 type IterateFunc func(int, int, State)
 
-// Iterate the Matrix with loop direction ROW major or COLUMN major
+// Iterate the Matrix with loop direction ROW major or COLUMN major.
+// COLUMN is recommended.
 func (m *Matrix) Iterate(dir ScanDirection, f IterateFunc) {
 	// row direction first
 	if dir == ROW {

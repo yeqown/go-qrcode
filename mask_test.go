@@ -19,7 +19,7 @@ func TestMask(t *testing.T) {
 	require.NoError(t, err)
 
 	var stateInitCnt int
-	qrc.mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
+	qrc.mat.Iterate(matrix.COLUMN, func(x, y int, s matrix.State) {
 		if s == matrix.StateInit {
 			stateInitCnt++
 		}

@@ -93,16 +93,16 @@ func TestMatrix_Copy(t *testing.T) {
 		m1 = New(3, 3)
 		m2 = New(3, 3)
 	)
-	m1.Set(1, 1, StateFalse)
-	m1.Set(0, 0, StateFalse)
-	m2.Set(1, 1, StateFalse)
-	m2.Set(0, 0, StateFalse)
+	_ = m1.Set(1, 1, StateFalse)
+	_ = m1.Set(0, 0, StateFalse)
+	_ = m2.Set(1, 1, StateFalse)
+	_ = m2.Set(0, 0, StateFalse)
 
 	// do copy
 	got := m1.Copy()
 
 	// change origin
-	m1.Set(2, 2, StateTrue)
+	_ = m1.Set(2, 2, StateTrue)
 
 	// compare copy of the matrix
 	if !reflect.DeepEqual(got, m2) {
@@ -183,5 +183,63 @@ func Benchmark_Iterate(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		//m.Iterate(ROW, rowIteration)
 		m.Iterate(COLUMN, rowIteration)
+	}
+}
+
+func Test_Matrix_RowAndCol(t *testing.T) {
+	m := New(3, 3)
+	for i := 0; i < 3; i++ {
+		_ = m.Set(i, 0, StateTrue)
+		_ = m.Set(i, i, StateTrue)
+	}
+
+	// 1 1 1
+	// 0 1 0
+	// 0 0 1
+
+	tests := []struct {
+		name  string
+		rowed bool
+		cur   int
+		want  []State
+	}{
+		{
+			name:  "row[1]",
+			rowed: true,
+			cur:   1,
+			want:  []State{StateInit, StateTrue, StateInit},
+		},
+		{
+			name:  "col[2]",
+			rowed: false,
+			cur:   2,
+			want:  []State{StateTrue, StateInit, StateTrue},
+		},
+		{
+			name:  "row out",
+			rowed: true,
+			cur:   4,
+			want:  nil,
+		},
+		{
+			name:  "col out",
+			rowed: false,
+			cur:   4,
+			want:  nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got []State
+			switch tt.rowed {
+			case true:
+				got = m.Row(tt.cur)
+			default:
+				got = m.Col(tt.cur)
+			}
+
+			assert.Equal(t, tt.want, got)
+		})
 	}
 }

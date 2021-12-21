@@ -27,15 +27,6 @@ const (
 	modulo7
 )
 
-var (
-	// 1011101 0000
-	statePattern1 = []matrix.State{matrix.StateTrue, matrix.StateFalse, matrix.StateTrue, matrix.StateTrue, matrix.StateTrue, matrix.StateFalse, matrix.StateTrue,
-		matrix.StateFalse, matrix.StateFalse, matrix.StateFalse, matrix.StateFalse}
-	// 0000 1011101
-	statePattern2 = []matrix.State{matrix.StateFalse, matrix.StateFalse, matrix.StateFalse, matrix.StateFalse,
-		matrix.StateTrue, matrix.StateFalse, matrix.StateTrue, matrix.StateTrue, matrix.StateTrue, matrix.StateFalse, matrix.StateTrue}
-)
-
 // calculateScore calculate the maskScore of masking result ...
 func calculateScore(mat *matrix.Matrix) int {
 	debugLogf("calculate maskScore starting")
@@ -128,41 +119,69 @@ func rule2(mat *matrix.Matrix) int {
 // 如果存在看起来类似于取景器模式的模式，则第三规则给QR码一个大的惩罚
 // dark-light-dark-dark-dark-light-dark
 // 1011101 0000 or 0000 1011101
-func rule3(mat *matrix.Matrix) int {
+//func rule3_backup(mat *matrix.Matrix) (score int) {
+//	for y := 0; y < mat.Height(); y++ {
+//		for x := 0; x < mat.Width()-11; x++ {
+//			stateSlice := make([]matrix.State, 0, 11)
+//			for i := 0; i < 11; i++ {
+//				s, _ := mat.Get(x+i, y)
+//				stateSlice = append(stateSlice, s)
+//			}
+//			if matrix.StateSliceMatched(statePattern1, stateSlice) {
+//				score += 40
+//			}
+//			if matrix.StateSliceMatched(statePattern2, stateSlice) {
+//				score += 40
+//			}
+//		}
+//	}
+//
+//	for x := 0; x < mat.Width(); x++ {
+//		for y := 0; y < mat.Height()-11; y++ {
+//			stateSlice := make([]matrix.State, 0, 11)
+//			for i := 0; i < 11; i++ {
+//				s, _ := mat.Get(x, y+i)
+//				stateSlice = append(stateSlice, s)
+//			}
+//			if matrix.StateSliceMatched(statePattern1, stateSlice) {
+//				score += 40
+//			}
+//			if matrix.StateSliceMatched(statePattern2, stateSlice) {
+//				score += 40
+//			}
+//		}
+//	}
+//
+//	return score
+//}
+
+// rule3 calculate punishment score in rule3, find pattern in QR Code matrix.
+func rule3(mat *matrix.Matrix) (score int) {
 	var (
-		score      int
-		stateSlice []matrix.State
+		pattern1     = binaryToStateSlice("1011101 0000")
+		pattern2     = binaryToStateSlice("0000 1011101")
+		pattern1Next = kmpGetNext(pattern1)
+		pattern2Next = kmpGetNext(pattern2)
 	)
 
-	for y := 0; y < mat.Height(); y++ {
-		for x := 0; x < mat.Width()-11; x++ {
-			for i := 0; i < 11; i++ {
-				s, _ := mat.Get(x+i, y)
-				stateSlice = append(stateSlice, s)
-			}
-			if matrix.StateSliceMatched(statePattern1, stateSlice) {
-				score += 40
-			}
-			if matrix.StateSliceMatched(statePattern2, stateSlice) {
-				score += 40
-			}
-		}
+	// prerequisites:
+	//
+	// mat.Width() == mat.Height()
+	if mat.Width() != mat.Height() {
+		debugLogf("rule3 got matrix but not matched prerequisites")
 	}
+	dimension := mat.Width()
 
-	for x := 0; x < mat.Width(); x++ {
-		for y := 0; y < mat.Height()-11; y++ {
-			// stateSlice =
-			for i := 0; i < 11; i++ {
-				s, _ := mat.Get(x, y+i)
-				stateSlice = append(stateSlice, s)
-			}
-			if matrix.StateSliceMatched(statePattern1, stateSlice) {
-				score += 40
-			}
-			if matrix.StateSliceMatched(statePattern2, stateSlice) {
-				score += 40
-			}
-		}
+	for i := 0; i < dimension; i++ {
+		col := mat.Col(i)
+		row := mat.Row(i)
+
+		// DONE(@yeqown): statePattern1 and statePattern2 are fixed, so maybe kmpGetNext
+		// could cache result to speed up.
+		score += 40 * kmp(col, pattern1, pattern1Next)
+		score += 40 * kmp(col, pattern2, pattern2Next)
+		score += 40 * kmp(row, pattern1, pattern1Next)
+		score += 40 * kmp(row, pattern2, pattern2Next)
 	}
 
 	return score
@@ -316,4 +335,19 @@ func modulo6Func(x, y int) bool {
 // modulo7 (x + y) mod 2) + (x * y) mod 3) mod 2 == 0
 func modulo7Func(x, y int) bool {
 	return ((x+y)%2+(x*y)%3)%2 == 0
+}
+
+func binaryToStateSlice(s string) []matrix.State {
+	var states = make([]matrix.State, 0, len(s))
+	for _, c := range s {
+		switch c {
+		case '1':
+			states = append(states, matrix.StateTrue)
+		case '0':
+			states = append(states, matrix.StateFalse)
+		default:
+			continue
+		}
+	}
+	return states
 }

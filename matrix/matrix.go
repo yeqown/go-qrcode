@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// ScanDirection scan matrix driection
+// ScanDirection scan matrix direction
 type ScanDirection uint
 
 const (
@@ -54,6 +54,8 @@ var (
 	ErrorOutRangeOfH = errors.New("out of range of height")
 )
 
+// StateSliceMatched should be
+// Deprecated: since rule3_backup removed
 func StateSliceMatched(ss1, ss2 []State) bool {
 	if len(ss1) != len(ss2) {
 		return false
@@ -196,4 +198,26 @@ func XOR(s1, s2 State) State {
 		return StateTrue
 	}
 	return StateFalse
+}
+
+// Row return a row of matrix, cur should be y dimension.
+func (m *Matrix) Row(cur int) []State {
+	if cur >= m.height || cur < 0 {
+		return nil
+	}
+
+	col := make([]State, m.height)
+	for w := 0; w < m.width; w++ {
+		col[w] = m.mat[w][cur]
+	}
+	return col
+}
+
+// Col return a slice of column, cur should be x dimension.
+func (m *Matrix) Col(cur int) []State {
+	if cur >= m.width || cur < 0 {
+		return nil
+	}
+
+	return m.mat[cur]
 }

@@ -1,6 +1,7 @@
 package qrcode
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -25,4 +26,16 @@ func Test_NewWithConfig_UnmatchedEncodeMode(t *testing.T) {
 			t.Fail()
 		}
 	})
+}
+
+func Benchmark_NewQRCode_1KB(b *testing.B) {
+	text := strings.Repeat("abcdefghij", 100)
+
+	for i := 0; i < b.N; i++ {
+		_, err := New(text)
+		if err != nil {
+			b.Errorf("could not generate QRCode: %v", err)
+			b.Fail()
+		}
+	}
 }

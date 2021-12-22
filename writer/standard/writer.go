@@ -154,7 +154,7 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 		logoWidth, logoHeight := lowerRight.X-upperLeft.X, lowerRight.Y-upperLeft.Y
 
 		if !validLogoImage(w, h, logoWidth, logoHeight) {
-			log.Printf("closer=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/5 of QRCode \n",
+			log.Printf("w=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/5 of QRCode \n",
 				w, h, logoWidth, logoHeight)
 			goto done
 		}

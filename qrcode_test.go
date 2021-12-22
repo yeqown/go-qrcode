@@ -33,6 +33,13 @@ func Test_NewWithConfig_UnmatchedEncodeMode(t *testing.T) {
 // io.Reader ability with all EncMode values
 func Test_NewWithReader(t *testing.T) {
 
+	errorCorrectionModes := []ecLevel{
+		ErrorCorrectionHighest,
+		ErrorCorrectionLow,
+		ErrorCorrectionMedium,
+		ErrorCorrectionQuart,
+	}
+
 	okEncModes := []encMode{
 		EncModeByte,
 		EncModeNumeric,
@@ -45,34 +52,38 @@ func Test_NewWithReader(t *testing.T) {
 
 	// test EncMode that should be successful
 	for _, em := range okEncModes {
+		for _, cm := range errorCorrectionModes {
 
-		r := strings.NewReader("This is a wonderful QR code library")
-		qrc, err := NewWithReader(r, WithEncodingMode(em),
-			WithErrorCorrectionLevel(ErrorCorrectionLow))
-		require.NoError(t, err)
-		assert.NotNil(t, qrc)
+			r := strings.NewReader("This is a wonderful QR code library")
+			qrc, err := NewWithReader(r, WithEncodingMode(em),
+				WithErrorCorrectionLevel(cm))
+			require.NoError(t, err)
+			assert.NotNil(t, qrc)
 
-		b := bytes.NewBuffer([]byte{8, 48, 37, 237, 187, 89, 0})
-		qrc, err = NewWithReader(b, WithEncodingMode(em),
-			WithErrorCorrectionLevel(ErrorCorrectionLow))
-		require.NoError(t, err)
-		assert.NotNil(t, qrc)
+			b := bytes.NewBuffer([]byte{8, 48, 37, 237, 187, 89, 0})
+			qrc, err = NewWithReader(b, WithEncodingMode(em),
+				WithErrorCorrectionLevel(cm))
+			require.NoError(t, err)
+			assert.NotNil(t, qrc)
+		}
 	}
 
 	// test EncMode that are known to panic and its OK
 	for _, em := range panicEncModes {
+		for _, cm := range errorCorrectionModes {
 
-		assert.Panics(t, func() {
-			r := strings.NewReader("This is a wonderful QR code library")
-			_, _ = NewWithReader(r, WithEncodingMode(em),
-				WithErrorCorrectionLevel(ErrorCorrectionLow))
-		})
+			assert.Panics(t, func() {
+				r := strings.NewReader("This is a wonderful QR code library")
+				_, _ = NewWithReader(r, WithEncodingMode(em),
+					WithErrorCorrectionLevel(cm))
+			})
 
-		assert.Panics(t, func() {
-			b := bytes.NewBuffer([]byte{8, 48, 37, 237, 187, 89, 0})
-			_, _ = NewWithReader(b, WithEncodingMode(em),
-				WithErrorCorrectionLevel(ErrorCorrectionLow))
-		})
+			assert.Panics(t, func() {
+				b := bytes.NewBuffer([]byte{8, 48, 37, 237, 187, 89, 0})
+				_, _ = NewWithReader(b, WithEncodingMode(em),
+					WithErrorCorrectionLevel(cm))
+			})
+		}
 	}
 }
 

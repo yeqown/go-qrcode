@@ -637,7 +637,7 @@ func (q *QRCode) masking() {
 			}
 
 			// calculate score and decide the lowest score and Draw
-			score := calculateScore(mats[i])
+			score := evaluation(mats[i])
 			debugLogf("cur idx: %d, score: %d, current lowest: mats[%d]:%d", i, score, markMatsIdx, lowScore)
 			scoreChan <- maskScore{
 				Score: score,

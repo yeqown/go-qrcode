@@ -33,7 +33,7 @@ func Test_NewWithConfig_UnmatchedEncodeMode(t *testing.T) {
 // io.Reader ability with all EncMode values
 func Test_NewWithReader(t *testing.T) {
 
-	errorCorrectionModes := []ecLevel{
+	errorCorrectionLevels := []ecLevel{
 		ErrorCorrectionHighest,
 		ErrorCorrectionLow,
 		ErrorCorrectionMedium,
@@ -52,17 +52,17 @@ func Test_NewWithReader(t *testing.T) {
 
 	// test EncMode that should be successful
 	for _, em := range okEncModes {
-		for _, cm := range errorCorrectionModes {
+		for _, cl := range errorCorrectionLevels {
 
 			r := strings.NewReader("This is a wonderful QR code library")
 			qrc, err := NewWithReader(r, WithEncodingMode(em),
-				WithErrorCorrectionLevel(cm))
+				WithErrorCorrectionLevel(cl))
 			require.NoError(t, err)
 			assert.NotNil(t, qrc)
 
 			b := bytes.NewBuffer([]byte{8, 48, 37, 237, 187, 89, 0})
 			qrc, err = NewWithReader(b, WithEncodingMode(em),
-				WithErrorCorrectionLevel(cm))
+				WithErrorCorrectionLevel(cl))
 			require.NoError(t, err)
 			assert.NotNil(t, qrc)
 		}
@@ -70,18 +70,18 @@ func Test_NewWithReader(t *testing.T) {
 
 	// test EncMode that are known to panic and its OK
 	for _, em := range panicEncModes {
-		for _, cm := range errorCorrectionModes {
+		for _, cl := range errorCorrectionLevels {
 
 			assert.Panics(t, func() {
 				r := strings.NewReader("This is a wonderful QR code library")
 				_, _ = NewWithReader(r, WithEncodingMode(em),
-					WithErrorCorrectionLevel(cm))
+					WithErrorCorrectionLevel(cl))
 			})
 
 			assert.Panics(t, func() {
 				b := bytes.NewBuffer([]byte{8, 48, 37, 237, 187, 89, 0})
 				_, _ = NewWithReader(b, WithEncodingMode(em),
-					WithErrorCorrectionLevel(cm))
+					WithErrorCorrectionLevel(cl))
 			})
 		}
 	}

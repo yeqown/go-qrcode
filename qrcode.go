@@ -2,6 +2,7 @@ package qrcode
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"math"
 	"sync"
@@ -15,7 +16,7 @@ import (
 // New generate a QRCode struct to create
 func New(text string) (*QRCode, error) {
 	dst := DefaultEncodingOption()
-	return build(text, dst)
+	return build(text, dst, nil)
 }
 
 // NewWith generate a QRCode struct with
@@ -26,13 +27,27 @@ func NewWith(text string, opts ...EncodeOption) (*QRCode, error) {
 		opt.apply(dst)
 	}
 
-	return build(text, dst)
+	return build(text, dst, nil)
 }
 
-func build(text string, option *encodingOption) (*QRCode, error) {
+/*
+	NewWithReader generates a QRCode struct by reading
+	from any io.Reader. EncodeOptions are specified in
+	exactly	the same way as NewWith
+*/
+func NewWithReader(r io.Reader, opts ...EncodeOption) (*QRCode, error) {
+	dst := DefaultEncodingOption()
+	for _, opt := range opts {
+		opt.apply(dst)
+	}
+
+	return build("", dst, r)
+}
+
+func build(text string, option *encodingOption, r io.Reader) (*QRCode, error) {
+
 	qrc := &QRCode{
 		sourceText:     text,
-		sourceRawBytes: []byte(text),
 		dataBSet:       nil,
 		mat:            nil,
 		ecBSet:         nil,
@@ -40,6 +55,18 @@ func build(text string, option *encodingOption) (*QRCode, error) {
 		encodingOption: option,
 		encoder:        nil,
 	}
+
+	// populate sourceRawBytes from text or any io.Reader
+	if r == nil {
+		qrc.sourceRawBytes = []byte(text)
+	} else {
+		b, err := io.ReadAll(r)
+		if err != nil {
+			return nil, err
+		}
+		qrc.sourceRawBytes = b
+	}
+
 	// initialize QRCode instance
 	if err := qrc.init(); err != nil {
 		return nil, err

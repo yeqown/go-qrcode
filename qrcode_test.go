@@ -1,6 +1,7 @@
 package qrcode
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -26,6 +27,53 @@ func Test_NewWithConfig_UnmatchedEncodeMode(t *testing.T) {
 			t.Fail()
 		}
 	})
+}
+
+// Test_NewWithReader exercises the
+// io.Reader ability with all EncMode values
+func Test_NewWithReader(t *testing.T) {
+
+	okEncModes := []encMode{
+		EncModeByte,
+		EncModeNumeric,
+	}
+
+	panicEncModes := []encMode{
+		EncModeAlphanumeric,
+		EncModeJP,
+	}
+
+	// test EncMode that should be successful
+	for _, em := range okEncModes {
+
+		r := strings.NewReader("This is a wonderful QR code library")
+		qrc, err := NewWithReader(r, WithEncodingMode(em),
+			WithErrorCorrectionLevel(ErrorCorrectionLow))
+		require.NoError(t, err)
+		assert.NotNil(t, qrc)
+
+		b := bytes.NewBuffer([]byte{8, 48, 37, 237, 187, 89, 0})
+		qrc, err = NewWithReader(b, WithEncodingMode(em),
+			WithErrorCorrectionLevel(ErrorCorrectionLow))
+		require.NoError(t, err)
+		assert.NotNil(t, qrc)
+	}
+
+	// test EncMode that are known to panic and its OK
+	for _, em := range panicEncModes {
+
+		assert.Panics(t, func() {
+			r := strings.NewReader("This is a wonderful QR code library")
+			_, _ = NewWithReader(r, WithEncodingMode(em),
+				WithErrorCorrectionLevel(ErrorCorrectionLow))
+		})
+
+		assert.Panics(t, func() {
+			b := bytes.NewBuffer([]byte{8, 48, 37, 237, 187, 89, 0})
+			_, _ = NewWithReader(b, WithEncodingMode(em),
+				WithErrorCorrectionLevel(ErrorCorrectionLow))
+		})
+	}
 }
 
 func Benchmark_NewQRCode_1KB(b *testing.B) {

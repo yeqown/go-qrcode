@@ -608,19 +608,20 @@ func (q *QRCode) masking() {
 
 	dimension := q.v.Dimension()
 
+	// fill bitset into matrix
+	cpy := q.mat.Copy()
+	q.fillDataBinary(cpy, dimension)
+
 	// init mask and mats
 	for i := 0; i < 8; i++ {
 		masks[i] = newMask(q.mat, maskPatternModulo(i))
-		mats[i] = q.mat.Copy()
+		mats[i] = cpy.Copy()
 	}
 
 	// generate 8 matrix with mask
 	for i := 0; i < 8; i++ {
 		wg.Add(1)
 		go func(i int) {
-			// fill bitset into matrix
-			q.fillDataBinary(mats[i], dimension)
-
 			_ = debugDraw(fmt.Sprintf("draft/mats_%d.jpeg", i), *mats[i])
 			_ = debugDraw(fmt.Sprintf("draft/mask_%d.jpeg", i), *masks[i].mat)
 

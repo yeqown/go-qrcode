@@ -147,6 +147,14 @@ func Test_samestate(t *testing.T) {
 	}
 }
 
+func Benchmark_samestate(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+
+		samestate(matrix.StateTrue, matrix.StateTrue)
+		samestate(matrix.StateTrue, matrix.StateVersion)
+	}
+}
+
 func Test_binaryToStateSlice(t *testing.T) {
 	type args struct {
 		s string

@@ -83,7 +83,7 @@ func debugDrawTo(w io.Writer, mat matrix.Matrix) error {
 	// background
 	rectangle(0, 0, width, height, img, color.White)
 
-	mat.Iterate(matrix.ROW, func(x int, y int, v matrix.State) {
+	mat.Iterate(matrix.COLUMN, func(x int, y int, v matrix.State) {
 		sx := x*blockWidth + padding
 		sy := y*blockWidth + padding
 		es := (x+1)*blockWidth + padding

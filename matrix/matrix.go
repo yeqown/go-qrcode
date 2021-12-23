@@ -106,7 +106,7 @@ func (m *Matrix) init() {
 // Print to stdout
 func (m *Matrix) print() {
 	m.Iterate(ROW, func(x, y int, s State) {
-		fmt.Printf("%6d ", s)
+		fmt.Printf("%2d ", s)
 		if (x + 1) == m.width {
 			fmt.Println()
 		}
@@ -119,18 +119,19 @@ func (m *Matrix) Print() {
 
 // Copy matrix into a new Matrix
 func (m *Matrix) Copy() *Matrix {
-	newMat := make([][]State, m.width)
+	mat2 := make([][]State, m.width)
 	for w := 0; w < m.width; w++ {
-		newMat[w] = make([]State, m.height)
-		copy(newMat[w], m.mat[w])
+		mat2[w] = make([]State, m.height)
+		copy(mat2[w], m.mat[w])
 	}
 
-	newM := &Matrix{
+	m2 := &Matrix{
 		width:  m.width,
 		height: m.height,
-		mat:    newMat,
+		mat:    mat2,
 	}
-	return newM
+
+	return m2
 }
 
 // Width ... width
@@ -169,7 +170,8 @@ func (m *Matrix) Get(w, h int) (State, error) {
 // IterateFunc ...
 type IterateFunc func(int, int, State)
 
-// Iterate the Matrix with loop direction ROW major or COLUMN major
+// Iterate the Matrix with loop direction ROW major or COLUMN major.
+// COLUMN is recommended.
 func (m *Matrix) Iterate(dir ScanDirection, f IterateFunc) {
 	// row direction first
 	if dir == ROW {

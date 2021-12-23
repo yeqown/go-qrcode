@@ -3,8 +3,6 @@ package qrcode
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/yeqown/go-qrcode/v2/matrix"
@@ -19,7 +17,7 @@ func TestMask(t *testing.T) {
 	require.NoError(t, err)
 
 	var stateInitCnt int
-	qrc.mat.Iterate(matrix.ROW, func(x, y int, s matrix.State) {
+	qrc.mat.Iterate(matrix.COLUMN, func(x, y int, s matrix.State) {
 		if s == matrix.StateInit {
 			stateInitCnt++
 		}
@@ -53,23 +51,4 @@ func TestMask(t *testing.T) {
 
 	mask7 := newMask(cpyMat, modulo7)
 	_ = debugDraw("./assets/modulo7.jpeg", *mask7.mat)
-}
-
-//func Test_rule3_refactor(t *testing.T) {
-//	qrc, err := New("baidu.com google.com qq.com sina.com apple.com")
-//	assert.NoError(t, err)
-//	_ = qrc
-//	old := rule3_backup(qrc.mat)
-//	refactor := rule3(qrc.mat)
-//	assert.Equal(t, old, refactor)
-//}
-
-func Benchmark_rule3(b *testing.B) {
-	qrc, err := New("baidu.com google.com qq.com sina.com apple.com")
-	assert.NoError(b, err)
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_ = rule3(qrc.mat)
-	}
 }

@@ -32,7 +32,7 @@ func rule1(mat *matrix.Matrix) (score int) {
 	// mat.Width() == mat.Height()
 	if mat.Width() != mat.Height() {
 		debugLogf("matrix width != height, skip rule1")
-		return math.MaxInt
+		return math.MaxInt32
 	}
 
 	dimension := mat.Width()
@@ -110,7 +110,7 @@ func rule3(mat *matrix.Matrix) (score int) {
 	// mat.Width() == mat.Height()
 	if mat.Width() != mat.Height() {
 		debugLogf("rule3 got matrix but not matched prerequisites")
-		return math.MaxInt
+		return math.MaxInt32
 	}
 	dimension := mat.Width()
 
@@ -145,7 +145,7 @@ func rule4(mat *matrix.Matrix) int {
 	// mat.Width() == mat.Height()
 	if mat.Width() != mat.Height() {
 		debugLogf("rule4 got matrix but not matched prerequisites")
-		return math.MaxInt
+		return math.MaxInt32
 	}
 
 	dimension := mat.Width()

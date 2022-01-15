@@ -19,7 +19,7 @@ QR code (abbreviated from Quick Response Code) is the trademark for a type of ma
 ### Install
 
 ```sh
-go get -u github.com/yeqown/go-qrcode
+go get -u github.com/yeqown/go-qrcode/v2
 ```
 
 ### Quick Start

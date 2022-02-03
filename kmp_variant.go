@@ -1,11 +1,9 @@
 package qrcode
 
-import "github.com/yeqown/go-qrcode/v2/matrix"
-
 // kmp is variant of kmp algorithm to count the pattern been in
 // src slice.
-// TODO(@yeqown): implement this in generic way.
-func kmp(src, pattern []matrix.State, next []int) (count int) {
+// DONE(@yeqown): implement this in generic way.
+func kmp[v comparable](src, pattern []v, next []int) (count int) {
 	if next == nil {
 		next = kmpGetNext(pattern)
 	}
@@ -40,7 +38,7 @@ loop:
 	return count
 }
 
-func kmpGetNext(pattern []matrix.State) []int {
+func kmpGetNext[v comparable](pattern []v) []int {
 	fail := make([]int, len(pattern))
 	fail[0] = -1
 

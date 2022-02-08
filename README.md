@@ -1,7 +1,11 @@
 # go-qrcode #
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/yeqown/go-qrcode)](https://goreportcard.com/report/github.com/yeqown/go-qrcode) [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/yeqown/go-qrcode/v2)
+[![Go Report Card](https://goreportcard.com/badge/github.com/yeqown/go-qrcode)](https://goreportcard.com/report/github.com/yeqown/go-qrcode) 
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/yeqown/go-qrcode/v2)
 [![Go](https://github.com/yeqown/go-qrcode/actions/workflows/go.yml/badge.svg?branch=main)](https://github.com/yeqown/go-qrcode/actions/workflows/go.yml) ![](https://changkun.de/urlstat?mode=github&repo=yeqown/go-qrcode)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/yeqown/go-qrcode)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/yeqown/go-qrcode)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 <img src="./assets/repository_qrcode.png" width="100px" align="right"/>
 QR code (abbreviated from Quick Response Code) is the trademark for a type of matrix barcode (or two-dimensional barcode) first designed in 1994 for the automotive industry in Japan. A barcode is a machine-readable optical label that contains information about the item to which it is attached. A QR code uses four standardized encoding modes (numeric, alphanumeric, byte/binary, and kanji) to store data efficiently; extensions may also be used

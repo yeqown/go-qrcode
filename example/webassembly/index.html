@@ -1,0 +1,60 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <script src="wasm_exec.js"></script>
+    </head>
+    <body style="align: center">
+        <h3>WebAssembly Demo</h3>
+        <textarea style="width: 400px; height: 240px; margin-bottom: 20px" readonly>
+let option = {
+    encodeVersion: 0,
+    encodeMode: 2,
+    encodeECLevel: "Q",
+
+    outputBgColor: "#123123",
+    outputBgTransparent: true,
+    outputQrColor: "#666666",
+    outputQrWidth: 20,
+    outputCircleShape: true,
+    outputImageEncoder: "png",
+    outputMargin: 20,
+}
+        </textarea>
+        <br/>
+        <img id="qrc" src="" style="width: 400px; margin-bottom: 20px"/>
+        <br/>
+        <button onClick="runFunction()"
+                style="width: 100px; height: 30px; font-size: 20px; background-color: #00bcd4">run</button>
+    </body>
+
+    <script>
+        const go = new Go();
+        WebAssembly.instantiateStreaming(fetch("com.github.yeqown.goqrcode.wasm"), go.importObject).then(
+            result => {
+                go.run(result.instance)
+            }
+        );
+
+        const runFunction = function runFunction() {
+            let option = {
+                encodeVersion: 0,
+                encodeMode: 2,
+                encodeECLevel: "Q",
+                
+                outputBgColor: "#123123",
+                outputBgTransparent: true,
+                outputQrColor: "#666666",
+                outputQrWidth: 20,
+                outputCircleShape: true,
+                outputImageEncoder: "png",
+                outputMargin: 20,
+            }
+            let rr = generateQRCode("https://github.com/yeqown", option);
+            console.log(generateQRCode);
+            console.log("runFunction called", rr);
+            if (rr.success) {
+                document.getElementById("qrc").src = "data:image/png;base64," + rr.base64EncodedImage;
+            }
+        }
+    </script>
+</html>

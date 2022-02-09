@@ -19,6 +19,7 @@ QR code (abbreviated from Quick Response Code) is the trademark for a type of ma
 - [x] Not only shape of cell, but also color of QR Code background and foreground color.
 - [x] `WithLogoImage`, `WithLogoImageFilePNG`, `WithLogoImageFileJPEG` help you add an icon at the central of QR Code.
 - [x] `WithBorderWidth` allows to specify any width of 4 sides around the qrcode.
+- [x] `WebAssembly` support, check out the [Example](./example/webassembly/README.md) and [README](./wasm/README.md) for more detail.
 
 ### Install
 

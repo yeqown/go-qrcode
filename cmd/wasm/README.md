@@ -24,3 +24,11 @@ let r = generateQRCode("content", option)
     "base64EncodedImage": "iVBORw0KGgoAAAANSUhEUgAAAmwAAAJ... more"
 }
 ```
+
+## build wasm binary
+
+
+```bash
+cd $PATH/to/go-qrcode/cmd/wasm
+GOOS=js GOARCH=wasm go build -o com.github.yeqown.goqrcode.wasm .
+```

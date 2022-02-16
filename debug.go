@@ -81,7 +81,7 @@ func debugDrawTo(w io.Writer, mat Matrix) error {
 	// background
 	rectangle(0, 0, width, height, img, color.Gray16{Y: 0xff12})
 
-	mat.Iterate(IterDirection_COLUMN, func(x int, y int, v qrvalue) {
+	mat.iter(IterDirection_COLUMN, func(x int, y int, v qrvalue) {
 		sx := x*blockWidth + padding
 		sy := y*blockWidth + padding
 		es := (x+1)*blockWidth + padding

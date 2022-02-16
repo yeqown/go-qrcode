@@ -75,7 +75,7 @@ func (m *mask) masking() {
 		panic("impossible panic, contact maintainer plz")
 	}
 
-	m.mat.Iterate(IterDirection_COLUMN, func(x, y int, s qrvalue) {
+	m.mat.iter(IterDirection_COLUMN, func(x, y int, s qrvalue) {
 		// skip the function modules
 		if v, _ := m.mat.at(x, y); v.qrtype() != QRType_INIT {
 			_ = m.mat.set(x, y, QRValue_INIT_V0)

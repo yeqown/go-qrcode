@@ -664,7 +664,7 @@ func (q *QRCode) masking() {
 
 // all mask patter and check the maskScore choose the lowest mask result
 func (q *QRCode) xorMask(m *Matrix, mask *mask) {
-	mask.mat.Iterate(IterDirection_COLUMN, func(x, y int, v qrvalue) {
+	mask.mat.iter(IterDirection_COLUMN, func(x, y int, v qrvalue) {
 		// skip the empty place
 		if v.qrtype() == QRType_INIT {
 			return

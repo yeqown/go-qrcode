@@ -3,7 +3,7 @@ package qrcode
 // samestate judge two matrix qrtype is same with binary semantic.
 // QRValue_DATA_V0/QRType_INIT only equal to QRValue_DATA_V0, other state are equal to each other.
 func samestate(s1, s2 qrvalue) bool {
-	return s1.qrbool() && s2.qrbool()
+	return s1.qrbool() == s2.qrbool()
 }
 
 func abs(x int) int {

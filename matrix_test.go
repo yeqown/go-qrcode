@@ -1,7 +1,6 @@
 package qrcode
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -41,25 +40,16 @@ func TestMatrix_Copy(t *testing.T) {
 
 	// change origin
 	_ = m1.set(2, 2, QRValue_DATA_V1)
+	assert.Equal(t, m2, got)
 
-	// compare copy of the matrix
-	if !reflect.DeepEqual(got, m2) {
-		t.Errorf("Matrix.Copy() = %v, want %v", got, m2)
-		t.Fail()
-	}
+	s, err := m1.at(2, 2)
+	assert.NoError(t, err)
+	assert.Equal(t, QRValue_DATA_V1, s)
 
-	if s, err := m1.at(2, 2); err != nil {
-		t.Errorf("Matrix.at() = %v, want %v", QRValue_DATA_V1, s)
-		t.Fail()
-	} else if s != QRValue_DATA_V1 {
-		t.Errorf("Matrix.Copy() = %v, want %v", QRValue_DATA_V1, s)
-		t.Fail()
-	}
-
-	if s, _ := got.at(2, 2); s != QRValue_DATA_V1 {
-		t.Errorf("Matrix.Copy() = %v, want %v", QRValue_DATA_V1, s)
-		t.Fail()
-	}
+	s, err = got.at(2, 2)
+	assert.NoError(t, err)
+	assert.NotEqual(t, QRValue_DATA_V1, s)
+	assert.Equal(t, QRValue_INIT_V0, s)
 }
 
 //func Test_stateSliceMatched(t *testing.T) {
@@ -99,7 +89,7 @@ func TestMatrix_Copy(t *testing.T) {
 //}
 
 // go test -run=NONE -bench Benchmark_Iterate -count 10 > old.txt
-// after change to `m.Iterate(IterDirection_COLUMN, rowIteration)`
+// after change to `m.iter(IterDirection_COLUMN, rowIteration)`
 // go test -run=NONE -bench Benchmark_Iterate -count 10 > new.txt
 // benchstat old.txt new.txt
 func Benchmark_Iterate(b *testing.B) {
@@ -119,8 +109,8 @@ func Benchmark_Iterate(b *testing.B) {
 	}
 
 	for i := 0; i < b.N; i++ {
-		//m.Iterate(IterDirection_ROW, rowIteration)
-		m.Iterate(IterDirection_COLUMN, rowIteration)
+		//m.iter(IterDirection_ROW, rowIteration)
+		m.iter(IterDirection_COLUMN, rowIteration)
 	}
 }
 

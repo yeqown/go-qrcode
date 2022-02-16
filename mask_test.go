@@ -15,7 +15,7 @@ func TestMask(t *testing.T) {
 	require.NoError(t, err)
 
 	var stateInitCnt int
-	qrc.mat.Iterate(IterDirection_COLUMN, func(x, y int, s qrvalue) {
+	qrc.mat.iter(IterDirection_COLUMN, func(x, y int, s qrvalue) {
 		if s.qrtype() == QRType_INIT {
 			stateInitCnt++
 		}

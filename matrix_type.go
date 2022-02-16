@@ -1,5 +1,7 @@
 package qrcode
 
+type QRType = qrtype
+
 // qrtype
 type qrtype uint8
 
@@ -41,6 +43,16 @@ func (s qrtype) String() string {
 	}
 
 	return "?"
+}
+
+type QRValue = qrvalue
+
+func (v QRValue) Type() qrtype {
+	return v.qrtype()
+}
+
+func (v QRValue) IsSet() bool {
+	return v.qrbool()
 }
 
 // qrvalue represents the value of the matrix, it is composed of the qrtype(7bits) and the value(1bits).

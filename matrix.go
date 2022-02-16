@@ -49,7 +49,7 @@ func (m *Matrix) init() {
 
 // print to stdout
 func (m *Matrix) print() {
-	m.Iterate(IterDirection_ROW, func(x, y int, s qrvalue) {
+	m.iter(IterDirection_ROW, func(x, y int, s qrvalue) {
 		fmt.Printf("%s ", s)
 		if (x + 1) == m.width {
 			fmt.Println()
@@ -96,7 +96,7 @@ func (m *Matrix) set(w, h int, c qrvalue) error {
 	return nil
 }
 
-// at state qrbool from matrix with position {x, y}
+// at state qrvalue from matrix with position {x, y}
 func (m *Matrix) at(w, h int) (qrvalue, error) {
 	if w >= m.width || w < 0 {
 		return QRValue_INIT_V0, ErrorOutRangeOfW
@@ -120,26 +120,28 @@ const (
 
 // Iterate the Matrix with loop direction IterDirection_ROW major or IterDirection_COLUMN major.
 // IterDirection_COLUMN is recommended.
-func (m *Matrix) Iterate(dir iterDirection, f func(int, int, qrvalue)) {
+func (m *Matrix) Iterate(direction iterDirection, fn func(x, y int, s QRValue)) {
+	m.iter(direction, fn)
+}
+
+func (m *Matrix) iter(dir iterDirection, visitFn func(x int, y int, v qrvalue)) {
 	// row direction first
 	if dir == IterDirection_ROW {
 		for h := 0; h < m.height; h++ {
 			for w := 0; w < m.width; w++ {
-				f(w, h, m.mat[w][h])
+				visitFn(w, h, m.mat[w][h])
 			}
 		}
 		return
 	}
 
 	// column direction first
-	if dir == IterDirection_COLUMN {
-		for w := 0; w < m.width; w++ {
-			for h := 0; h < m.height; h++ {
-				f(w, h, m.mat[w][h])
-			}
+	for w := 0; w < m.width; w++ {
+		for h := 0; h < m.height; h++ {
+			visitFn(w, h, m.mat[w][h])
 		}
-		return
 	}
+	return
 }
 
 // Row return a row of matrix, cur should be y dimension.

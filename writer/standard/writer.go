@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/yeqown/go-qrcode/v2"
-	"github.com/yeqown/go-qrcode/v2/matrix"
 
 	"github.com/fogleman/gg"
 	"github.com/pkg/errors"
@@ -65,7 +64,7 @@ const (
 	_defaultPadding  = 40
 )
 
-func (w Writer) Write(mat matrix.Matrix) error {
+func (w Writer) Write(mat qrcode.Matrix) error {
 	return drawTo(w.closer, mat, w.option)
 }
 
@@ -85,7 +84,7 @@ func (w Writer) Attribute(dimension int) *Attribute {
 	return w.option.preCalculateAttribute(dimension)
 }
 
-func drawTo(w io.Writer, mat matrix.Matrix, option *outputImageOptions) (err error) {
+func drawTo(w io.Writer, mat qrcode.Matrix, option *outputImageOptions) (err error) {
 	if option == nil {
 		option = defaultOutputImageOption()
 	}
@@ -106,7 +105,7 @@ func drawTo(w io.Writer, mat matrix.Matrix, option *outputImageOptions) (err err
 
 // draw deal QRCode's matrix to be an image.Image. Notice that if anyone changed this function,
 // please also check the function outputImageOptions.preCalculateAttribute().
-func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
+func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 	top, right, bottom, left := opt.borderWidths[0], opt.borderWidths[1], opt.borderWidths[2], opt.borderWidths[3]
 	// closer as image width, h as image height
 	w := mat.Width()*opt.qrBlockWidth() + left + right
@@ -129,7 +128,7 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 	shape := opt.getShape()
 
 	// iterate the matrix to Draw each pixel
-	mat.Iterate(matrix.ROW, func(x int, y int, v matrix.State) {
+	mat.Iterate(qrcode.IterDirection_ROW, func(x int, y int, v qrcode.QRValue) {
 		// Draw the block
 		ctx.upperLeft = image.Point{
 			X: x*opt.qrBlockWidth() + left,
@@ -138,8 +137,8 @@ func draw(mat matrix.Matrix, opt *outputImageOptions) image.Image {
 		ctx.color = opt.translateToRGBA(v)
 		// DONE(@yeqown): make this abstract to Shapes
 
-		switch v {
-		case matrix.StateFinder:
+		switch v.Type() {
+		case qrcode.QRType_FINDER:
 			shape.DrawFinder(ctx)
 		default:
 			shape.Draw(ctx)

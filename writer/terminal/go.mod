@@ -12,4 +12,4 @@ require (
 	github.com/yeqown/reedsolomon v1.0.0 // indirect
 )
 
-//replace github.com/yeqown/go-qrcode/v2 => ../../
+replace github.com/yeqown/go-qrcode/v2 => ../../

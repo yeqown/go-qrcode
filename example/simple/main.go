@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	qrc, err := qrcode.NewWith("github.com/yeqown/qo-qrcode",
+	qrc, err := qrcode.NewWith("github.com/yeqown/go-qrcode",
 		qrcode.WithEncodingMode(qrcode.EncModeByte),
 		qrcode.WithErrorCorrectionLevel(qrcode.ErrorCorrectionQuart),
 	)

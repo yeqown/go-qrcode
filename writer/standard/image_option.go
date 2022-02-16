@@ -5,7 +5,7 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/yeqown/go-qrcode/v2/matrix"
+	"github.com/yeqown/go-qrcode/v2"
 )
 
 type ImageOption interface {
@@ -112,32 +112,32 @@ var (
 
 var (
 	// _STATE_MAPPING mapping matrix.State to color.RGBA in debug mode.
-	_STATE_MAPPING = map[matrix.State]color.RGBA{
-		matrix.StateFalse:   parseFromHex("#ffffff"), // [bg]
-		matrix.StateInit:    parseFromHex("#cdc9c3"), // [bg]
-		matrix.StateTrue:    parseFromHex("#000000"), // [fg]
-		matrix.StateVersion: parseFromHex("#444444"), // [fg]
-		matrix.StateFormat:  parseFromHex("#555555"), // [fg]
-		matrix.StateFinder:  parseFromHex("#2BA859"), // [fg]
+	_STATE_MAPPING = map[qrcode.QRType]color.RGBA{
+		qrcode.QRType_INIT:     parseFromHex("#ffffff"), // [bg]
+		qrcode.QRType_DATA:     parseFromHex("#cdc9c3"), // [bg]
+		qrcode.QRType_VERSION:  parseFromHex("#000000"), // [fg]
+		qrcode.QRType_FORMAT:   parseFromHex("#444444"), // [fg]
+		qrcode.QRType_FINDER:   parseFromHex("#555555"), // [fg]
+		qrcode.QRType_DARK:     parseFromHex("#2BA859"), // [fg]
+		qrcode.QRType_SPLITTER: parseFromHex("#2BA859"), // [fg]
+		qrcode.QRType_TIMING:   parseFromHex("#000000"), // [fg]
 	}
 )
 
 // translateToRGBA get color.RGBA by value State, if not found, return outputImageOptions.qrColor.
 // NOTE: this function decides the state should use qrColor or bgColor.
-func (oo *outputImageOptions) translateToRGBA(s matrix.State) (rgba color.RGBA) {
+func (oo *outputImageOptions) translateToRGBA(v qrcode.QRValue) (rgba color.RGBA) {
 	// TODO(@yeqown): use _STATE_MAPPING to replace this function while in debug mode
 	// or some special flag.
-	switch s {
-	case matrix.StateFalse, matrix.StateInit:
-		if oo.bgTransparent {
-			(&oo.bgColor).A = 0x00
-		}
-		rgba = oo.bgColor
-	case matrix.StateTrue, matrix.StateFinder, matrix.StateVersion, matrix.StateFormat:
-		fallthrough
-	default:
+	if v.IsSet() {
 		rgba = oo.qrColor
+		return rgba
 	}
+
+	if oo.bgTransparent {
+		(&oo.bgColor).A = 0x00
+	}
+	rgba = oo.bgColor
 
 	return rgba
 }

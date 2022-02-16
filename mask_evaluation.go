@@ -2,15 +2,13 @@ package qrcode
 
 import (
 	"math"
-
-	"github.com/yeqown/go-qrcode/v2/matrix"
 )
 
 // evaluation calculate a score after masking matrix.
 //
 // reference:
 // - https://www.thonky.com/qr-code-tutorial/data-masking#Determining-the-Best-Mask
-func evaluation(mat *matrix.Matrix) (score int) {
+func evaluation(mat *Matrix) (score int) {
 	debugLogf("calculate maskScore starting")
 
 	score1 := rule1(mat)
@@ -27,7 +25,7 @@ func evaluation(mat *matrix.Matrix) (score int) {
 // add 3 to the penalty. If there are more modules of the same color after the first five,
 // add 1 for each additional module of the same color. Afterward, check each column one-by-one,
 // checking for the same condition. Add the horizontal and vertical total to obtain penalty score
-func rule1(mat *matrix.Matrix) (score int) {
+func rule1(mat *Matrix) (score int) {
 	// prerequisites:
 	// mat.Width() == mat.Height()
 	if mat.Width() != mat.Height() {
@@ -36,24 +34,24 @@ func rule1(mat *matrix.Matrix) (score int) {
 	}
 
 	dimension := mat.Width()
-	scoreLine := func(arr []matrix.State) int {
-		lineScore, cnt, curState := 0, 0, matrix.StateInit
+	scoreLine := func(arr []qrvalue) int {
+		lScore, cnt, cur := 0, 0, QRValue_INIT_V0
 		for _, v := range arr {
-			if !samestate(v, curState) {
-				curState = v
+			if !samestate(v, cur) {
+				cur = v
 				cnt = 1
 				continue
 			}
 
 			cnt++
 			if cnt == 5 {
-				lineScore += 3
+				lScore += 3
 			} else if cnt > 5 {
-				lineScore++
+				lScore++
 			}
 		}
 
-		return lineScore
+		return lScore
 	}
 
 	for cur := 0; cur < dimension; cur++ {
@@ -70,17 +68,17 @@ func rule1(mat *matrix.Matrix) (score int) {
 // look for areas of the same color that are at least 2x2 modules or larger.
 // The QR code specification says that for a solid-color block of size m × n,
 // the penalty score is 3 × (m - 1) × (n - 1).
-func rule2(mat *matrix.Matrix) int {
+func rule2(mat *Matrix) int {
 	var (
 		score          int
-		s0, s1, s2, s3 matrix.State
+		s0, s1, s2, s3 qrvalue
 	)
 	for x := 0; x < mat.Width()-1; x++ {
 		for y := 0; y < mat.Height()-1; y++ {
-			s0, _ = mat.Get(x, y)
-			s1, _ = mat.Get(x+1, y)
-			s2, _ = mat.Get(x, y+1)
-			s3, _ = mat.Get(x+1, y+1)
+			s0, _ = mat.at(x, y)
+			s1, _ = mat.at(x+1, y)
+			s2, _ = mat.at(x, y+1)
+			s3, _ = mat.at(x+1, y+1)
 
 			if s0 == s1 && s2 == s3 && s1 == s2 {
 				score += 3
@@ -97,10 +95,10 @@ func rule2(mat *matrix.Matrix) int {
 // following two patterns: 1011101 0000 or 0000 1011101.
 //
 // Each time this pattern is found, add 40 to the penalty score.
-func rule3(mat *matrix.Matrix) (score int) {
+func rule3(mat *Matrix) (score int) {
 	var (
-		pattern1     = binaryToStateSlice("1011101 0000")
-		pattern2     = binaryToStateSlice("0000 1011101")
+		pattern1     = binaryToQRValueSlice("1011101 0000")
+		pattern2     = binaryToQRValueSlice("0000 1011101")
 		pattern1Next = kmpGetNext(pattern1)
 		pattern2Next = kmpGetNext(pattern2)
 	)
@@ -135,11 +133,11 @@ func rule3(mat *matrix.Matrix) (score int) {
 // 2. Count how many dark modules there are in the matrix.
 // 3. Calculate the percent of modules in the matrix that are dark: (darkmodules / totalmodules) * 100
 // 4. Determine the previous and next multiple of five of this percent.
-// 5. Subtract 50 from each of these multiples of five and take the absolute value of the result.
+// 5. Subtract 50 from each of these multiples of five and take the absolute qrbool of the result.
 // 6. Divide each of these by five. For example, 10/5 = 2 and 5/5 = 1.
 // 7. Finally, take the smallest of the two numbers and multiply it by 10.
 //
-func rule4(mat *matrix.Matrix) int {
+func rule4(mat *Matrix) int {
 	// prerequisites:
 	//
 	// mat.Width() == mat.Height()
@@ -155,7 +153,7 @@ func rule4(mat *matrix.Matrix) int {
 
 		// count dark modules
 		for j := 0; j < dimension; j++ {
-			if samestate(col[j], matrix.StateTrue) {
+			if samestate(col[j], QRValue_DATA_V1) {
 				dark++
 			}
 		}

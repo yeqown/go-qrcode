@@ -13,7 +13,7 @@ import (
 type encMode uint
 
 const (
-	// a value of EncModeAuto will trigger a detection of the letter set from the input data,
+	// a qrbool of EncModeAuto will trigger a detection of the letter set from the input data,
 	EncModeAuto = 0
 	// EncModeNone mode ...
 	EncModeNone encMode = 1 << iota
@@ -345,6 +345,6 @@ func analyzeAlphaNum(byt byte) bool {
 }
 
 //// analyzeByte is byt in bytes.
-//func analyzeByte(byt byte) bool {
+//func analyzeByte(byt byte) qrbool {
 //	return false
 //}

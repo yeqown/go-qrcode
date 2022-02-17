@@ -5,14 +5,14 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/yeqown/go-qrcode/v2/matrix"
+	"github.com/yeqown/go-qrcode/v2"
 )
 
 func Test_stateRGBA(t *testing.T) {
 	oo := defaultOutputImageOption()
 
 	type args struct {
-		v matrix.State
+		v qrcode.QRValue
 	}
 	tests := []struct {
 		name string
@@ -21,37 +21,37 @@ func Test_stateRGBA(t *testing.T) {
 	}{
 		{
 			name: "case 1",
-			args: args{v: matrix.StateFalse},
+			args: args{v: qrcode.QRValue_DATA_V0},
 			want: oo.bgColor,
 		},
 		{
 			name: "case 2",
-			args: args{v: matrix.StateInit},
+			args: args{v: qrcode.QRValue_INIT_V0},
 			want: oo.bgColor,
 		},
 		{
 			name: "case 3",
-			args: args{v: matrix.StateTrue},
+			args: args{v: qrcode.QRValue_DATA_V1},
 			want: oo.qrColor,
 		},
 		{
 			name: "case 4",
-			args: args{v: matrix.StateFormat},
+			args: args{v: qrcode.QRValue_FORMAT_V1},
 			want: oo.qrColor,
 		},
 		{
 			name: "case 5",
-			args: args{v: matrix.StateVersion},
+			args: args{v: qrcode.QRValue_VERSION_V1},
 			want: oo.qrColor,
 		},
 		{
 			name: "case 6",
-			args: args{v: matrix.State(0x6767)},
+			args: args{v: qrcode.QRValue(0x0f)},
 			want: oo.qrColor,
 		},
 		{
 			name: "case 7",
-			args: args{v: matrix.StateFinder},
+			args: args{v: qrcode.QRValue_FINDER_V1},
 			want: oo.qrColor,
 		},
 	}

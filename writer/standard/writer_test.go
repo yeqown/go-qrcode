@@ -8,8 +8,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/yeqown/go-qrcode/v2/matrix"
-
 	"github.com/yeqown/go-qrcode/v2"
 
 	"github.com/stretchr/testify/assert"
@@ -176,18 +174,19 @@ func Test_Attribute(t *testing.T) {
 	assert.Equal(t, height, attr.H)
 }
 
-func Test_image_draw(t *testing.T) {
-	m := matrix.New(20, 20)
-	// set all 3rd column as black else be white
-	for x := 0; x < m.Width(); x++ {
-		_ = m.Set(x, 3, matrix.StateTrue)
-	}
-
-	fd, err := os.Create("./testdata/default.jpeg")
-	require.NoError(t, err)
-	err = drawTo(fd, *m, nil)
-	require.NoError(t, err)
-}
+//
+//func Test_image_draw(t *testing.T) {
+//	m := new(qrcode.Matrix)
+//	// set all 3rd column as black else be white
+//	for x := 0; x < m.Width(); x++ {
+//		_ = m.Set(x, 3, matrix.StateTrue)
+//	}
+//
+//	fd, err := os.Create("./testdata/default.jpeg")
+//	require.NoError(t, err)
+//	err = drawTo(fd, *m, nil)
+//	require.NoError(t, err)
+//}
 
 func Test_writer_WithBgTransparent(t *testing.T) {
 	qrc, err := qrcode.New("https://yeqown.xyzom")

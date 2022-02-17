@@ -20,7 +20,7 @@ QR code (abbreviated from Quick Response Code) is the trademark for a type of ma
 - [x] `WithLogoImage`, `WithLogoImageFilePNG`, `WithLogoImageFileJPEG` help you add an icon at the central of QR Code.
 - [x] `WithBorderWidth` allows to specify any width of 4 sides around the qrcode.
 - [x] `WebAssembly` support, check out the [Example](./example/webassembly/README.md) and [README](cmd/wasm/README.md) for more detail.
-
+- [x] support Halftone QR Codes, check out the [Example](./example/with-halftone).
 ### Install
 
 ```sh
@@ -98,11 +98,17 @@ func WithErrorCorrectionLevel(ecLevel ecLevel) EncodeOption {}
 following are some shots:
 
 <div>
-
 <img src="./assets/example_fg_bg.jpeg" width="160px" align="left" title="with bg-fg color">
 <img src="./assets/example_logo.jpeg" width="160px" align="left" title="with logo image">
 <img src="./assets/example_circle.jpeg" width="160px" align="left" title="customize block shape">
 <img src="./assets/example_transparent.png" width="160px" title="with transparent bg">
+</div>
+
+<div>
+<img src="./assets/example_halftone0.jpeg" width="160px" align="left" title="halftone0">
+<img src="./assets/example_halftone1.jpeg" width="160px" align="left" title="halftone1">
+<img src="./assets/example_halftone2.jpeg" width="160px" align="left" title="halftone2">
+<img src="./assets/example_halftone3.jpeg" width="160px" title="halftone3">
 </div>
 
 <br>

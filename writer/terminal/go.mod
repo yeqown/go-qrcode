@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/nsf/termbox-go v1.1.1
-	github.com/yeqown/go-qrcode/v2 v2.0.1
+	github.com/yeqown/go-qrcode/v2 v2.2.0
 )
 
 require (
@@ -12,4 +12,4 @@ require (
 	github.com/yeqown/reedsolomon v1.0.0 // indirect
 )
 
-replace github.com/yeqown/go-qrcode/v2 => ../../
+//replace github.com/yeqown/go-qrcode/v2 => ../../

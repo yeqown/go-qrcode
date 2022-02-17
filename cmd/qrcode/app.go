@@ -30,7 +30,7 @@ func newApp() *cli.App {
 	app := cli.NewApp()
 	app.Name = "qrcode"
 	app.Description = "QR code generator"
-	app.Version = "v2.0.0-beta"
+	app.Version = "v2.0.1"
 	app.Authors = []*cli.Author{
 		{
 			Name:  "yeqown",
@@ -93,6 +93,7 @@ type fileOutputOptions struct {
 	borders       [4]int
 	isCircleShape bool
 	transparent   bool
+	halftoneImage string
 }
 
 func (foo fileOutputOptions) applyOptions() []standard.ImageOption {
@@ -118,6 +119,10 @@ func (foo fileOutputOptions) applyOptions() []standard.ImageOption {
 		options = append(options, standard.WithBgTransparent())
 	}
 
+	if foo.halftoneImage != "" {
+		options = append(options, standard.WithHalftone(foo.halftoneImage))
+	}
+
 	return options
 }
 
@@ -134,6 +139,7 @@ func parseGenerateContextFrom(c *cli.Context) *generateContext {
 			borders:       [4]int{},
 			isCircleShape: c.Bool("circle"),
 			transparent:   c.Bool("transparent"),
+			halftoneImage: c.String("halftone"),
 		},
 		TOO: &terminalOutputOptions{},
 	}
@@ -200,6 +206,12 @@ func prepareFlags() []cli.Flag {
 			Usage:       "--transparent",
 			Value:       false,
 			DefaultText: "false",
+		},
+		&cli.StringFlag{
+			Name:        "halftone",
+			Usage:       "--halftone=<halftone image>",
+			Value:       "",
+			DefaultText: "",
 		},
 	}
 }

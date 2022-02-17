@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/yeqown/go-qrcode v1.5.10
 	github.com/yeqown/go-qrcode/v2 v2.1.0
-	github.com/yeqown/go-qrcode/writer/halftone v1.0.0-beta
 	github.com/yeqown/go-qrcode/writer/standard v1.1.1
 	github.com/yeqown/go-qrcode/writer/terminal v1.0.0-beta
 )
@@ -16,7 +15,6 @@ require (
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/nsf/termbox-go v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/yeqown/go-qrcode/image-toolkit v1.0.0 // indirect
 	github.com/yeqown/reedsolomon v1.0.0 // indirect
 	golang.org/x/image v0.0.0-20211028202545-6944b10bf410 // indirect
 )
@@ -24,7 +22,5 @@ require (
 replace (
 	github.com/yeqown/go-qrcode/v2 => ../
 	github.com/yeqown/go-qrcode/writer/standard => ../writer/standard
-	github.com/yeqown/go-qrcode/writer/halftone => ../writer/halftone
-	github.com/yeqown/go-qrcode/image-toolkit v1.0.0 => ../image-toolkit
 	github.com/yeqown/go-qrcode/writer/terminal v1.0.0-beta => ../writer/terminal
 )

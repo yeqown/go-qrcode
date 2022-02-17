@@ -22,7 +22,7 @@ func newShape(radiusPercent float64) standard.IShape {
 
 func (sc *smallerCircle) Draw(ctx *standard.DrawContext) {
 	w, h := ctx.Edge()
-	upperLeft := ctx.UpperLeft()
+	x, y := ctx.UpperLeft()
 	color := ctx.Color()
 
 	// choose a proper radius values
@@ -35,8 +35,8 @@ func (sc *smallerCircle) Draw(ctx *standard.DrawContext) {
 	// 80 percent smaller
 	radius = int(float64(radius) * sc.smallerPercent)
 
-	cx, cy := upperLeft.X+w/2, upperLeft.Y+h/2 // get center point
-	ctx.DrawCircle(float64(cx), float64(cy), float64(radius))
+	cx, cy := x+float64(w)/2.0, y+float64(h)/2.0 // get center point
+	ctx.DrawCircle(cx, cy, float64(radius))
 	ctx.SetColor(color)
 	ctx.Fill()
 

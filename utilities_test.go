@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/yeqown/go-qrcode/v2/matrix"
 )
 
 func Test_min(t *testing.T) {
@@ -75,8 +73,8 @@ func Test_abs(t *testing.T) {
 
 func Test_samestate(t *testing.T) {
 	type args struct {
-		s1 matrix.State
-		s2 matrix.State
+		s1 qrvalue
+		s2 qrvalue
 	}
 	tests := []struct {
 		name string
@@ -86,56 +84,56 @@ func Test_samestate(t *testing.T) {
 		{
 			name: "case 1",
 			args: args{
-				s1: matrix.StateTrue,
-				s2: matrix.StateTrue,
+				s1: QRValue_DATA_V1,
+				s2: QRValue_DATA_V1,
 			},
 			want: true,
 		},
 		{
 			name: "case 2",
 			args: args{
-				s1: matrix.StateFalse,
-				s2: matrix.StateFalse,
+				s1: QRValue_DATA_V0,
+				s2: QRValue_DATA_V0,
 			},
 			want: true,
 		},
 		{
 			name: "case 3",
 			args: args{
-				s1: matrix.StateTrue,
-				s2: matrix.StateFalse,
+				s1: QRValue_DATA_V1,
+				s2: QRValue_DATA_V0,
 			},
 			want: false,
 		},
 		{
 			name: "case 4",
 			args: args{
-				s1: matrix.StateFalse,
-				s2: matrix.StateTrue,
+				s1: QRValue_DATA_V0,
+				s2: QRValue_DATA_V1,
 			},
 			want: false,
 		},
 		{
 			name: "case 5",
 			args: args{
-				s1: matrix.StateFinder,
-				s2: matrix.StateFinder,
+				s1: QRValue_FINDER_V1,
+				s2: QRValue_FINDER_V1,
 			},
 			want: true,
 		},
 		{
 			name: "case 6",
 			args: args{
-				s1: matrix.StateFinder,
-				s2: matrix.StateFalse,
+				s1: QRValue_FINDER_V1,
+				s2: QRValue_DATA_V0,
 			},
 			want: false,
 		},
 		{
 			name: "case 7",
 			args: args{
-				s1: matrix.StateTrue,
-				s2: matrix.StateFinder,
+				s1: QRValue_DATA_V1,
+				s2: QRValue_FINDER_V1,
 			},
 			want: true,
 		},
@@ -149,9 +147,8 @@ func Test_samestate(t *testing.T) {
 
 func Benchmark_samestate(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-
-		samestate(matrix.StateTrue, matrix.StateTrue)
-		samestate(matrix.StateTrue, matrix.StateVersion)
+		samestate(QRValue_DATA_V1, QRValue_DATA_V1)
+		samestate(QRValue_DATA_V1, QRValue_VERSION_V1)
 	}
 }
 
@@ -162,20 +159,20 @@ func Test_binaryToStateSlice(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want []matrix.State
+		want []qrvalue
 	}{
 		{
 			name: "case 1",
 			args: args{
 				"1010 0001 101a",
 			},
-			want: []matrix.State{
+			want: []qrvalue{
 				// 1010
-				matrix.StateTrue, matrix.StateFalse, matrix.StateTrue, matrix.StateFalse,
+				QRValue_DATA_V1, QRValue_DATA_V0, QRValue_DATA_V1, QRValue_DATA_V0,
 				// 0001
-				matrix.StateFalse, matrix.StateFalse, matrix.StateFalse, matrix.StateTrue,
+				QRValue_DATA_V0, QRValue_DATA_V0, QRValue_DATA_V0, QRValue_DATA_V1,
 				// 101a
-				matrix.StateTrue, matrix.StateFalse, matrix.StateTrue,
+				QRValue_DATA_V1, QRValue_DATA_V0, QRValue_DATA_V1,
 			},
 		},
 		{
@@ -183,13 +180,13 @@ func Test_binaryToStateSlice(t *testing.T) {
 			args: args{
 				"0000 11a1 11x2 x",
 			},
-			want: []matrix.State{
+			want: []qrvalue{
 				// 0000
-				matrix.StateFalse, matrix.StateFalse, matrix.StateFalse, matrix.StateFalse,
+				QRValue_DATA_V0, QRValue_DATA_V0, QRValue_DATA_V0, QRValue_DATA_V0,
 				// 11a1
-				matrix.StateTrue, matrix.StateTrue, matrix.StateTrue,
+				QRValue_DATA_V1, QRValue_DATA_V1, QRValue_DATA_V1,
 				// 11x2
-				matrix.StateTrue, matrix.StateTrue,
+				QRValue_DATA_V1, QRValue_DATA_V1,
 				// x
 				// nothing
 			},
@@ -197,7 +194,7 @@ func Test_binaryToStateSlice(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equalf(t, tt.want, binaryToStateSlice(tt.args.s), "binaryToStateSlice(%v)", tt.args.s)
+			assert.Equalf(t, tt.want, binaryToQRValueSlice(tt.args.s), "binaryToQRValueSlice(%v)", tt.args.s)
 		})
 	}
 }

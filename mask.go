@@ -1,9 +1,5 @@
 package qrcode
 
-import (
-	"github.com/yeqown/go-qrcode/v2/matrix"
-)
-
 // maskPatternModulo ...
 // mask Pattern ref to: https://www.thonky.com/qr-code-tutorial/mask-patterns
 type maskPatternModulo uint32
@@ -28,13 +24,13 @@ const (
 )
 
 type mask struct {
-	mat      *matrix.Matrix    // matrix
+	mat      *Matrix           // matrix
 	mode     maskPatternModulo // mode
 	moduloFn moduloFunc        // moduloFn masking function
 }
 
 // newMask ...
-func newMask(mat *matrix.Matrix, mode maskPatternModulo) *mask {
+func newMask(mat *Matrix, mode maskPatternModulo) *mask {
 	m := &mask{
 		mat:      mat.Copy(),
 		mode:     mode,
@@ -79,16 +75,16 @@ func (m *mask) masking() {
 		panic("impossible panic, contact maintainer plz")
 	}
 
-	m.mat.Iterate(matrix.COLUMN, func(x, y int, s matrix.State) {
+	m.mat.iter(IterDirection_COLUMN, func(x, y int, s qrvalue) {
 		// skip the function modules
-		if state, _ := m.mat.Get(x, y); state != matrix.StateInit {
-			_ = m.mat.Set(x, y, matrix.StateInit)
+		if v, _ := m.mat.at(x, y); v.qrtype() != QRType_INIT {
+			_ = m.mat.set(x, y, QRValue_INIT_V0)
 			return
 		}
 		if moduloFn(x, y) {
-			_ = m.mat.Set(x, y, matrix.StateTrue)
+			_ = m.mat.set(x, y, QRValue_DATA_V1)
 		} else {
-			_ = m.mat.Set(x, y, matrix.StateFalse)
+			_ = m.mat.set(x, y, QRValue_DATA_V0)
 		}
 	})
 }

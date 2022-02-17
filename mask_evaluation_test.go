@@ -7,7 +7,7 @@ import (
 )
 
 //func Test_rule3_refactor(t *testing.T) {
-//	qrc, err := New("baidu.com google.com qq.com sina.com apple.com")
+//	qrc, err := newMatrix("baidu.com google.com qq.com sina.com apple.com")
 //	assert.NoError(t, err)
 //	_ = qrc
 //	old := rule3_backup(qrc.mat)
@@ -26,7 +26,7 @@ func Benchmark_rule3(b *testing.B) {
 }
 
 //func Test_rule1_refactor(t *testing.T) {
-//	qrc, err := New("baidu.com google.com qq.com sina.com apple.com")
+//	qrc, err := newMatrix("baidu.com google.com qq.com sina.com apple.com")
 //	assert.NoError(t, err)
 //	qrc.mat.Print()
 //
@@ -46,7 +46,7 @@ func Benchmark_rule1(b *testing.B) {
 }
 
 //func Test_rule4_refactor(t *testing.T) {
-//	qrc, err := New("baidu.com google.com qq.com sina.com apple.com")
+//	qrc, err := newMatrix("baidu.com google.com qq.com sina.com apple.com")
 //	assert.NoError(t, err)
 //	//qrc.mat.Print()
 //

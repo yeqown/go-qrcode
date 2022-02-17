@@ -9,8 +9,6 @@ import (
 	"log"
 	"os"
 	"sync"
-
-	"github.com/yeqown/go-qrcode/v2/matrix"
 )
 
 var (
@@ -44,7 +42,7 @@ func debugLogf(format string, v ...interface{}) {
 	log.Printf("[qrcode] DEBUG: "+format, v...)
 }
 
-func debugDraw(filename string, mat matrix.Matrix) error {
+func debugDraw(filename string, mat Matrix) error {
 	if !debugEnabled() {
 		return nil
 	}
@@ -60,7 +58,7 @@ func debugDraw(filename string, mat matrix.Matrix) error {
 	return debugDrawTo(fd, mat)
 }
 
-func debugDrawTo(w io.Writer, mat matrix.Matrix) error {
+func debugDrawTo(w io.Writer, mat Matrix) error {
 	if !debugEnabled() {
 		return nil
 	}
@@ -81,9 +79,9 @@ func debugDrawTo(w io.Writer, mat matrix.Matrix) error {
 	}
 
 	// background
-	rectangle(0, 0, width, height, img, color.White)
+	rectangle(0, 0, width, height, img, color.Gray16{Y: 0xff12})
 
-	mat.Iterate(matrix.COLUMN, func(x int, y int, v matrix.State) {
+	mat.iter(IterDirection_COLUMN, func(x int, y int, v qrvalue) {
 		sx := x*blockWidth + padding
 		sy := y*blockWidth + padding
 		es := (x+1)*blockWidth + padding
@@ -91,8 +89,8 @@ func debugDrawTo(w io.Writer, mat matrix.Matrix) error {
 
 		// choose color, false use black, others use black on white background
 		var gray color.Gray16
-		switch v {
-		case matrix.StateFalse:
+		switch v.qrbool() {
+		case false:
 			gray = color.White
 		default:
 			gray = color.Black

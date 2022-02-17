@@ -9,10 +9,18 @@ import (
 )
 
 func Test_NewWith(t *testing.T) {
-	qrc, err := NewWith("1234567", WithEncodingMode(EncModeNumeric),
-		WithErrorCorrectionLevel(ErrorCorrectionLow))
+	qrc, err := NewWith("1234567",
+		WithEncodingMode(EncModeNumeric),
+		WithErrorCorrectionLevel(ErrorCorrectionLow),
+		WithVersion(7),
+	)
 	require.NoError(t, err)
 	assert.NotNil(t, qrc)
+
+	SetDebugMode()
+	_ = debugDraw("./testdata/nw.jpeg", *qrc.mat.Copy())
+
+	qrc.mat.print()
 }
 
 // Test_NewWithConfig_UnmatchedEncodeMode NewWith will panic while encMode is

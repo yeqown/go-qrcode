@@ -36,7 +36,7 @@ var (
 	errMissMatchedVersion    = errors.New("could not match version")
 	errMissMatchedEncodeType = errors.New("could not match the encode type")
 	// versions                 []version
-	// Each QR Code contains a 15-bit Format Information value.  The 15 bits
+	// Each QR Code contains a 15-bit Format Information qrbool.  The 15 bits
 	// consist of 5 data bits concatenated with 10 error correction bits.
 	//
 	// The 5 data bits consist of:
@@ -44,7 +44,7 @@ var (
 	// - 3 bits for the data mask pattern identifier.
 	//
 	// formatBitSequence is a mapping from the 5 data bits to the completed 15-bit
-	// Format Information value.
+	// Format Information qrbool.
 	//
 	// For example, a QR Code using error correction level L, and data mask
 	// pattern identifier 001:
@@ -65,11 +65,11 @@ var (
 		{0x24b4, 0x34e3}, {0x2183, 0x31d4}, {0x2eda, 0x3e8d}, {0x2bed, 0x3bba},
 	}
 
-	// QR Codes version 7 and higher contain an 18-bit version Information value,
+	// QR Codes version 7 and higher contain an 18-bit version Information qrbool,
 	// consisting of a 6 data bits and 12 error correction bits.
 	//
 	// versionBitSequence is a mapping from QR Code version to the completed
-	// 18-bit version Information value.
+	// 18-bit version Information qrbool.
 	//
 	// For example, a QR code of version 7:
 	// versionBitSequence[0x7] = 0x07c94 = 000111110010010100
@@ -164,7 +164,7 @@ func (v version) verInfo() *binary.Binary {
 	return result
 }
 
-// formatInfo returns the 15-bit Format Information value for a QR
+// formatInfo returns the 15-bit Format Information qrbool for a QR
 // code.
 func (v version) formatInfo(maskPattern int) *binary.Binary {
 	formatID := 0

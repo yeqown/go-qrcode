@@ -7,6 +7,8 @@ import (
 	"image/jpeg"
 	"image/png"
 	"os"
+
+	"github.com/yeqown/go-qrcode/writer/standard/imgkit"
 )
 
 // funcOption wraps a function that modifies outputImageOptions into an
@@ -200,5 +202,18 @@ func WithBorderWidth(widths ...int) ImageOption {
 			// 4+
 			apply(&oo.borderWidths, widths[0], widths[1], widths[2], widths[3])
 		}
+	})
+}
+
+// WithHalftone ...
+func WithHalftone(path string) ImageOption {
+	return newFuncOption(func(oo *outputImageOptions) {
+		srcImg, err := imgkit.Read(path)
+		if err != nil {
+			fmt.Println("Read halftone image failed: ", err)
+			return
+		}
+
+		oo.halftoneImg = srcImg
 	})
 }

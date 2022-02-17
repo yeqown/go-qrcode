@@ -71,6 +71,9 @@ func WithCustomImageEncoder(encoder ImageEncoder) ImageOption
 // WithBorderWidth(a, b) mean top/bottom equal to `a`, left/right equal to `b`.
 // WithBorderWidth(a, b, c, d) mean top, right, bottom, left.
 func WithBorderWidth(widths ...int) ImageOption
+
+// WithHalftone ...
+func WithHalftone(path string) ImageOption
 ```
 
 ### extension

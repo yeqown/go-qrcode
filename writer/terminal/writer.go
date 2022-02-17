@@ -2,7 +2,6 @@ package terminal
 
 import (
 	"github.com/yeqown/go-qrcode/v2"
-	"github.com/yeqown/go-qrcode/v2/matrix"
 
 	termbox "github.com/nsf/termbox-go"
 )
@@ -48,7 +47,7 @@ func (w Writer) drawBlock(x, y, padding int, fg termbox.Attribute, bg termbox.At
 	termbox.SetCell(x2, y2, '█', fg, bg)
 }
 
-func (w Writer) Write(mat matrix.Matrix) error {
+func (w Writer) Write(mat qrcode.Matrix) error {
 	//width, height, whratio := terminalSize()
 	//_ = width
 	//_ = height
@@ -60,12 +59,12 @@ func (w Writer) Write(mat matrix.Matrix) error {
 
 	padding := 1
 	w.preDraw(ww, hh, padding, bg)
-	mat.Iterate(matrix.ROW, func(x int, y int, state matrix.State) {
-		switch state {
-		case matrix.StateFalse:
-			fg = termbox.ColorWhite
-		default:
+	mat.Iterate(qrcode.IterDirection_ROW, func(x int, y int, state qrcode.QRValue) {
+
+		if state.IsSet() {
 			fg = termbox.ColorBlack
+		} else {
+			fg = termbox.ColorWhite
 		}
 
 		w.drawBlock(x, y, padding, fg, bg)

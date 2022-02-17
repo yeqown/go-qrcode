@@ -4,16 +4,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"github.com/yeqown/go-qrcode/v2/matrix"
 )
 
 func Test_kmp(t *testing.T) {
-	src := binaryToStateSlice("11001010010111001010010101011100")
+	src := binaryToQRValueSlice("11001010010111001010010101011100")
 
 	type args struct {
-		src     []matrix.State
-		pattern []matrix.State
+		src     []qrvalue
+		pattern []qrvalue
 	}
 	tests := []struct {
 		name      string
@@ -24,7 +22,7 @@ func Test_kmp(t *testing.T) {
 			name: "test1",
 			args: args{
 				src:     src,
-				pattern: binaryToStateSlice("0101"),
+				pattern: binaryToQRValueSlice("0101"),
 			},
 			wantCount: 6,
 		},
@@ -32,7 +30,7 @@ func Test_kmp(t *testing.T) {
 			name: "test1",
 			args: args{
 				src:     src,
-				pattern: binaryToStateSlice("1001010"),
+				pattern: binaryToQRValueSlice("1001010"),
 			},
 			wantCount: 3,
 		},

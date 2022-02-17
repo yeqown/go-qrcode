@@ -1,4 +1,4 @@
-package kit
+package imgkit
 
 import (
 	"image"

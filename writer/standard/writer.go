@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/yeqown/go-qrcode/v2"
+	"github.com/yeqown/go-qrcode/writer/standard/imgkit"
 
 	"github.com/fogleman/gg"
 	"github.com/pkg/errors"
@@ -119,30 +120,67 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 
 	// qrcode block draw context
 	ctx := &DrawContext{
-		Context:   dc,
-		upperLeft: image.Point{},
-		w:         opt.qrBlockWidth(),
-		h:         opt.qrBlockWidth(),
-		color:     color.Black,
+		Context: dc,
+		x:       0.0,
+		y:       0.0,
+		w:       opt.qrBlockWidth(),
+		h:       opt.qrBlockWidth(),
+		color:   color.Black,
 	}
 	shape := opt.getShape()
+
+	var (
+		halftoneImg image.Image
+		halftoneW   = float64(opt.qrBlockWidth()) / 3.0
+	)
+	if opt.halftoneImg != nil {
+		halftoneImg = imgkit.Binaryzation(
+			imgkit.Scale(opt.halftoneImg, image.Rect(0, 0, mat.Width()*3, mat.Width()*3), nil),
+			60,
+		)
+
+		//_ = imgkit.Save(halftoneImg, "mask.jpeg")
+	}
 
 	// iterate the matrix to Draw each pixel
 	mat.Iterate(qrcode.IterDirection_ROW, func(x int, y int, v qrcode.QRValue) {
 		// Draw the block
-		ctx.upperLeft = image.Point{
-			X: x*opt.qrBlockWidth() + left,
-			Y: y*opt.qrBlockWidth() + top,
-		}
+		ctx.x, ctx.y = float64(x*opt.qrBlockWidth()+left), float64(y*opt.qrBlockWidth()+top)
+		ctx.w, ctx.h = opt.qrBlockWidth(), opt.qrBlockWidth()
 		ctx.color = opt.translateToRGBA(v)
-		// DONE(@yeqown): make this abstract to Shapes
 
-		switch v.Type() {
+		// DONE(@yeqown): make this abstract to Shapes
+		switch typ := v.Type(); typ {
 		case qrcode.QRType_FINDER:
 			shape.DrawFinder(ctx)
+		case qrcode.QRType_DATA:
+			if halftoneImg == nil {
+				shape.Draw(ctx)
+				return
+			}
+
+			ctx2 := &DrawContext{
+				Context: ctx.Context,
+				w:       int(halftoneW),
+				h:       int(halftoneW),
+			}
+			// only halftone image enabled and current block is Data.
+			for i := 0; i < 3; i++ {
+				for j := 0; j < 3; j++ {
+					ctx2.x, ctx2.y = ctx.x+float64(i)*halftoneW, ctx.y+float64(j)*halftoneW
+					ctx2.color = halftoneImg.At(x*3+i, y*3+j)
+					if i == 1 && j == 1 {
+						ctx2.color = ctx.color
+						// only center block keep the origin color.
+					}
+					shape.Draw(ctx2)
+				}
+			}
 		default:
 			shape.Draw(ctx)
 		}
+
+		// EOFn
 	})
 
 	// DONE(@yeqown): add logo image

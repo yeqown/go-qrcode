@@ -1,24 +1,26 @@
-package kit
+package imgkit
 
 import (
-	"errors"
 	"image"
 	"image/jpeg"
 	"image/png"
 	"os"
 	"path/filepath"
+
+	"github.com/pkg/errors"
 )
 
+// Read reads an image from a file. only support PNG and JPEG yet.
 func Read(path string) (img image.Image, err error) {
 	fd, err := os.Open(path)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, "failed to open file")
 	}
 	defer fd.Close()
 
 	img, _, err = image.Decode(fd)
 	if err != nil {
-		return
+		return nil, errors.Wrap(err, "failed to decode image")
 	}
 
 	return img, nil

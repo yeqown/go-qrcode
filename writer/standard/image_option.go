@@ -52,6 +52,9 @@ type outputImageOptions struct {
 	// borderWidths indicates the border width of the output image. the order is
 	// top, right, bottom, left same as the WithBorder
 	borderWidths [4]int
+
+	// halftoneImg is the halftone image for the output image.
+	halftoneImg image.Image
 }
 
 func (oo *outputImageOptions) backgroundColor() color.RGBA {

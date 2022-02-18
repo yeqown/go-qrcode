@@ -16,7 +16,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.17.2
+        go-version: '1.18.0-beta2'
 
     - name: Build
       run: go build -v ./...

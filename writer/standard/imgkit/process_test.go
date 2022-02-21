@@ -10,6 +10,8 @@ import (
 )
 
 func Test_Gray(t *testing.T) {
+	t.Skipf("need human to check")
+
 	img, err := imgkit.Read("testdata/test.png")
 	assert.NoError(t, err)
 
@@ -19,6 +21,8 @@ func Test_Gray(t *testing.T) {
 }
 
 func TestBinaryzation(t *testing.T) {
+	t.Skipf("need human to check")
+
 	img, err := imgkit.Read("testdata/test.png")
 	assert.NoError(t, err)
 
@@ -29,6 +33,8 @@ func TestBinaryzation(t *testing.T) {
 }
 
 func TestScale(t *testing.T) {
+	t.Skipf("need human to check")
+
 	img, err := imgkit.Read("testdata/test_binaryzation.png")
 	assert.NoError(t, err)
 

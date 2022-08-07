@@ -1,11 +1,8 @@
 package standard
 
 import (
-	"fmt"
-	"image"
-	"image/color"
-
 	"github.com/yeqown/go-qrcode/v2"
+	"image"
 )
 
 type ImageOption interface {
@@ -15,12 +12,13 @@ type ImageOption interface {
 // defaultOutputImageOption default output image background color and etc options
 func defaultOutputImageOption() *outputImageOptions {
 	return &outputImageOptions{
-		bgColor:       color_WHITE,     // white
-		bgTransparent: false,           // not transparent
-		qrColor:       color_BLACK,     // black
-		logo:          nil,             //
-		qrWidth:       20,              //
-		shape:         _shapeRectangle, //
+		bgColor:       color_WHITE_rgba, // rgba white
+		bgTransparent: false,            // not transparent
+		qrColor:       color_BLACK_rgba, // rgba black
+		compressed:    false,            // disable compression mode
+		logo:          nil,              //
+		qrWidth:       20,               //
+		shape:         _shapeRectangle,  //
 		imageEncoder:  jpegEncoder{},
 		borderWidths:  [4]int{_defaultPadding, _defaultPadding, _defaultPadding, _defaultPadding},
 	}
@@ -28,13 +26,16 @@ func defaultOutputImageOption() *outputImageOptions {
 
 // outputImageOptions to output QR code image
 type outputImageOptions struct {
-	// bgColor is the background color of the QR code image.
-	bgColor color.RGBA
+	// bgColor is the background color of the QR code image, qrColor is
+	// the foreground color of the QR code.
+	bgColor, qrColor Color
+
 	// bgTransparent only affects on PNG_FORMAT
 	bgTransparent bool
-
-	// qrColor is the foreground color of the QR code.
-	qrColor color.RGBA
+	// compressed represents output image should be generated in the minimum size. only
+	// support gray color in compression mode, so APIs would take no any effect to output, such
+	// as WithBgColor, WithFgColor etc.
+	compressed bool
 
 	// logo this icon image would be put the center of QR Code image
 	// NOTE: logo only should have 1/5 size of QRCode image
@@ -57,13 +58,9 @@ type outputImageOptions struct {
 	halftoneImg image.Image
 }
 
-func (oo *outputImageOptions) backgroundColor() color.RGBA {
+func (oo *outputImageOptions) backgroundColor() Color {
 	if oo == nil {
 		return color_WHITE
-	}
-
-	if oo.bgTransparent {
-		(&oo.bgColor).A = 0x00
 	}
 
 	return oo.bgColor
@@ -108,83 +105,14 @@ func (oo *outputImageOptions) preCalculateAttribute(dimension int) *Attribute {
 	}
 }
 
-var (
-	color_WHITE = parseFromHex("#ffffff")
-	color_BLACK = parseFromHex("#000000")
-)
-
-var (
-	// _STATE_MAPPING mapping matrix.State to color.RGBA in debug mode.
-	_STATE_MAPPING = map[qrcode.QRType]color.RGBA{
-		qrcode.QRType_INIT:     parseFromHex("#ffffff"), // [bg]
-		qrcode.QRType_DATA:     parseFromHex("#cdc9c3"), // [bg]
-		qrcode.QRType_VERSION:  parseFromHex("#000000"), // [fg]
-		qrcode.QRType_FORMAT:   parseFromHex("#444444"), // [fg]
-		qrcode.QRType_FINDER:   parseFromHex("#555555"), // [fg]
-		qrcode.QRType_DARK:     parseFromHex("#2BA859"), // [fg]
-		qrcode.QRType_SPLITTER: parseFromHex("#2BA859"), // [fg]
-		qrcode.QRType_TIMING:   parseFromHex("#000000"), // [fg]
-	}
-)
-
-// translateToRGBA get color.RGBA by value State, if not found, return outputImageOptions.qrColor.
+// translateQrColor get color.RGBA by value State, if not found, return outputImageOptions.qrColor.
 // NOTE: this function decides the state should use qrColor or bgColor.
-func (oo *outputImageOptions) translateToRGBA(v qrcode.QRValue) (rgba color.RGBA) {
+func (oo *outputImageOptions) translateQrColor(v qrcode.QRValue) (c Color) {
 	// TODO(@yeqown): use _STATE_MAPPING to replace this function while in debug mode
 	// or some special flag.
 	if v.IsSet() {
-		rgba = oo.qrColor
-		return rgba
+		return oo.qrColor
 	}
 
-	if oo.bgTransparent {
-		(&oo.bgColor).A = 0x00
-	}
-	rgba = oo.bgColor
-
-	return rgba
-}
-
-// parseFromHex convert hex string into color.RGBA
-func parseFromHex(s string) color.RGBA {
-	c := color.RGBA{
-		R: 0,
-		G: 0,
-		B: 0,
-		A: 0xff,
-	}
-
-	var err error
-	switch len(s) {
-	case 7:
-		_, err = fmt.Sscanf(s, "#%02x%02x%02x", &c.R, &c.G, &c.B)
-	case 4:
-		_, err = fmt.Sscanf(s, "#%1x%1x%1x", &c.R, &c.G, &c.B)
-		// Double the hex digits:
-		c.R *= 17
-		c.G *= 17
-		c.B *= 17
-	default:
-		err = fmt.Errorf("invalid length, must be 7 or 4")
-	}
-	if err != nil {
-		panic(err)
-	}
-
-	return c
-}
-
-func parseFromColor(c color.Color) color.RGBA {
-	rgba, ok := c.(color.RGBA)
-	if ok {
-		return rgba
-	}
-
-	r, g, b, a := c.RGBA()
-	return color.RGBA{
-		R: uint8(r),
-		G: uint8(g),
-		B: uint8(b),
-		A: uint8(a),
-	}
+	return oo.bgColor
 }

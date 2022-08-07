@@ -149,6 +149,10 @@ func WithCustomShape(shape IShape) ImageOption {
 // WithBuiltinImageEncoder option includes: JPEG_FORMAT as default, PNG_FORMAT.
 // This works like WithBuiltinImageEncoder, the different between them is
 // formatTyp is enumerated in (JPEG_FORMAT, PNG_FORMAT)
+//
+// Note: built-in image encoders are NOT working in compressed mode, if you want to
+// compress the output image file, please use WithCustomImageEncoder to specify
+// another ImageEncoder.
 func WithBuiltinImageEncoder(format formatTyp) ImageOption {
 	return newFuncOption(func(oo *outputImageOptions) {
 		var encoder ImageEncoder
@@ -215,5 +219,13 @@ func WithHalftone(path string) ImageOption {
 		}
 
 		oo.halftoneImg = srcImg
+	})
+}
+
+// WithCompressed generates output image with the minimum size, be CAREFUL to enable
+// this option, since you CAN'T set color anymore after you enabled compressed mode.
+func WithCompressed() ImageOption {
+	return newFuncOption(func(oo *outputImageOptions) {
+		oo.compressed = true
 	})
 }

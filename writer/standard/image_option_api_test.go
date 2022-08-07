@@ -101,3 +101,14 @@ func Test_WithBgTransparent(t *testing.T) {
 	WithBgTransparent().apply(oo)
 	assert.True(t, oo.bgTransparent)
 }
+
+func Test_WithCompressed(t *testing.T) {
+	oo := defaultOutputImageOption()
+
+	// check default
+	assert.False(t, oo.compressed)
+
+	// apply
+	WithCompressed().apply(oo)
+	assert.True(t, oo.compressed)
+}

@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/yeqown/go-qrcode/v2"
+
 	"github.com/yeqown/go-qrcode/writer/standard/imgkit"
 
 	"github.com/fogleman/gg"
@@ -94,6 +95,17 @@ func drawTo(w io.Writer, mat qrcode.Matrix, option *outputImageOptions) (err err
 		return ErrNilWriter
 	}
 
+	// enable compressed color
+	if option.compressed {
+		option.bgColor = color_WHITE_compressed
+		option.qrColor = color_BLACK_compressed
+	}
+
+	// enable transparent
+	if option.bgTransparent {
+		option.bgColor.SetTransparent()
+	}
+
 	img := draw(mat, option)
 
 	// DONE(@yeqown): support file format specified config option
@@ -147,7 +159,7 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		// Draw the block
 		ctx.x, ctx.y = float64(x*opt.qrBlockWidth()+left), float64(y*opt.qrBlockWidth()+top)
 		ctx.w, ctx.h = opt.qrBlockWidth(), opt.qrBlockWidth()
-		ctx.color = opt.translateToRGBA(v)
+		ctx.color = opt.translateQrColor(v)
 
 		// DONE(@yeqown): make this abstract to Shapes
 		switch typ := v.Type(); typ {
@@ -159,12 +171,12 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 				return
 			}
 
+			// only halftone image enabled and current block is Data.
 			ctx2 := &DrawContext{
 				Context: ctx.Context,
 				w:       int(halftoneW),
 				h:       int(halftoneW),
 			}
-			// only halftone image enabled and current block is Data.
 			for i := 0; i < 3; i++ {
 				for j := 0; j < 3; j++ {
 					ctx2.x, ctx2.y = ctx.x+float64(i)*halftoneW, ctx.y+float64(j)*halftoneW
@@ -201,6 +213,11 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		dc.DrawImage(opt.logoImage(), (w-logoWidth)/2, (h-logoHeight)/2)
 	}
 done:
+
+	if opt.compressed {
+		return imgkit.Gray(dc.Image())
+	}
+
 	return dc.Image()
 }
 

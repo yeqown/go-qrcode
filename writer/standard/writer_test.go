@@ -202,3 +202,19 @@ func Test_writer_WithBgTransparent(t *testing.T) {
 	err = qrc.Save(w)
 	assert.NoError(t, err)
 }
+
+func Test_write_WithCompressed(t *testing.T) {
+	qrc, err := qrcode.New("https://yeqown.xyzom")
+	require.NoError(t, err)
+
+	w, err := New("./testdata/compressed.png",
+		WithBuiltinImageEncoder(PNG_FORMAT),
+		WithQRWidth(1),
+		WithBorderWidth(4),
+		WithCompressed(),
+	)
+	require.NoError(t, err)
+
+	err = qrc.Save(w)
+	assert.NoError(t, err)
+}

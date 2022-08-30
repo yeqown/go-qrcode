@@ -2,13 +2,13 @@ package standard
 
 import (
 	"fmt"
+	"github.com/yeqown/go-qrcode/v2"
 	"image"
 	"image/color"
 	"io"
 	"log"
 	"os"
 
-	"github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/standard/imgkit"
 
 	"github.com/fogleman/gg"
@@ -190,7 +190,7 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		upperLeft, lowerRight := bound.Min, bound.Max
 		logoWidth, logoHeight := lowerRight.X-upperLeft.X, lowerRight.Y-upperLeft.Y
 
-		if !validLogoImage(w, h, logoWidth, logoHeight) {
+		if !validLogoImage(w, h, logoWidth, logoHeight, opt.logoSizeMultiplier) {
 			log.Printf("w=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/5 of QRCode \n",
 				w, h, logoWidth, logoHeight)
 			goto done
@@ -204,8 +204,8 @@ done:
 	return dc.Image()
 }
 
-func validLogoImage(qrWidth, qrHeight, logoWidth, logoHeight int) bool {
-	return qrWidth >= 2*logoWidth && qrHeight >= 2*logoHeight
+func validLogoImage(qrWidth, qrHeight, logoWidth, logoHeight, logoSizeMultiplier int) bool {
+	return qrWidth >= logoSizeMultiplier*logoWidth && qrHeight >= logoSizeMultiplier*logoHeight
 }
 
 // Attribute contains basic information of generated image.

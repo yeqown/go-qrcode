@@ -2,13 +2,13 @@ package standard
 
 import (
 	"fmt"
-	"github.com/yeqown/go-qrcode/v2"
 	"image"
 	"image/color"
 	"io"
 	"log"
 	"os"
 
+	"github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/standard/imgkit"
 
 	"github.com/fogleman/gg"

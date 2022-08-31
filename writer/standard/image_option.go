@@ -2,9 +2,10 @@ package standard
 
 import (
 	"fmt"
-	"github.com/yeqown/go-qrcode/v2"
 	"image"
 	"image/color"
+
+	"github.com/yeqown/go-qrcode/v2"
 )
 
 type ImageOption interface {

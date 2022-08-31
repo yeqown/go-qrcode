@@ -101,3 +101,14 @@ func Test_WithBgTransparent(t *testing.T) {
 	WithBgTransparent().apply(oo)
 	assert.True(t, oo.bgTransparent)
 }
+
+func Test_WithLogoSizeMultiplier(t *testing.T) {
+	oo := defaultOutputImageOption()
+
+	// check default
+	assert.Equal(t, 5, oo.logoSizeMultiplier)
+
+	// apply
+	WithLogoSizeMultiplier(2).apply(oo)
+	assert.Equal(t, 2, oo.logoSizeMultiplier)
+}

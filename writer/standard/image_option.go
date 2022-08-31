@@ -15,14 +15,15 @@ type ImageOption interface {
 // defaultOutputImageOption default output image background color and etc options
 func defaultOutputImageOption() *outputImageOptions {
 	return &outputImageOptions{
-		bgColor:       color_WHITE,     // white
-		bgTransparent: false,           // not transparent
-		qrColor:       color_BLACK,     // black
-		logo:          nil,             //
-		qrWidth:       20,              //
-		shape:         _shapeRectangle, //
-		imageEncoder:  jpegEncoder{},
-		borderWidths:  [4]int{_defaultPadding, _defaultPadding, _defaultPadding, _defaultPadding},
+		bgColor:            color_WHITE, // white
+		bgTransparent:      false,       // not transparent
+		qrColor:            color_BLACK, // black
+		logo:               nil,         //
+		logoSizeMultiplier: 5,
+		qrWidth:            20,              //
+		shape:              _shapeRectangle, //
+		imageEncoder:       jpegEncoder{},
+		borderWidths:       [4]int{_defaultPadding, _defaultPadding, _defaultPadding, _defaultPadding},
 	}
 }
 
@@ -37,8 +38,10 @@ type outputImageOptions struct {
 	qrColor color.RGBA
 
 	// logo this icon image would be put the center of QR Code image
-	// NOTE: logo only should have 1/5 size of QRCode image
+	// NOTE: logo only should have 1 / logoSizeMultiplier size of QRCode image
 	logo image.Image
+
+	logoSizeMultiplier int
 
 	// qrWidth width of each qr block
 	qrWidth int

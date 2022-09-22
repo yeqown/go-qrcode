@@ -25,8 +25,8 @@ type compressedWriter struct {
 }
 
 var (
-	colorWhite = color.Gray{Y: 0xff}
-	colorBlack = color.Gray{Y: 0x00}
+	backgroundColor = color.Gray{Y: 0xff}
+	foregroundColor = color.Gray{Y: 0x00}
 )
 
 func New(filename string, opt *Option) (qrcode.Writer, error) {
@@ -43,18 +43,25 @@ func (w compressedWriter) Write(mat qrcode.Matrix) error {
 	blockWidth := w.option.BlockSize
 	width := mat.Width()*blockWidth + 2*padding
 	height := width
-	img := image.NewGray(image.Rect(0, 0, width, height))
 
-	rectangle := func(x1, y1 int, x2, y2 int, img *image.Gray, c color.Gray) {
+	img := image.NewPaletted(
+		image.Rect(0, 0, width, height),
+		color.Palette([]color.Color{backgroundColor, foregroundColor}),
+	)
+	bgColor := uint8(img.Palette.Index(backgroundColor))
+	fgColor := uint8(img.Palette.Index(foregroundColor))
+
+	rectangle := func(x1, y1 int, x2, y2 int, img *image.Paletted, color uint8) {
 		for x := x1; x < x2; x++ {
 			for y := y1; y < y2; y++ {
-				img.SetGray(x, y, c)
+				pos := img.PixOffset(x, y)
+				img.Pix[pos] = color
 			}
 		}
 	}
 
 	// background
-	rectangle(0, 0, width, height, img, colorWhite)
+	rectangle(0, 0, width, height, img, bgColor)
 
 	mat.Iterate(qrcode.IterDirection_COLUMN, func(x int, y int, v qrcode.QRValue) {
 		sx := x*blockWidth + padding
@@ -62,16 +69,17 @@ func (w compressedWriter) Write(mat qrcode.Matrix) error {
 		es := (x+1)*blockWidth + padding
 		ey := (y+1)*blockWidth + padding
 
-		// choose color, false use black, others use black on white background
-		var gray color.Gray
-		switch v.IsSet() {
-		case false:
-			gray = colorWhite
-		default:
-			gray = colorBlack
+		if v.IsSet() {
+			rectangle(sx, sy, es, ey, img, fgColor)
 		}
 
-		rectangle(sx, sy, es, ey, img, gray)
+		//switch v.IsSet() {
+		//case false:
+		//	gray = backgroundColor
+		//default:
+		//	gray = foregroundColor
+		//}
+
 	})
 
 	encoder := png.Encoder{CompressionLevel: png.BestCompression}

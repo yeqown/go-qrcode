@@ -117,6 +117,7 @@ following are some shots:
 
 - [Standard Writer](./writer/standard/README.md), prints QRCode into file and stream
 - [Terminal Writer](./writer/terminal/README.md), prints QRCode into terminal
+- [Compressed Writer](./writer/compressed/README.md), It's generated on a very small scale
 
 Of course, you can also code your own writer, just implement [Writer](./writer/README.md) interface.
 

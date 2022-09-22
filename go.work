@@ -4,4 +4,6 @@ use (
 	.
 	./.issues
 	./writer/compressed
+	./writer/standard
+	./writer/terminal
 )

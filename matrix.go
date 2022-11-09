@@ -141,7 +141,6 @@ func (m *Matrix) iter(dir iterDirection, visitFn func(x int, y int, v qrvalue)) 
 			visitFn(w, h, m.mat[w][h])
 		}
 	}
-	return
 }
 
 // Row return a row of matrix, cur should be y dimension.

@@ -513,8 +513,7 @@ func reserveVersionBlock(m *Matrix, dimension int) {
 
 // fillDataBinary fill q.dataBSet binary stream into q.mat.
 // References:
-//	* http://www.thonky.com/qr-code-tutorial/module-placement-matrix#Place-the-Data-Bits
-//
+//   - http://www.thonky.com/qr-code-tutorial/module-placement-matrix#Place-the-Data-Bits
 func (q *QRCode) fillDataBinary(m *Matrix, dimension int) {
 	var (
 		// x always move from right, left right loop (2 rows), y move upward, downward, upward loop
@@ -551,7 +550,7 @@ func (q *QRCode) fillDataBinary(m *Matrix, dimension int) {
 					x = x - 1
 				}
 				upForward = !upForward
-				state, err = m.at(x, y) // renew state qrbool after turn around writing direction.
+				state, _ = m.at(x, y) // renew state qrbool after turn around writing direction.
 			}
 		}
 

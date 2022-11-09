@@ -62,7 +62,7 @@ func WithErrorCorrectionLevel(ecLevel ecLevel) EncodeOption {
 // WithVersion sets the version of target QR code.
 func WithVersion(version int) EncodeOption {
 	return newFnEncodingOption(func(option *encodingOption) {
-		if version < 1 || version > 40 {
+		if version < 1 || version > _VERSION_COUNT {
 			return
 		}
 

@@ -60,41 +60,41 @@ func (v QRValue) IsSet() bool {
 type qrvalue uint8
 
 var (
-	// QRValue_INIT_V0 represents the value 0
-	QRValue_INIT_V0 = qrvalue(QRType_INIT | 0)
+	// QRValue_INIT_V0 represents the value 0 qrvalue(QRType_INIT | 0)
+	QRValue_INIT_V0 = qrvalue(QRType_INIT)
 
-	// QRValue_DATA_V0 represents the block has been set to false
-	QRValue_DATA_V0 = qrvalue(QRType_DATA | 0)
+	// QRValue_DATA_V0 represents the block has been set to false qrvalue(QRType_DATA | 0)
+	QRValue_DATA_V0 = qrvalue(QRType_DATA)
 	// QRValue_DATA_V1 represents the block has been set to TRUE
 	QRValue_DATA_V1 = qrvalue(QRType_DATA | 1)
 
-	// QRValue_VERSION_V0 represents the block has been set to false
-	QRValue_VERSION_V0 = qrvalue(QRType_VERSION | 0)
+	// QRValue_VERSION_V0 represents the block has been set to false qrvalue(QRType_VERSION | 0)
+	QRValue_VERSION_V0 = qrvalue(QRType_VERSION)
 	// QRValue_VERSION_V1 represents the block has been set to TRUE
 	QRValue_VERSION_V1 = qrvalue(QRType_VERSION | 1)
 
-	// QRValue_FORMAT_V0 represents the block has been set to false
-	QRValue_FORMAT_V0 = qrvalue(QRType_FORMAT | 0)
+	// QRValue_FORMAT_V0 represents the block has been set to false qrvalue(QRType_FORMAT | 0)
+	QRValue_FORMAT_V0 = qrvalue(QRType_FORMAT)
 	// QRValue_FORMAT_V1 represents the block has been set to TRUE
 	QRValue_FORMAT_V1 = qrvalue(QRType_FORMAT | 1)
 
-	// QRValue_FINDER_V0 represents the block has been set to false
-	QRValue_FINDER_V0 = qrvalue(QRType_FINDER | 0)
+	// QRValue_FINDER_V0 represents the block has been set to false qrvalue(QRType_FINDER | 0)
+	QRValue_FINDER_V0 = qrvalue(QRType_FINDER)
 	// QRValue_FINDER_V1 represents the block has been set to TRUE
 	QRValue_FINDER_V1 = qrvalue(QRType_FINDER | 1)
 
-	// QRValue_DARK_V0 represents the block has been set to false
-	QRValue_DARK_V0 = qrvalue(QRType_DARK | 0)
+	// QRValue_DARK_V0 represents the block has been set to false qrvalue(QRType_DARK | 0)
+	QRValue_DARK_V0 = qrvalue(QRType_DARK)
 	// QRValue_DARK_V1 represents the block has been set to TRUE
 	QRValue_DARK_V1 = qrvalue(QRType_DARK | 1)
 
-	// QRValue_SPLITTER_V0 represents the block has been set to false
-	QRValue_SPLITTER_V0 = qrvalue(QRType_SPLITTER | 0)
+	// QRValue_SPLITTER_V0 represents the block has been set to false qrvalue(QRType_SPLITTER | 0)
+	QRValue_SPLITTER_V0 = qrvalue(QRType_SPLITTER)
 	// QRValue_SPLITTER_V1 represents the block has been set to TRUE
 	QRValue_SPLITTER_V1 = qrvalue(QRType_SPLITTER | 1)
 
-	// QRValue_TIMING_V0 represents the block has been set to false
-	QRValue_TIMING_V0 = qrvalue(QRType_TIMING | 0)
+	// QRValue_TIMING_V0 represents the block has been set to false qrvalue(QRType_TIMING | 0)
+	QRValue_TIMING_V0 = qrvalue(QRType_TIMING)
 	// QRValue_TIMING_V1 represents the block has been set to TRUE
 	QRValue_TIMING_V1 = qrvalue(QRType_TIMING | 1)
 )

@@ -7,7 +7,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 	github.com/yeqown/go-qrcode/v2 v2.2.0
-	golang.org/x/image v0.0.0-20200927104501-e162460cd6b5
+	golang.org/x/image v0.5.0
 )
 
 require (

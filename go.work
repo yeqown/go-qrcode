@@ -6,4 +6,6 @@ use (
 	./writer/compressed
 	./writer/standard
 	./writer/terminal
+	./cmd/qrcode
+	./cmd/wasm
 )

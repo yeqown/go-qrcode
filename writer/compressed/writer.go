@@ -38,6 +38,10 @@ func New(filename string, opt *Option) (qrcode.Writer, error) {
 	return compressedWriter{fd: fd, option: opt}, nil
 }
 
+func NewWithWriter(writeCloser io.WriteCloser, opt *Option) qrcode.Writer {
+	return compressedWriter{fd: writeCloser, option: opt}
+}
+
 func (w compressedWriter) Write(mat qrcode.Matrix) error {
 	padding := w.option.Padding
 	blockWidth := w.option.BlockSize
@@ -46,7 +50,7 @@ func (w compressedWriter) Write(mat qrcode.Matrix) error {
 
 	img := image.NewPaletted(
 		image.Rect(0, 0, width, height),
-		color.Palette([]color.Color{backgroundColor, foregroundColor}),
+		[]color.Color{backgroundColor, foregroundColor},
 	)
 	bgColor := uint8(img.Palette.Index(backgroundColor))
 	fgColor := uint8(img.Palette.Index(foregroundColor))

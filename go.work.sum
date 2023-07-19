@@ -20,6 +20,7 @@ github.com/urfave/cli/v2 v2.3.0 h1:qph92Y649prgesehzOrQjdWyxFOp/QVM+6imKHad91M=
 github.com/urfave/cli/v2 v2.3.0/go.mod h1:LJmUH05zAU44vOAcrfzZQKsZbVcdbOG8rtL3/XcUArI=
 github.com/yeqown/go-qrcode/v2 v2.0.2/go.mod h1:Yy3DxXAv0XbWgniNafyB+6vpbZmUdCpvzeGy0h8ubXw=
 github.com/yeqown/go-qrcode/v2 v2.2.0/go.mod h1:2Qsk2APUCPne0TsRo40DIkI5MYnbzYKCnKGEFWrxd24=
+github.com/yeqown/go-qrcode/v2 v2.2.2/go.mod h1:2Qsk2APUCPne0TsRo40DIkI5MYnbzYKCnKGEFWrxd24=
 github.com/yeqown/go-qrcode/writer/standard v1.1.1/go.mod h1:GFrLTV4g3qxHdQesm5nKdNtbPa5cKDpFbmEib51Ofgs=
 github.com/yeqown/go-qrcode/writer/standard v1.2.0/go.mod h1:ZelyDFiVymrauRjUn454iF7bjsabmB1vixkDA5kq2bw=
 github.com/yeqown/go-qrcode/writer/terminal v1.1.0/go.mod h1:kh1Ru3RkCNKPYLcdmqh2VNNKPETUVDZScT/G9ZW1efs=

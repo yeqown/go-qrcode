@@ -8,4 +8,5 @@ use (
 	./writer/terminal
 	./cmd/qrcode
 	./cmd/wasm
+	example
 )

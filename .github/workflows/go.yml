@@ -50,3 +50,8 @@ jobs:
       working-directory: ./writer/terminal
       run: go mod tidy && mkdir testdata && go test -v ./...
       continue-on-error: false
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

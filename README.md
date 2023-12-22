@@ -107,7 +107,7 @@ following are some shots:
 <div>
 <img src="./assets/example_halftone0.jpeg" width="160px" align="left" title="halftone0">
 <img src="./assets/example_halftone1.jpeg" width="160px" align="left" title="halftone1">
-<img src="./assets/example_halftone2.jpeg" width="160px" align="left" title="halftone2">
+<img src="./assets/example_halftone2.png" width="160px" align="left" title="halftone2">
 <img src="./assets/example_halftone3.jpeg" width="160px" title="halftone3">
 </div>
 

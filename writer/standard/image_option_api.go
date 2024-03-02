@@ -218,6 +218,17 @@ func WithHalftone(path string) ImageOption {
 	})
 }
 
+// WithHalftone with image
+func WithHalftoneImage(img image.Image) ImageOption {
+	return newFuncOption(func(oo *outputImageOptions) {
+		if img == nil {
+			return
+		}
+
+		oo.halftoneImg = img
+	})
+}
+
 // WithLogoSizeMultiplier used in Writer in validLogoImage method to validate logo size
 func WithLogoSizeMultiplier(multiplier int) ImageOption {
 	return newFuncOption(func(oo *outputImageOptions) {

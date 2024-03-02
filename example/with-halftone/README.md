@@ -5,7 +5,7 @@
 
 ```go
 func main() {
-	qrc, err := qrcode.New("https://github.com/yeqown/go-qrcode")
+	qrc, err := qrcode.New("https://github.com/shachardevops/go-qrcode")
 	if err != nil {
 		panic(err)
 	}

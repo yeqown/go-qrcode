@@ -5,7 +5,7 @@ import (
 	"image"
 	"image/color"
 
-	"github.com/yeqown/go-qrcode/v2"
+	"github.com/shachardevops/go-qrcode/v2"
 )
 
 type ImageOption interface {

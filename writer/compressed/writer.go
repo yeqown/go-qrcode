@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/yeqown/go-qrcode/v2"
+	"github.com/shachardevops/go-qrcode/v2"
 )
 
 type Option struct {
@@ -17,7 +17,7 @@ type Option struct {
 
 // compressedWriter implements issue#69, generating compressed images
 // in some special situations, such as, network transferring.
-// https://github.com/yeqown/go-qrcode/issues/69
+// https://github.com/shachardevops/go-qrcode/issues/69
 type compressedWriter struct {
 	fd io.WriteCloser
 

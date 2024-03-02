@@ -1,15 +1,15 @@
 package main
 
 import (
-	qrv2 "github.com/yeqown/go-qrcode/v2"
-	"github.com/yeqown/go-qrcode/writer/standard"
+	qrv2 "github.com/shachardevops/go-qrcode/v2"
+	"github.com/shachardevops/go-qrcode/writer/standard"
 
-	qrv1 "github.com/yeqown/go-qrcode"
+	qrv1 "github.com/shachardevops/go-qrcode"
 )
 
 func main() {
 	// draw a QRCode image with
-	// - "https://github.com/yeqown/go-qrcode" source text
+	// - "https://github.com/shachardevops/go-qrcode" source text
 	// - circle shape
 	// - blue foreground color
 	// - white background color
@@ -27,7 +27,7 @@ func v1() {
 		EcLevel: qrv1.ErrorCorrectionHighest,
 		EncMode: qrv1.EncModeAuto,
 	}
-	qrc, err := qrv1.NewWithConfig("https://github.com/yeqown/go-qrcode", encodeConfig,
+	qrc, err := qrv1.NewWithConfig("https://github.com/shachardevops/go-qrcode", encodeConfig,
 		qrv1.WithCircleShape(),
 		qrv1.WithFgColorRGBHex("#0000ff"),
 		qrv1.WithBgColorRGBHex("#ffffff"),
@@ -45,7 +45,7 @@ func v1() {
 }
 
 func v2() {
-	qrc, err := qrv2.NewWith("https://github.com/yeqown/go-qrcode",
+	qrc, err := qrv2.NewWith("https://github.com/shachardevops/go-qrcode",
 		qrv2.WithErrorCorrectionLevel(qrv2.ErrorCorrectionHighest),
 	)
 	if err != nil {

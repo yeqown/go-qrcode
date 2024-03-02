@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/yeqown/go-qrcode/v2"
+	"github.com/shachardevops/go-qrcode/v2"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -95,7 +95,7 @@ func Test_New_WithBorderWidth(t *testing.T) {
 }
 
 // Test_Issue40
-// https://github.com/yeqown/go-qrcode/issues/40
+// https://github.com/shachardevops/go-qrcode/issues/40
 func Test_Issue40(t *testing.T) {
 	qrc, err := qrcode.New("https://yeqown.xyzom/")
 	require.NoError(t, err)

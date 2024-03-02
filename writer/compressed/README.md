@@ -1,6 +1,6 @@
 ## Compressed Writer
 
-[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/yeqown/go-qrcode/writer/compressed)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/shachardevops/go-qrcode/writer/compressed)
 
 Compressed Writer is a writer that is used to draw QR Code image on a very small scale.
 Since the compressed writer would only use a two-tone palette to generate the image,

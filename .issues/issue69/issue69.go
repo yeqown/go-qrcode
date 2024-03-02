@@ -1,5 +1,5 @@
 /*
- * Link:	https://github.com/yeqown/go-qrcode/issues/69
+ * Link:	https://github.com/shachardevops/go-qrcode/issues/69
  * Title:	Feature(image-compression): PNG bit depth must be 1
  * Author:  stokito(https://github.com/stokito)
  */
@@ -16,12 +16,12 @@ import (
 
 	skip2 "github.com/skip2/go-qrcode"
 
-	yeqown "github.com/yeqown/go-qrcode/v2"
-	yeqownwstd "github.com/yeqown/go-qrcode/writer/compressed"
+	yeqown "github.com/shachardevops/go-qrcode/v2"
+	yeqownwstd "github.com/shachardevops/go-qrcode/writer/compressed"
 )
 
 /*
-See https://github.com/yeqown/go-qrcode/issues/69
+See https://github.com/shachardevops/go-qrcode/issues/69
 Results: (unit: B)
 Content length:     158   // source text length
 qr-skip2-best.png:  641   // skip2 generated size

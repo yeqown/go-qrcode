@@ -1,13 +1,13 @@
-module github.com/yeqown/go-qrcode/cmd/qrcode
+module github.com/shachardevops/go-qrcode/cmd/qrcode
 
 go 1.17
 
 require (
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli/v2 v2.3.0
-	github.com/yeqown/go-qrcode/v2 v2.2.2
-	github.com/yeqown/go-qrcode/writer/standard v1.2.0
-	github.com/yeqown/go-qrcode/writer/terminal v1.1.0
+	github.com/shachardevops/go-qrcode/v2 v2.2.2
+	github.com/shachardevops/go-qrcode/writer/standard v1.2.0
+	github.com/shachardevops/go-qrcode/writer/terminal v1.1.0
 )
 
 require (
@@ -23,6 +23,6 @@ require (
 )
 
 //replace (
-//    github.com/yeqown/go-qrcode/v2 v2.0.1 => ../../
-//    github.com/yeqown/go-qrcode/writer/standard v1.0.0 => ../../writer/standard
+//    github.com/shachardevops/go-qrcode/v2 v2.0.1 => ../../
+//    github.com/shachardevops/go-qrcode/writer/standard v1.0.0 => ../../writer/standard
 //)

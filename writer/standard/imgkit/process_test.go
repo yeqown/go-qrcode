@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/yeqown/go-qrcode/writer/standard/imgkit"
+	"github.com/shachardevops/go-qrcode/writer/standard/imgkit"
 )
 
 func Test_Gray(t *testing.T) {

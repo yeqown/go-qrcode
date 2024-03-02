@@ -1,4 +1,4 @@
-module github.com/yeqown/go-qrcode/v2
+module github.com/shachardevops/go-qrcode/v2
 
 go 1.18
 

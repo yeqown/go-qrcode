@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/yeqown/go-qrcode/v2"
-	"github.com/yeqown/go-qrcode/writer/standard"
+	"github.com/shachardevops/go-qrcode/v2"
+	"github.com/shachardevops/go-qrcode/writer/standard"
 )
 
 func main() {
-	qrc, err := qrcode.NewWith("github.com/yeqown/go-qrcode",
+	qrc, err := qrcode.NewWith("github.com/shachardevops/go-qrcode",
 		qrcode.WithEncodingMode(qrcode.EncModeByte),
 		qrcode.WithErrorCorrectionLevel(qrcode.ErrorCorrectionQuart),
 	)

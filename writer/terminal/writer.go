@@ -1,7 +1,7 @@
 package terminal
 
 import (
-	"github.com/yeqown/go-qrcode/v2"
+	"github.com/shachardevops/go-qrcode/v2"
 
 	"github.com/mattn/go-runewidth"
 	termbox "github.com/nsf/termbox-go"

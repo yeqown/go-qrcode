@@ -8,18 +8,18 @@ import (
 	"io"
 	"syscall/js"
 
-	"github.com/yeqown/go-qrcode/v2"
-	stdw "github.com/yeqown/go-qrcode/writer/standard"
+	"github.com/shachardevops/go-qrcode/v2"
+	stdw "github.com/shachardevops/go-qrcode/writer/standard"
 )
 
-// encodeOption refers to github.com/yeqown/go-qrcode/v2.encodingOption
+// encodeOption refers to github.com/shachardevops/go-qrcode/v2.encodingOption
 type encodeOption struct {
 	version int    // encodeVersion
 	mode    uint8  // encodeMode specifies which encMode to use (0/1/2/3).
 	ecLevel string // encodeECLevel specifies which ecLevel to use (L/M/Q/H)
 }
 
-// outputOption refers to github.com/yeqown/go-qrcode/writer/standard.outputImageOptions
+// outputOption refers to github.com/shachardevops/go-qrcode/writer/standard.outputImageOptions
 type outputOption struct {
 	bgColor       string // outputBgColor is the background color of the QR code image.
 	bgTransparent bool   // outputBgTransparent indicates whether the background color is transparent.

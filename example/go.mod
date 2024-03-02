@@ -3,10 +3,10 @@ module example
 go 1.17
 
 require (
-	github.com/yeqown/go-qrcode v1.5.10
-	github.com/yeqown/go-qrcode/v2 v2.2.2
-	github.com/yeqown/go-qrcode/writer/standard v1.1.1
-	github.com/yeqown/go-qrcode/writer/terminal v1.0.0-beta
+	github.com/shachardevops/go-qrcode v1.5.10
+	github.com/shachardevops/go-qrcode/v2 v2.2.2
+	github.com/shachardevops/go-qrcode/writer/standard v1.1.1
+	github.com/shachardevops/go-qrcode/writer/terminal v1.0.0-beta
 )
 
 require (
@@ -20,7 +20,7 @@ require (
 )
 
 replace (
-	github.com/yeqown/go-qrcode/v2 => ../
-	github.com/yeqown/go-qrcode/writer/standard => ../writer/standard
-	github.com/yeqown/go-qrcode/writer/terminal v1.0.0-beta => ../writer/terminal
+	github.com/shachardevops/go-qrcode/v2 => ../
+	github.com/shachardevops/go-qrcode/writer/standard => ../writer/standard
+	github.com/shachardevops/go-qrcode/writer/terminal v1.0.0-beta => ../writer/terminal
 )

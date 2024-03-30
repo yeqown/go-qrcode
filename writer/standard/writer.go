@@ -139,7 +139,7 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 			60,
 		)
 
-		//_ = imgkit.Save(halftoneImg, "mask.jpeg")
+		// _ = imgkit.Save(halftoneImg, "mask.jpeg")
 	}
 
 	// iterate the matrix to Draw each pixel
@@ -168,10 +168,10 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 			for i := 0; i < 3; i++ {
 				for j := 0; j < 3; j++ {
 					ctx2.x, ctx2.y = ctx.x+float64(i)*halftoneW, ctx.y+float64(j)*halftoneW
-					ctx2.color = halftoneImg.At(x*3+i, y*3+j)
 					if i == 1 && j == 1 {
 						ctx2.color = ctx.color
-						// only center block keep the origin color.
+					} else {
+						ctx2.color = halftoneColor(halftoneImg, opt.bgTransparent, x*3+i, y*3+j)
 					}
 					shape.Draw(ctx2)
 				}
@@ -197,11 +197,32 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		}
 
 		// DONE(@yeqown): calculate the xOffset and yOffset which point(xOffset, yOffset)
-		//should icon upper-left to start
+		// should icon upper-left to start
 		dc.DrawImage(opt.logoImage(), (w-logoWidth)/2, (h-logoHeight)/2)
 	}
 done:
 	return dc.Image()
+}
+
+// halftoneImage is an image.Gray type image, which At(x, y) return color.Gray.
+// black equals to color.Gray{0}, white equals to color.Gray{255}.
+func halftoneColor(halftoneImage image.Image, transparent bool, x, y int) color.Color {
+
+	c0 := halftoneImage.At(x, y)
+	c1, ok := halftoneImage.At(x, y).(color.Gray)
+	if !ok {
+		log.Printf("halftoneColor: not a gray image, got: %T\n", c0)
+		return c0
+	}
+
+	if c1.Y == 255 {
+		if transparent {
+			return color.RGBA{}
+		}
+		return color.RGBA{R: 255, G: 255, B: 255, A: 255}
+	}
+
+	return color.RGBA{A: 255}
 }
 
 func validLogoImage(qrWidth, qrHeight, logoWidth, logoHeight, logoSizeMultiplier int) bool {

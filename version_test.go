@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -229,6 +230,22 @@ func Test_binarySearchVersion_all(t *testing.T) {
 
 		//t.Logf("finding: version=%d, ecLevel=%d", v.Ver, v.ECLevel)
 	}
+}
+
+func Test_loadAlignmentPatternLoc_concurrentAccess(t *testing.T) {
+	var wg sync.WaitGroup
+
+	for ver := 2; ver <= _VERSION_COUNT; ver++ {
+		wg.Add(1)
+
+		go func(v int) {
+			got := loadAlignmentPatternLoc(v)
+			assert.NotEmpty(t, got)
+			wg.Done()
+		}(ver)
+	}
+
+	wg.Wait()
 }
 
 // // go test -run=NONE -bench . -count 10 > new/old.txt

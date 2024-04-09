@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"strconv"
+	"sync"
 
 	// "github.com/skip2/go-qrcode/bitset"
 	"github.com/yeqown/reedsolomon/binary"
@@ -353,7 +354,8 @@ var (
 		40: {6, 30, 58, 86, 114, 142, 170},
 	}
 
-	alignPatternCache = map[int][]loc{}
+	alignPatternCache   = map[int][]loc{}
+	alignPatternCacheMu sync.Mutex
 )
 
 // loc point position(x,y)
@@ -367,6 +369,10 @@ func loadAlignmentPatternLoc(ver int) (locs []loc) {
 	if ver < 2 {
 		return
 	}
+
+	alignPatternCacheMu.Lock()
+	defer alignPatternCacheMu.Unlock()
+
 	var ok bool
 	if locs, ok = alignPatternCache[ver]; ok {
 		return

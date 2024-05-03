@@ -10,6 +10,10 @@ import (
 	"github.com/yeqown/reedsolomon/binary"
 )
 
+func init() {
+	precalculateAlignPatternLocs()
+}
+
 // ecLevel error correction level
 type ecLevel int
 
@@ -354,8 +358,10 @@ var (
 		40: {6, 30, 58, 86, 114, 142, 170},
 	}
 
-	alignPatternCache   = map[int][]loc{}
+	alignPatternCache = map[int][]loc{}
+	// TODO(@yeqown): remove this lock later, if alignPatternCache precalculation works well.
 	alignPatternCacheMu sync.Mutex
+	precalculateOnce    sync.Once
 )
 
 // loc point position(x,y)
@@ -364,7 +370,8 @@ type loc struct {
 	Y int // for height
 }
 
-// loadAlignmentPatternLoc ...
+// loadAlignmentPatternLoc load alignment pattern location by version
+// @Deprecated
 func loadAlignmentPatternLoc(ver int) (locs []loc) {
 	if ver < 2 {
 		return
@@ -394,6 +401,59 @@ func loadAlignmentPatternLoc(ver int) (locs []loc) {
 	}
 	alignPatternCache[ver] = locs
 	return
+}
+
+func loadAlignmentPatternLocV2(ver int) []loc {
+	if ver < 2 {
+		return nil
+	}
+
+	if locs, ok := alignPatternCache[ver]; ok {
+		return locs
+	}
+
+	// Just in case, we need to calculate the alignment pattern locations
+	locs := calcAlignPatternLocs(ver)
+	alignPatternCacheMu.Lock()
+	alignPatternCache[ver] = locs
+	alignPatternCacheMu.Unlock()
+
+	return locs
+}
+
+// precalculateAlignPatternLocs precalculate all versions' alignment pattern locations which
+// only need to be calculated once.
+func precalculateAlignPatternLocs() {
+	precalculateOnce.Do(func() {
+		for ver := 2; ver <= _VERSION_COUNT; ver++ {
+			alignPatternCache[ver] = calcAlignPatternLocs(ver)
+		}
+	})
+}
+
+func calcAlignPatternLocs(ver int) (locs []loc) {
+	if ver < 2 {
+		return
+	}
+
+	dimension := ver*4 + 17
+	positions, ok := alignPatternLocation[ver]
+	if !ok {
+		panic("could not found align at version: " + strconv.Itoa(ver))
+	}
+
+	locs = make([]loc, 0, len(positions)*len(positions))
+
+	for _, pos1 := range positions {
+		for _, pos2 := range positions {
+			if !valid(pos1, pos2, dimension) {
+				continue
+			}
+			locs = append(locs, loc{X: pos1, Y: pos2})
+		}
+	}
+
+	return locs
 }
 
 // x, y center position x,y so

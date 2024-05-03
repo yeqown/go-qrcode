@@ -14,3 +14,7 @@ default.jpeg
 tmp.png
 
 go.sum
+
+# Go Test
+new.txt
+old.txt

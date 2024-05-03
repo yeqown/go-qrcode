@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -228,7 +227,7 @@ func Test_binarySearchVersion_all(t *testing.T) {
 		assert.True(t, found)
 		assert.Equal(t, v, hit)
 
-		//t.Logf("finding: version=%d, ecLevel=%d", v.Ver, v.ECLevel)
+		// t.Logf("finding: version=%d, ecLevel=%d", v.Ver, v.ECLevel)
 	}
 }
 
@@ -239,7 +238,7 @@ func Test_loadAlignmentPatternLoc_concurrentAccess(t *testing.T) {
 		wg.Add(1)
 
 		go func(v int) {
-			got := loadAlignmentPatternLoc(v)
+			got := loadAlignmentPatternLocV2(v)
 			assert.NotEmpty(t, got)
 			wg.Done()
 		}(ver)
@@ -248,7 +247,19 @@ func Test_loadAlignmentPatternLoc_concurrentAccess(t *testing.T) {
 	wg.Wait()
 }
 
-// // go test -run=NONE -bench . -count 10 > new/old.txt
+func Benchmark_LoadAlignmentPatternLoc(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = loadAlignmentPatternLoc(5)
+	}
+}
+
+func Benchmark_LoadAlignmentPatternLocV2(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = loadAlignmentPatternLocV2(5)
+	}
+}
+
+// go test -run=NONE -bench . -count 10 > new/old.txt
 func Benchmark_loadVersion_top(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		loadVersion(2, ErrorCorrectionMedium)

@@ -332,7 +332,7 @@ func (q *QRCode) prefillMatrix() {
 	// only version-1 QR code has no alignment module
 	if q.v.Ver > 1 {
 		// add align-mode related to version cfg
-		for _, loc := range loadAlignmentPatternLoc(q.v.Ver) {
+		for _, loc := range loadAlignmentPatternLocV2(q.v.Ver) {
 			addAlignment(q.mat, loc.X, loc.Y)
 		}
 		debugLogf("finish align")

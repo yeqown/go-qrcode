@@ -93,16 +93,17 @@ func newEncoder(m encMode, ec ecLevel, v version) *encoder {
 // Encode ...
 // 1. encode raw data into bitset
 // 2. append _defaultPadding data
-//
-func (e *encoder) Encode(byts []byte) (*binary.Binary, error) {
+func (e *encoder) Encode(raw string) (*binary.Binary, error) {
 	e.dst = binary.New()
-	e.data = byts
+
+	// TODO: construct data []byte with encMode
+	e.data = []byte(raw)
 
 	// append mode indicator symbol
 	indicator := getEncodeModeIndicator(e.mode)
 	e.dst.Append(indicator)
 	// append chars length counter bits symbol
-	e.dst.AppendUint32(uint32(len(byts)), e.charCountBits())
+	e.dst.AppendUint32(uint32(len(e.data)), e.charCountBits())
 
 	// encode data with specified mode
 	switch e.mode {
@@ -113,7 +114,7 @@ func (e *encoder) Encode(byts []byte) (*binary.Binary, error) {
 	case EncModeByte:
 		e.encodeByte()
 	case EncModeJP:
-		panic("this has not been finished")
+		e.encodeKanji()
 	}
 
 	// fill and _defaultPadding bits
@@ -176,6 +177,12 @@ func (e *encoder) encodeByte() {
 	for _, b := range e.data {
 		_ = e.dst.AppendByte(b, 8)
 	}
+}
+
+// encodeKanji
+// https://www.thonky.com/qr-code-tutorial/kanji-mode-encoding
+func (e *encoder) encodeKanji() {
+
 }
 
 // Break Up into 8-bit Codewords and Add Pad Bytes if Necessary
@@ -283,7 +290,7 @@ func encodeAlphanumericCharacter(v byte) uint32 {
 
 // analyzeEncFunc returns true is current byte matched in current mode,
 // otherwise means you should use a bigger character set to check.
-type analyzeEncFunc func(byte) bool
+type analyzeEncFunc func(rune) bool
 
 // analyzeEncodeModeFromRaw try to detect letter set of input data,
 // so that encoder can determine which mode should be use.
@@ -293,32 +300,31 @@ type analyzeEncFunc func(byte) bool
 // case2: could not use EncModeNumeric, but you can find all of them in character mapping, use EncModeAlphanumeric.
 // case3: could not use EncModeAlphanumeric, but you can find all of them in ISO-8859-1 character set, use EncModeByte.
 // case4: could not use EncModeByte, use EncModeJP, no more choice.
-//
-func analyzeEncodeModeFromRaw(raw []byte) encMode {
+func analyzeEncodeModeFromRaw(raw string) encMode {
 	analyzeFnMapping := map[encMode]analyzeEncFunc{
 		EncModeNumeric:      analyzeNum,
 		EncModeAlphanumeric: analyzeAlphaNum,
-		EncModeByte:         nil,
+		EncModeByte:         analyzeByte,
 		EncModeJP:           nil,
 	}
 
 	var (
-		f    analyzeEncFunc
-		mode = EncModeNumeric
+		analyzeFn analyzeEncFunc
+		mode      = EncModeNumeric
 	)
 
 	// loop to check each character in raw data,
 	// from low mode to higher while current mode could bearing the input data.
 	for _, byt := range raw {
 	reAnalyze:
-		if f = analyzeFnMapping[mode]; f == nil {
+		if analyzeFn = analyzeFnMapping[mode]; analyzeFn == nil {
 			break
 		}
 
 		// issue#28 @borislavone reports this bug.
 		// FIXED(@yeqown): next encMode analyzeVersionAuto func did not check the previous byte,
 		// add goto statement to reanalyze previous byte which can't be analyzed in last encMode.
-		if !f(byt) {
+		if !analyzeFn(byt) {
 			mode <<= 1
 			goto reAnalyze
 		}
@@ -328,12 +334,12 @@ func analyzeEncodeModeFromRaw(raw []byte) encMode {
 }
 
 // analyzeNum is byt in num encMode
-func analyzeNum(byt byte) bool {
+func analyzeNum(byt rune) bool {
 	return byt >= '0' && byt <= '9'
 }
 
 // analyzeAlphaNum is byt in alpha number
-func analyzeAlphaNum(byt byte) bool {
+func analyzeAlphaNum(byt rune) bool {
 	if (byt >= '0' && byt <= '9') || (byt >= 'A' && byt <= 'Z') {
 		return true
 	}
@@ -344,7 +350,8 @@ func analyzeAlphaNum(byt byte) bool {
 	return false
 }
 
-//// analyzeByte is byt in bytes.
-//func analyzeByte(byt byte) qrbool {
-//	return false
-//}
+// analyzeByte contains ISO-8859-1 character set
+func analyzeByte(byt rune) bool {
+	// TODO: analyze input can be found in ISO-8859-1 character set.
+	return true
+}

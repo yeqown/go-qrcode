@@ -8,6 +8,7 @@ import (
 
 	// "github.com/skip2/go-qrcode/bitset"
 	"github.com/yeqown/reedsolomon/binary"
+	"unicode/utf8"
 )
 
 func init() {
@@ -273,7 +274,7 @@ func loadVersion(lv int, ec ecLevel) version {
 //
 // check out http://muyuchengfeng.xyz/%E4%BA%8C%E7%BB%B4%E7%A0%81-%E5%AD%97%E7%AC%A6%E5%AE%B9%E9%87%8F%E8%A1%A8/
 // for more details.
-func analyzeVersion(raw []byte, ec ecLevel, mode encMode) (*version, error) {
+func analyzeVersion(raw string, ec ecLevel, mode encMode) (*version, error) {
 	step := 0
 	switch ec {
 	case ErrorCorrectionLow:
@@ -288,7 +289,7 @@ func analyzeVersion(raw []byte, ec ecLevel, mode encMode) (*version, error) {
 		return nil, errInvalidErrorCorrectionLevel
 	}
 
-	want, mark := len(raw), 0
+	want, mark := utf8.RuneCountInString(raw), 0
 	for ; step < 160; step += 4 {
 
 		switch mode {

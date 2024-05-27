@@ -1,8 +1,8 @@
-## Terminal 
+## Terminal
 
-[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/yeqown/go-qrcode/writer/standard)
+[![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/yeqown/go-qrcode/writer/terminal)
 
-Standard Writer is a writer that is used to draw QR Code image into terminal.
+Terminal Writer is a writer that is used to draw QR Code image into terminal.
 
 ### Usage
 
@@ -18,7 +18,7 @@ func main() {
 	qrc, _ := qrcode.New("withTerminalWriter")
 
 	w := terminal.New()
-	
+
 	if err := qrc.Save(w); err != nil {
 		panic(err)
 	}

@@ -164,3 +164,17 @@ func (m *Matrix) Col(cur int) []qrvalue {
 
 	return m.mat[cur]
 }
+
+// Bitmap outputs the QR Code as a matrix of pixels, each represented by a single bit.
+func (m *Matrix) Bitmap() [][]bool {
+	table := make([][]bool, m.Height())
+	for t := range table {
+		table[t] = make([]bool, m.Width())
+	}
+
+	m.iter(IterDirection_ROW, func(x, y int, s qrvalue) {
+		table[y][x] = s.qrbool()
+	})
+
+	return table
+}

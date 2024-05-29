@@ -142,6 +142,10 @@ func (oo *outputImageOptions) translateToRGBA(v qrcode.QRValue) (rgba color.RGBA
 
 	if oo.bgTransparent {
 		(&oo.bgColor).A = 0x00
+		// color.RGBA is pre-multiplied by alpha, so set RGB to 0 when fully transparent.
+		(&oo.bgColor).R = 0x00
+		(&oo.bgColor).G = 0x00
+		(&oo.bgColor).B = 0x00
 	}
 	rgba = oo.bgColor
 

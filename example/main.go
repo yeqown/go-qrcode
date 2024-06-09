@@ -10,7 +10,7 @@ import (
 func main() {
 	repo()
 
-	//issue17()
+	// issue17()
 }
 
 func repo() {
@@ -34,9 +34,9 @@ func repo() {
 
 func issue17() {
 	qrc, err := qrcode.New("Övrigt asdasd asdas djaskl djaslk djaslkj dlaiodqjwiodjaskldj aksldjlk Övrigt")
-	//qrc, err := qrcode.New("text content this is custom text content this is custom text content70123")
+	// qrc, err := qrcode.New("text content this is custom text content this is custom text content70123")
 	// content over than 74 length would trigger this
-	//qrc, err := qrcode.New("text content this is custom text content this is custom text content701234",
+	// qrc, err := qrcode.New("text content this is custom text content this is custom text content701234",
 	//	qrcode.WithCircleShape())
 	if err != nil {
 		fmt.Printf("could not generate QRCode: %v", err)

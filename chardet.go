@@ -90,11 +90,7 @@ func analyzeAlphaNum(r rune) bool {
 // analyzeByte contains ISO-8859-1 character set
 func analyzeByte(r rune) bool {
 	// ISO-8859-1 character set, if r > \u00ff, means it's not in ISO-8859-1.
-	if r > '\u00ff' {
-		return false
-	}
-
-	return true
+	return r <= '\u00ff'
 }
 
 // analyzeJP contains Kanji character set

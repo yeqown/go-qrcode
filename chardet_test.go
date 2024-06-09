@@ -202,7 +202,7 @@ func Test_analyzeMode(t *testing.T) {
 		},
 		{
 			name: "case 5",
-			args: args{raw: "这是汉字也应该是EncModeByte"},
+			args: args{raw: "茗荷"},
 			want: EncModeJP,
 		},
 		{
@@ -212,7 +212,7 @@ func Test_analyzeMode(t *testing.T) {
 		},
 		{
 			name: "case 7 (japanese letter)",
-			args: args{raw: "にほんごのテスト"},
+			args: args{raw: "朸 朷 杆 杞 杠 杙 杣"},
 			want: EncModeJP,
 		},
 		{

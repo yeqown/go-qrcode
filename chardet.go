@@ -38,28 +38,34 @@ func analyzeEncodeModeFromRaw(raw string) encMode {
 		default:
 		}
 
-		return analyzeDefault
+		return nil
 	}
 
-	next := func() {
-		// switch to next mode and get next analyze function.
+	next := func() bool {
+		// switch to next mode and get next analyze function. if no more analyze function, return true.
 		mode <<= 1
 		analyzeFn = getNextAnalyzeFn()
+		return analyzeFn == nil
 	}
 
 	next()
 
 	// Loop to check each character in raw data,
 	// from low mode to higher while current mode could bear the input data.
-	for _, byt := range raw {
+	for _, r := range raw {
 	reAnalyze:
 		// issue#28 @borislavone reports this bug.
 		// FIXED(@yeqown): next encMode analyzeVersionAuto func did not check the previous byte,
 		// add goto statement to reanalyze previous byte which can't be analyzed in last encMode.
-		if !analyzeFn(byt) {
-			next()
-			goto reAnalyze
+		if pass := analyzeFn(r); pass {
+			continue
 		}
+
+		if nomore := next(); nomore {
+			break
+		}
+
+		goto reAnalyze
 	}
 
 	if mode > EncModeJP {
@@ -104,9 +110,5 @@ func analyzeJP(r rune) bool {
 		return true
 	}
 
-	return false
-}
-
-func analyzeDefault(r rune) bool {
 	return false
 }

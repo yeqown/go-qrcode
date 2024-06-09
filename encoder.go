@@ -7,13 +7,28 @@ import (
 	"log"
 
 	"github.com/yeqown/reedsolomon/binary"
+	"strconv"
 )
 
-// encMode ...
+// encMode indicates the encoding mode of the data to be encoded.
+// The encoding mode is used to determine how the data should be encoded
+// into bits for the QR code. This repository supports the following encoding
+// modes:
+// - EncModeNone: no encoding
+// - EncModeNumeric: numeric encoding
+// - EncModeAlphanumeric: alphanumeric encoding
+// - EncModeByte: byte encoding
+// - EncModeJP: japanese encoding
+//
+// The encoding mode is determined by the data to be encoded. For example, if
+// the data to be encoded is all numeric, the encoding mode will be EncModeNumeric.
+// If the data to be encoded is alphanumeric, the encoding mode will be EncModeAlphanumeric.
+// You can also specify the encoding mode automatically by using EncModeAuto, which
+// will automatically determine the encoding mode based on the data to be encoded.
 type encMode uint
 
 const (
-	// a qrbool of EncModeAuto will trigger a detection of the letter set from the input data,
+	// EncModeAuto will trigger a detection of the letter set from the input data.
 	EncModeAuto = 0
 	// EncModeNone mode ...
 	EncModeNone encMode = 1 << iota
@@ -46,7 +61,7 @@ func getEncModeName(mode encMode) string {
 	case EncModeJP:
 		return "japan"
 	default:
-		return "unknown"
+		return "unknown(" + strconv.Itoa(int(mode)) + ")"
 	}
 }
 
@@ -69,8 +84,7 @@ func getEncodeModeIndicator(mode encMode) *binary.Binary {
 // encoder ... data to bit stream ...
 type encoder struct {
 	// self init
-	dst  *binary.Binary
-	data []byte // raw input data
+	dst *binary.Binary
 
 	// initial params
 	mode encMode // encode mode
@@ -81,9 +95,14 @@ type encoder struct {
 }
 
 func newEncoder(m encMode, ec ecLevel, v version) *encoder {
+	switch m {
+	case EncModeNumeric, EncModeAlphanumeric, EncModeByte, EncModeJP:
+	default:
+		panic("unsupported data encoding mode in newEncoder()")
+	}
+
 	return &encoder{
 		dst:     nil,
-		data:    nil,
 		mode:    m,
 		ecLv:    ec,
 		version: v,
@@ -96,25 +115,34 @@ func newEncoder(m encMode, ec ecLevel, v version) *encoder {
 func (e *encoder) Encode(raw string) (*binary.Binary, error) {
 	e.dst = binary.New()
 
-	// TODO: construct data []byte with encMode
-	e.data = []byte(raw)
+	var data []byte
+	switch e.mode {
+	case EncModeNumeric, EncModeAlphanumeric, EncModeByte:
+		data = []byte(raw)
+	case EncModeJP:
+		// TODO: construct data []byte from raw string
+	default:
+		log.Printf("unsupported encoding mode: %s", getEncModeName(e.mode))
+	}
 
 	// append mode indicator symbol
 	indicator := getEncodeModeIndicator(e.mode)
 	e.dst.Append(indicator)
 	// append chars length counter bits symbol
-	e.dst.AppendUint32(uint32(len(e.data)), e.charCountBits())
+	e.dst.AppendUint32(uint32(len(data)), e.charCountBits())
 
 	// encode data with specified mode
 	switch e.mode {
 	case EncModeNumeric:
-		e.encodeNumeric()
+		e.encodeNumeric(data)
 	case EncModeAlphanumeric:
-		e.encodeAlphanumeric()
+		e.encodeAlphanumeric(data)
 	case EncModeByte:
-		e.encodeByte()
+		e.encodeByte(data)
 	case EncModeJP:
-		e.encodeKanji()
+		e.encodeKanji(data)
+	default:
+		log.Printf("unsupported encoding mode: %s", getEncModeName(e.mode))
 	}
 
 	// fill and _defaultPadding bits
@@ -124,20 +152,20 @@ func (e *encoder) Encode(raw string) (*binary.Binary, error) {
 }
 
 // 0001b mode indicator
-func (e *encoder) encodeNumeric() {
+func (e *encoder) encodeNumeric(data []byte) {
 	if e.dst == nil {
 		log.Println("e.dst is nil")
 		return
 	}
-	for i := 0; i < len(e.data); i += 3 {
-		charsRemaining := len(e.data) - i
+	for i := 0; i < len(data); i += 3 {
+		charsRemaining := len(data) - i
 
 		var value uint32
 		bitsUsed := 1
 
 		for j := 0; j < charsRemaining && j < 3; j++ {
 			value *= 10
-			value += uint32(e.data[i+j] - 0x30)
+			value += uint32(data[i+j] - 0x30)
 			bitsUsed += 3
 		}
 		e.dst.AppendUint32(value, bitsUsed)
@@ -145,18 +173,18 @@ func (e *encoder) encodeNumeric() {
 }
 
 // 0010b mode indicator
-func (e *encoder) encodeAlphanumeric() {
+func (e *encoder) encodeAlphanumeric(data []byte) {
 	if e.dst == nil {
 		log.Println("e.dst is nil")
 		return
 	}
-	for i := 0; i < len(e.data); i += 2 {
-		charsRemaining := len(e.data) - i
+	for i := 0; i < len(data); i += 2 {
+		charsRemaining := len(data) - i
 
 		var value uint32
 		for j := 0; j < charsRemaining && j < 2; j++ {
 			value *= 45
-			value += encodeAlphanumericCharacter(e.data[i+j])
+			value += encodeAlphanumericCharacter(data[i+j])
 		}
 
 		bitsUsed := 6
@@ -169,20 +197,20 @@ func (e *encoder) encodeAlphanumeric() {
 }
 
 // 0100b mode indicator
-func (e *encoder) encodeByte() {
+func (e *encoder) encodeByte(data []byte) {
 	if e.dst == nil {
 		log.Println("e.dst is nil")
 		return
 	}
-	for _, b := range e.data {
+	for _, b := range data {
 		_ = e.dst.AppendByte(b, 8)
 	}
 }
 
 // encodeKanji
 // https://www.thonky.com/qr-code-tutorial/kanji-mode-encoding
-func (e *encoder) encodeKanji() {
-
+func (e *encoder) encodeKanji(data []byte) {
+	// TODO: implement encodeKanji
 }
 
 // Break Up into 8-bit Codewords and Add Pad Bytes if Necessary

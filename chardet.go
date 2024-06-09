@@ -1,6 +1,5 @@
 package qrcode
 
-// TODO:
 // chardet.go refer to https://github.com/chardet/chardet to detect input string's
 // character set, to see any unsupported character encountered in the input string.
 
@@ -50,16 +49,16 @@ func analyzeEncodeModeFromRaw(raw string) encMode {
 }
 
 // analyzeNum is byt in num encMode
-func analyzeNum(byt rune) bool {
-	return byt >= '0' && byt <= '9'
+func analyzeNum(r rune) bool {
+	return r >= '0' && r <= '9'
 }
 
 // analyzeAlphaNum is byt in alpha number
-func analyzeAlphaNum(byt rune) bool {
-	if (byt >= '0' && byt <= '9') || (byt >= 'A' && byt <= 'Z') {
+func analyzeAlphaNum(r rune) bool {
+	if (r >= '0' && r <= '9') || (r >= 'A' && r <= 'Z') {
 		return true
 	}
-	switch byt {
+	switch r {
 	case ' ', '$', '%', '*', '+', '-', '.', '/', ':':
 		return true
 	}
@@ -67,7 +66,11 @@ func analyzeAlphaNum(byt rune) bool {
 }
 
 // analyzeByte contains ISO-8859-1 character set
-func analyzeByte(byt rune) bool {
-	// TODO: analyze input can be found in ISO-8859-1 character set.
+func analyzeByte(r rune) bool {
+	// ISO-8859-1 character set, if r > \u00ff, means it's not in ISO-8859-1.
+	if r > '\u00ff' {
+		return false
+	}
+
 	return true
 }

@@ -5,9 +5,11 @@ package qrcode
 import (
 	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/yeqown/reedsolomon/binary"
-	"strconv"
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/transform"
 )
 
 // encMode indicates the encoding mode of the data to be encoded.
@@ -120,7 +122,7 @@ func (e *encoder) Encode(raw string) (*binary.Binary, error) {
 	case EncModeNumeric, EncModeAlphanumeric, EncModeByte:
 		data = []byte(raw)
 	case EncModeJP:
-		// TODO: construct data []byte from raw string
+		data = toShiftJIS(raw)
 	default:
 		log.Printf("unsupported encoding mode: %s", getEncModeName(e.mode))
 	}
@@ -207,10 +209,68 @@ func (e *encoder) encodeByte(data []byte) {
 	}
 }
 
-// encodeKanji
+// toShiftJIS
 // https://www.thonky.com/qr-code-tutorial/kanji-mode-encoding
+func toShiftJIS(raw string) []byte {
+	// FIXME: some character encoded into Shift JIS but not in the range of 0x8140-0x9FFC and 0xE040-0xEBBF.
+	enc := japanese.ShiftJIS.NewEncoder()
+	s2, _, err := transform.String(enc, raw)
+	if err != nil {
+		log.Printf("could not encode string to Shift JIS: %v", err)
+		return []byte{}
+	}
+
+	data := []byte(s2)
+	if len(data)%2 != 0 {
+		log.Panicf("shift JIS encoded []byte must be times of 2, but got %d", len(data))
+	}
+
+	for i := 0; i < len(data); i += 2 {
+		data[i], data[i+1] = encodeShiftJIS(data[i], data[i+1])
+	}
+
+	return data
+}
+
+func encodeShiftJIS(hi byte, lo byte) (byte, byte) {
+	r := uint16(hi)<<8 | uint16(lo)
+
+	fmt.Printf("before: r=%x\n", r)
+	if r > 0x8140 && r < 0x9FFC {
+		r -= 0x8140
+	} else if r > 0xE040 && r < 0xEBBF {
+		r -= 0xC140
+	} else {
+		// Not a Shift JIS character out of range 0x8140-0x9FFC and 0xE040-0xEBBF
+		log.Printf("'%c'(0x%x) not a Shift JIS character out of range 0x8140-0x9FFC and 0xE040-0xEBBF", r, r)
+		return 0, 0
+	}
+
+	fmt.Printf("middle: r=%x\n", r)
+	hi = uint8(r >> 8)
+	lo = uint8(r & 0xFF)
+
+	fmt.Printf("middle: high=%x, low=%x\n", hi, lo)
+
+	r = uint16(hi)*uint16(0xC0) + uint16(lo)
+	fmt.Printf("after: r=%x\n", r)
+
+	return byte(r >> 8), byte(r & 0xFF)
+}
+
+// encodeKanji
 func (e *encoder) encodeKanji(data []byte) {
-	// TODO: implement encodeKanji
+	// data must be times of 2, since toShiftJIS encode 1 char to 2 bytes
+	if len(data)%2 != 0 {
+		log.Println("data must be times of 2")
+	}
+
+	for i := 0; i < len(data); i += 2 {
+		// 2 bytes to 1 kanji
+		// 2 bytes to 13 bits
+		_ = e.dst.AppendByte(data[i]<<3, 5)
+		_ = e.dst.AppendByte(data[i+1], 8)
+	}
 }
 
 // Break Up into 8-bit Codewords and Add Pad Bytes if Necessary

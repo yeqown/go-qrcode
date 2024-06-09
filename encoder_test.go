@@ -1,6 +1,7 @@
 package qrcode
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -47,4 +48,29 @@ func TestEncodeByte(t *testing.T) {
 		t.Fail()
 	}
 	t.Log(b, b.Len())
+}
+
+func Test_toShiftJIS(t *testing.T) {
+	type args struct {
+		s string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []byte
+	}{
+		{
+			name: "test 1",
+			args: args{"茗荷"},
+			want: []byte{0x1A, 0xAA, 0x06, 0x97},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := toShiftJIS(tt.args.s); !bytes.Equal(got, tt.want) {
+				t.Errorf("toShiftJIS() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

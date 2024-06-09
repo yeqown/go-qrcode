@@ -1,5 +1,9 @@
 package qrcode
 
+import (
+	"log"
+)
+
 // chardet.go refer to https://github.com/chardet/chardet to detect input string's
 // character set, to see any unsupported character encountered in the input string.
 
@@ -16,33 +20,51 @@ type analyzeEncFunc func(rune) bool
 // case3: could not use EncModeAlphanumeric, but you can find all of them in ISO-8859-1 character set, use EncModeByte.
 // case4: could not use EncModeByte, use EncModeJP, no more choice.
 func analyzeEncodeModeFromRaw(raw string) encMode {
-	analyzeFnMapping := map[encMode]analyzeEncFunc{
-		EncModeNumeric:      analyzeNum,
-		EncModeAlphanumeric: analyzeAlphaNum,
-		EncModeByte:         analyzeByte,
-		EncModeJP:           nil,
-	}
-
 	var (
 		analyzeFn analyzeEncFunc
-		mode      = EncModeNumeric
+		mode      = EncModeNone
 	)
 
-	// loop to check each character in raw data,
-	// from low mode to higher while current mode could bearing the input data.
-	for _, byt := range raw {
-	reAnalyze:
-		if analyzeFn = analyzeFnMapping[mode]; analyzeFn == nil {
-			break
+	getNextAnalyzeFn := func() analyzeEncFunc {
+		switch mode {
+		case EncModeNumeric:
+			return analyzeNum
+		case EncModeAlphanumeric:
+			return analyzeAlphaNum
+		case EncModeByte:
+			return analyzeByte
+		case EncModeJP:
+			return analyzeJP
+		default:
 		}
 
+		return analyzeDefault
+	}
+
+	next := func() {
+		// switch to next mode and get next analyze function.
+		mode <<= 1
+		analyzeFn = getNextAnalyzeFn()
+	}
+
+	next()
+
+	// Loop to check each character in raw data,
+	// from low mode to higher while current mode could bear the input data.
+	for _, byt := range raw {
+	reAnalyze:
 		// issue#28 @borislavone reports this bug.
 		// FIXED(@yeqown): next encMode analyzeVersionAuto func did not check the previous byte,
 		// add goto statement to reanalyze previous byte which can't be analyzed in last encMode.
 		if !analyzeFn(byt) {
-			mode <<= 1
+			next()
 			goto reAnalyze
 		}
+	}
+
+	if mode > EncModeJP {
+		// If the mode overflow the EncModeJP, means we can't encode the input data.
+		log.Panicf("could not encode the input data: %s", raw)
 	}
 
 	return mode
@@ -73,4 +95,22 @@ func analyzeByte(r rune) bool {
 	}
 
 	return true
+}
+
+// analyzeJP contains Kanji character set
+// http://www.rikai.com/library/kanjitables/kanji_codes.sjis.shtml
+func analyzeJP(r rune) bool {
+	// Kanji character set
+	if r > 0x8140 && r < 0x9FFC {
+		return true
+	}
+	if r > 0xE040 && r < 0xEBBF {
+		return true
+	}
+
+	return false
+}
+
+func analyzeDefault(r rune) bool {
+	return false
 }

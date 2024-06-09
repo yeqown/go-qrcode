@@ -166,7 +166,7 @@ func Test_analyzeByte(t *testing.T) {
 	}
 }
 
-func Test_anlayzeMode(t *testing.T) {
+func Test_analyzeMode(t *testing.T) {
 	type args struct {
 		raw string
 	}

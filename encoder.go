@@ -235,7 +235,7 @@ func toShiftJIS(raw string) []byte {
 func encodeShiftJIS(hi byte, lo byte) (byte, byte) {
 	r := uint16(hi)<<8 | uint16(lo)
 
-	fmt.Printf("before: r=%x\n", r)
+	// fmt.Printf("before: r=%x\n", r)
 	if r > 0x8140 && r < 0x9FFC {
 		r -= 0x8140
 	} else if r > 0xE040 && r < 0xEBBF {
@@ -250,10 +250,10 @@ func encodeShiftJIS(hi byte, lo byte) (byte, byte) {
 	hi = uint8(r >> 8)
 	lo = uint8(r & 0xFF)
 
-	fmt.Printf("middle: high=%x, low=%x\n", hi, lo)
+	// fmt.Printf("middle: high=%x, low=%x\n", hi, lo)
 
 	r = uint16(hi)*uint16(0xC0) + uint16(lo)
-	fmt.Printf("after: r=%x\n", r)
+	// fmt.Printf("after: r=%x\n", r)
 
 	return byte(r >> 8), byte(r & 0xFF)
 }

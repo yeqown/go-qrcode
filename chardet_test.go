@@ -166,6 +166,100 @@ func Test_analyzeByte(t *testing.T) {
 	}
 }
 
+func Test_analyzeJP(t *testing.T) {
+	type args struct {
+		r rune
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "case 0",
+			args: args{r: '0'},
+			want: false,
+		},
+		{
+			name: "case 1",
+			args: args{r: 'a'},
+			want: false,
+		},
+		{
+			name: "case 2",
+			args: args{r: 'A'},
+			want: false,
+		},
+		{
+			name: "case 3",
+			args: args{r: '9'},
+			want: false,
+		},
+		{
+			name: "case 4",
+			args: args{r: '*'},
+			want: false,
+		},
+		{
+			name: "case 5",
+			args: args{r: '?'},
+			want: false,
+		},
+		{
+			name: "case 6",
+			args: args{r: '&'},
+			want: false,
+		},
+		{
+			name: "case 7",
+			args: args{r: 'Ö'},
+			want: false,
+		},
+		{
+			name: "case 8",
+			args: args{r: 'に'},
+			want: true,
+		},
+		{
+			name: "case 9",
+			args: args{r: '茗'},
+			want: true,
+		},
+		{
+			name: "case 10",
+			args: args{r: '杆'},
+			want: true,
+		},
+		{
+			name: "case 11",
+			args: args{r: '荷'},
+			want: true,
+		},
+		{
+			name: "case 12",
+			args: args{r: '杠'},
+			want: true,
+		},
+		{
+			name: "case 13",
+			args: args{r: '杙'},
+			want: true,
+		},
+		{
+			name: "case 14",
+			args: args{r: '杣'},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := analyzeJP(tt.args.r); got != tt.want {
+				t.Errorf("analyzeJP(%c=0x%x) = %v, want %v", tt.args.r, tt.args.r, got, tt.want)
+			}
+		})
+	}
+}
+
 func Test_analyzeMode(t *testing.T) {
 	type args struct {
 		raw string

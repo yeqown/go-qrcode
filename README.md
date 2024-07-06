@@ -70,8 +70,8 @@ const (
 	EncModeAlphanumeric
 	// EncModeByte mode ...
 	EncModeByte
-	// EncModeJP mode ...
-	EncModeJP
+	// EncModeKanji mode ...
+	EncModeKanji
 )
 
 // WithEncodingMode sets the encoding mode.

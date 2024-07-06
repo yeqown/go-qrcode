@@ -265,19 +265,22 @@ func Test_analyzeMode(t *testing.T) {
 		raw string
 	}
 	tests := []struct {
-		name string
-		args args
-		want encMode
+		name    string
+		args    args
+		want    encMode
+		wantErr bool
 	}{
 		{
-			name: "case 0",
-			args: args{raw: "123120899231"},
-			want: EncModeNumeric,
+			name:    "case 0",
+			args:    args{raw: "123120899231"},
+			want:    EncModeNumeric,
+			wantErr: false,
 		},
 		{
-			name: "case 1",
-			args: args{raw: ":/1231H208*99231FBJO"},
-			want: EncModeAlphanumeric,
+			name:    "case 1",
+			args:    args{raw: ":/1231H208*99231FBJO"},
+			want:    EncModeAlphanumeric,
+			wantErr: false,
 		},
 		{
 			name: "case 2",
@@ -285,19 +288,22 @@ func Test_analyzeMode(t *testing.T) {
 			want: EncModeByte,
 		},
 		{
-			name: "case 3",
-			args: args{raw: "JKAHDOIANKQOIHCMJKASJ"},
-			want: EncModeAlphanumeric,
+			name:    "case 3",
+			args:    args{raw: "JKAHDOIANKQOIHCMJKASJ"},
+			want:    EncModeAlphanumeric,
+			wantErr: false,
 		},
 		{
-			name: "case 4",
-			args: args{raw: "https://baidu.com?keyword=_JSO==GA"},
-			want: EncModeByte,
+			name:    "case 4",
+			args:    args{raw: "https://baidu.com?keyword=_JSO==GA"},
+			want:    EncModeByte,
+			wantErr: false,
 		},
 		{
-			name: "case 5",
-			args: args{raw: "茗荷"},
-			want: EncModeJP,
+			name:    "case 5",
+			args:    args{raw: "茗荷"},
+			want:    EncModeKanji,
+			wantErr: false,
 		},
 		{
 			name: "case 6 (swedish letter)",
@@ -305,20 +311,28 @@ func Test_analyzeMode(t *testing.T) {
 			want: EncModeByte,
 		},
 		{
-			name: "case 7 (japanese letter)",
-			args: args{raw: "朸 朷 杆 杞 杠 杙 杣"},
-			want: EncModeJP,
+			name:    "case 7 (japanese letter)",
+			args:    args{raw: "朸 朷 杆 杞 杠 杙 杣"},
+			want:    EncModeKanji,
+			wantErr: false,
 		},
 		{
-			name: "issue#28",
-			args: args{raw: "a"},
-			want: EncModeByte,
+			name:    "issue#28",
+			args:    args{raw: "a"},
+			want:    EncModeByte,
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := analyzeEncodeModeFromRaw(tt.args.raw); got != tt.want {
-				t.Errorf("analyzeEncodeModeFromRaw() = %v, want %v", got, tt.want)
+			got, err := analyzeEncodeModeFromRaw(tt.args.raw)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("analyzeMode() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if got != tt.want {
+				t.Errorf("analyzeMode() = %v, want %v", got, tt.want)
 			}
 		})
 	}

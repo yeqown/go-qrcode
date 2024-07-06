@@ -1,12 +1,14 @@
 package qrcode
 
-import (
-	"log"
-)
+import "errors"
 
 func init() {
 	restoreKanJi()
 }
+
+var (
+	ErrNotSupportCharacter = errors.New("character set not supported, please check your input data.")
+)
 
 // chardet.go refer to https://github.com/chardet/chardet to detect input string's
 // character set, to see any unsupported character encountered in the input string.
@@ -22,8 +24,8 @@ type analyzeEncFunc func(rune) bool
 // case1: only numbers, use EncModeNumeric.
 // case2: could not use EncModeNumeric, but you can find all of them in character mapping, use EncModeAlphanumeric.
 // case3: could not use EncModeAlphanumeric, but you can find all of them in ISO-8859-1 character set, use EncModeByte.
-// case4: could not use EncModeByte, use EncModeJP, no more choice.
-func analyzeEncodeModeFromRaw(raw string) encMode {
+// case4: could not use EncModeByte, use EncModeKanji, no more choice.
+func analyzeEncodeModeFromRaw(raw string) (encMode, error) {
 	var (
 		analyzeFn analyzeEncFunc
 		mode      = EncModeNone
@@ -37,7 +39,7 @@ func analyzeEncodeModeFromRaw(raw string) encMode {
 			return analyzeAlphaNum
 		case EncModeByte:
 			return analyzeByte
-		case EncModeJP:
+		case EncModeKanji:
 			return analyzeJP
 		default:
 		}
@@ -72,12 +74,12 @@ func analyzeEncodeModeFromRaw(raw string) encMode {
 		goto reAnalyze
 	}
 
-	if mode > EncModeJP {
-		// If the mode overflow the EncModeJP, means we can't encode the input data.
-		log.Panicf("character set not supported, please check your input data.")
+	if mode > EncModeKanji {
+		// If the mode overflow the EncModeKanji, means we can't encode the input data.
+		return EncModeNone, ErrNotSupportCharacter
 	}
 
-	return mode
+	return mode, nil
 }
 
 // analyzeNum is r in num encMode

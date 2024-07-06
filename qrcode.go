@@ -88,7 +88,10 @@ func (q *QRCode) Dimension() int {
 func (q *QRCode) init() (err error) {
 	// choose encode mode (num, alpha num, byte, Japanese)
 	if q.encodingOption.EncMode == EncModeAuto {
-		q.encodingOption.EncMode = analyzeEncodeModeFromRaw(q.sourceText)
+		q.encodingOption.EncMode, err = analyzeEncodeModeFromRaw(q.sourceText)
+		if err != nil {
+			return fmt.Errorf("init: analyze encode mode failed: %v", err)
+		}
 	}
 
 	// choose version

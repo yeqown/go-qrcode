@@ -20,7 +20,7 @@ import (
 // - EncModeNumeric: numeric encoding
 // - EncModeAlphanumeric: alphanumeric encoding
 // - EncModeByte: byte encoding
-// - EncModeJP: japanese encoding
+// - EncModeKanji: japanese encoding
 //
 // The encoding mode is determined by the data to be encoded. For example, if
 // the data to be encoded is all numeric, the encoding mode will be EncModeNumeric.
@@ -41,7 +41,9 @@ const (
 	// EncModeByte mode ...
 	EncModeByte
 	// EncModeJP mode ...
+	// @Deprecated use EncModeKanji instead
 	EncModeJP
+	EncModeKanji = EncModeJP
 )
 
 var (
@@ -60,8 +62,8 @@ func getEncModeName(mode encMode) string {
 		return "alphanumeric"
 	case EncModeByte:
 		return "byte"
-	case EncModeJP:
-		return "japan"
+	case EncModeKanji:
+		return "kanji"
 	default:
 		return "unknown(" + strconv.Itoa(int(mode)) + ")"
 	}
@@ -76,7 +78,7 @@ func getEncodeModeIndicator(mode encMode) *binary.Binary {
 		return binary.New(false, false, true, false)
 	case EncModeByte:
 		return binary.New(false, true, false, false)
-	case EncModeJP:
+	case EncModeKanji:
 		return binary.New(true, false, false, false)
 	default:
 		panic("no indicator")
@@ -98,7 +100,7 @@ type encoder struct {
 
 func newEncoder(m encMode, ec ecLevel, v version) *encoder {
 	switch m {
-	case EncModeNumeric, EncModeAlphanumeric, EncModeByte, EncModeJP:
+	case EncModeNumeric, EncModeAlphanumeric, EncModeByte, EncModeKanji:
 	default:
 		panic("unsupported data encoding mode in newEncoder()")
 	}
@@ -121,7 +123,7 @@ func (e *encoder) Encode(raw string) (*binary.Binary, error) {
 	switch e.mode {
 	case EncModeNumeric, EncModeAlphanumeric, EncModeByte:
 		data = []byte(raw)
-	case EncModeJP:
+	case EncModeKanji:
 		data = toShiftJIS(raw)
 	default:
 		log.Printf("unsupported encoding mode: %s", getEncModeName(e.mode))
@@ -141,7 +143,7 @@ func (e *encoder) Encode(raw string) (*binary.Binary, error) {
 		e.encodeAlphanumeric(data)
 	case EncModeByte:
 		e.encodeByte(data)
-	case EncModeJP:
+	case EncModeKanji:
 		e.encodeKanji(data)
 	default:
 		log.Printf("unsupported encoding mode: %s", getEncModeName(e.mode))
@@ -222,6 +224,7 @@ func toShiftJIS(raw string) []byte {
 
 	data := []byte(s2)
 	if len(data)%2 != 0 {
+		// BUG: encode bytes with Shift JIS must be times of 2, cause panic here
 		log.Panicf("shift JIS encoded []byte must be times of 2, but got %d", len(data))
 	}
 

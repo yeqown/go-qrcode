@@ -7,8 +7,9 @@ import (
 	"sync"
 
 	// "github.com/skip2/go-qrcode/bitset"
-	"github.com/yeqown/reedsolomon/binary"
 	"unicode/utf8"
+
+	"github.com/yeqown/reedsolomon/binary"
 )
 
 func init() {
@@ -299,7 +300,7 @@ func analyzeVersion(raw string, ec ecLevel, mode encMode) (*version, error) {
 			mark = versions[step].Cap.AlphaNumeric
 		case EncModeByte:
 			mark = versions[step].Cap.Byte
-		case EncModeJP:
+		case EncModeKanji:
 			mark = versions[step].Cap.JP
 		default:
 			return nil, errMissMatchedEncodeType

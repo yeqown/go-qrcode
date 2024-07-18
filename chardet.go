@@ -1,13 +1,15 @@
 package qrcode
 
-import "errors"
+import (
+	"errors"
+)
 
 func init() {
 	restoreKanJi()
 }
 
 var (
-	ErrNotSupportCharacter = errors.New("character set not supported, please check your input data.")
+	ErrNotSupportCharacter = errors.New("character set not supported, please check your input data")
 )
 
 // chardet.go refer to https://github.com/chardet/chardet to detect input string's
@@ -22,9 +24,9 @@ type analyzeEncFunc func(rune) bool
 // reference: https://en.wikipedia.org/wiki/QR_code
 //
 // case1: only numbers, use EncModeNumeric.
-// case2: could not use EncModeNumeric, but you can find all of them in character mapping, use EncModeAlphanumeric.
-// case3: could not use EncModeAlphanumeric, but you can find all of them in ISO-8859-1 character set, use EncModeByte.
-// case4: could not use EncModeByte, use EncModeKanji, no more choice.
+// case2: could not use EncModeNumeric, but can find them all in character mapping, use EncModeAlphanumeric.
+// case3: could not use EncModeAlphanumeric, but can find them all Shift JIS character set, use EncModeKanji.
+// case4: could not use EncModeKanji, use EncModeByte.
 func analyzeEncodeModeFromRaw(raw string) (encMode, error) {
 	var (
 		analyzeFn analyzeEncFunc
@@ -37,10 +39,10 @@ func analyzeEncodeModeFromRaw(raw string) (encMode, error) {
 			return analyzeNum
 		case EncModeAlphanumeric:
 			return analyzeAlphaNum
-		case EncModeByte:
-			return analyzeByte
 		case EncModeKanji:
 			return analyzeJP
+		case EncModeByte:
+			return analyzeByte
 		default:
 		}
 
@@ -74,7 +76,7 @@ func analyzeEncodeModeFromRaw(raw string) (encMode, error) {
 		goto reAnalyze
 	}
 
-	if mode > EncModeKanji {
+	if mode > EncModeByte {
 		// If the mode overflow the EncModeKanji, means we can't encode the input data.
 		return EncModeNone, ErrNotSupportCharacter
 	}
@@ -99,10 +101,9 @@ func analyzeAlphaNum(r rune) bool {
 	return false
 }
 
-// analyzeByte contains ISO-8859-1 character set
+// analyzeByte always return true, since byte (utf8) mode can encode all characters.
 func analyzeByte(r rune) bool {
-	// ISO-8859-1 character set, if r > \u00ff, means it's not in ISO-8859-1.
-	return r <= '\u00ff'
+	return true
 }
 
 // analyzeJP contains Kanji character set

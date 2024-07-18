@@ -154,7 +154,7 @@ func Test_analyzeByte(t *testing.T) {
 		{
 			name: "case 8",
 			args: args{byt: 'に'},
-			want: false,
+			want: true,
 		},
 	}
 	for _, tt := range tests {
@@ -312,12 +312,12 @@ func Test_analyzeMode(t *testing.T) {
 		},
 		{
 			name:    "case 7 (japanese letter)",
-			args:    args{raw: "朸 朷 杆 杞 杠 杙 杣"},
+			args:    args{raw: "嵋嶄"},
 			want:    EncModeKanji,
 			wantErr: false,
 		},
 		{
-			name:    "issue#28",
+			name:    "issue#28 alphanum mode does not support lower case letter",
 			args:    args{raw: "a"},
 			want:    EncModeByte,
 			wantErr: false,

@@ -19,8 +19,8 @@ import (
 // - EncModeNone: no encoding
 // - EncModeNumeric: numeric encoding
 // - EncModeAlphanumeric: alphanumeric encoding
+// - EncModeKanji: japanese kanji encoding
 // - EncModeByte: byte encoding
-// - EncModeKanji: japanese encoding
 //
 // The encoding mode is determined by the data to be encoded. For example, if
 // the data to be encoded is all numeric, the encoding mode will be EncModeNumeric.
@@ -32,18 +32,25 @@ type encMode uint
 const (
 	// EncModeAuto will trigger a detection of the letter set from the input data.
 	EncModeAuto = 0
-	// EncModeNone mode ...
-	EncModeNone encMode = 1 << iota
-	// EncModeNumeric mode ...
-	EncModeNumeric
-	// EncModeAlphanumeric mode ...
-	EncModeAlphanumeric
-	// EncModeByte mode ...
-	EncModeByte
+
+	// EncModeNone mode represents no encoding, usually used as initial value of encMode
+	EncModeNone encMode = 2
+
+	// EncModeNumeric mode support only numeric character set (0-9)
+	EncModeNumeric encMode = 4
+
+	// EncModeAlphanumeric mode support only alphanumeric character set (0-9, A-Z, SP, $%*+-./ or :)
+	EncModeAlphanumeric encMode = 8
+
 	// EncModeJP mode ...
 	// @Deprecated use EncModeKanji instead
-	EncModeJP
+	EncModeJP encMode = 16
+	// EncModeKanji mode support only Shift JIS encoding character set.
+	// From 0x8140 to 0x9FFC and 0xE040 to 0xEBBF.
 	EncModeKanji = EncModeJP
+
+	// EncModeByte mode support ISO-8859-1 character set by default, but also support UTF-8.
+	EncModeByte encMode = 32
 )
 
 var (
@@ -60,10 +67,10 @@ func getEncModeName(mode encMode) string {
 		return "numeric"
 	case EncModeAlphanumeric:
 		return "alphanumeric"
-	case EncModeByte:
-		return "byte"
 	case EncModeKanji:
 		return "kanji"
+	case EncModeByte:
+		return "byte"
 	default:
 		return "unknown(" + strconv.Itoa(int(mode)) + ")"
 	}
@@ -141,10 +148,10 @@ func (e *encoder) Encode(raw string) (*binary.Binary, error) {
 		e.encodeNumeric(data)
 	case EncModeAlphanumeric:
 		e.encodeAlphanumeric(data)
-	case EncModeByte:
-		e.encodeByte(data)
 	case EncModeKanji:
 		e.encodeKanji(data)
+	case EncModeByte:
+		e.encodeByte(data)
 	default:
 		log.Printf("unsupported encoding mode: %s", getEncModeName(e.mode))
 	}

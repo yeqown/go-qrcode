@@ -124,6 +124,8 @@ func hashFile(filename string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer fd1.Close()
+
 	bytes, err := io.ReadAll(fd1)
 	if err != nil {
 		return "", err
@@ -140,6 +142,7 @@ func statImage(filename string) (w, h int, err error) {
 	if err != nil {
 		return 0, 0, err
 	}
+	defer fd.Close()
 
 	img, err := png.Decode(fd)
 	if err != nil {

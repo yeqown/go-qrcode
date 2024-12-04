@@ -94,6 +94,7 @@ func WithLogoImageFileJPEG(f string) ImageOption {
 			fmt.Printf("could not open file(%s), error=%v\n", f, err)
 			return
 		}
+		defer fd.Close()
 
 		img, err := jpeg.Decode(fd)
 		if err != nil {
@@ -114,6 +115,7 @@ func WithLogoImageFilePNG(f string) ImageOption {
 			fmt.Printf("Open file(%s) failed: %v\n", f, err)
 			return
 		}
+		defer fd.Close()
 
 		img, err := png.Decode(fd)
 		if err != nil {

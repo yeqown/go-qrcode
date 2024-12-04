@@ -55,7 +55,7 @@ func TestEncodeByte(t *testing.T) {
 
 func Test_analyzeNum(t *testing.T) {
 	type args struct {
-		byt byte
+		input rune
 	}
 	tests := []struct {
 		name string
@@ -64,33 +64,33 @@ func Test_analyzeNum(t *testing.T) {
 	}{
 		{
 			name: "case 0",
-			args: args{byt: '0'},
+			args: args{input: '0'},
 			want: true,
 		},
 		{
 			name: "case 1",
-			args: args{byt: 'a'},
+			args: args{input: 'a'},
 			want: false,
 		},
 		{
 			name: "case 2",
-			args: args{byt: 'A'},
+			args: args{input: 'A'},
 			want: false,
 		},
 		{
 			name: "case 3",
-			args: args{byt: '9'},
+			args: args{input: '9'},
 			want: true,
 		},
 		{
 			name: "case 4",
-			args: args{byt: '*'},
+			args: args{input: '*'},
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := analyzeNum(tt.args.byt); got != tt.want {
+			if got := analyzeNum(tt.args.input); got != tt.want {
 				t.Errorf("analyzeNum() = %v, want %v", got, tt.want)
 			}
 		})
@@ -99,7 +99,7 @@ func Test_analyzeNum(t *testing.T) {
 
 func Test_analyzeAlphanum(t *testing.T) {
 	type args struct {
-		byt byte
+		input rune
 	}
 	tests := []struct {
 		name string
@@ -108,43 +108,43 @@ func Test_analyzeAlphanum(t *testing.T) {
 	}{
 		{
 			name: "case 0",
-			args: args{byt: '0'},
+			args: args{input: '0'},
 			want: true,
 		},
 		{
 			name: "case 1",
-			args: args{byt: 'a'},
+			args: args{input: 'a'},
 			want: false,
 		},
 		{
 			name: "case 2",
-			args: args{byt: 'A'},
+			args: args{input: 'A'},
 			want: true,
 		},
 		{
 			name: "case 3",
-			args: args{byt: '9'},
+			args: args{input: '9'},
 			want: true,
 		},
 		{
 			name: "case 4",
-			args: args{byt: '*'},
+			args: args{input: '*'},
 			want: true,
 		},
 		{
 			name: "case 5",
-			args: args{byt: '?'},
+			args: args{input: '?'},
 			want: false,
 		},
 		{
 			name: "case 6",
-			args: args{byt: '&'},
+			args: args{input: '&'},
 			want: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := analyzeAlphaNum(tt.args.byt); got != tt.want {
+			if got := analyzeAlphaNum(tt.args.input); got != tt.want {
 				t.Errorf("analyzeAlphaNum() = %v, want %v", got, tt.want)
 			}
 		})

@@ -97,7 +97,7 @@ func (q *QRCode) init() (err error) {
 		return fmt.Errorf("init: calc version failed: %v", err)
 	}
 	q.mat = newMatrix(q.v.Dimension(), q.v.Dimension())
-	_ = q.applyEncoder()
+	q.applyEncoder()
 
 	var (
 		dataBlocks []dataBlock // data encoding blocks
@@ -153,11 +153,9 @@ func (q *QRCode) calcVersion() (ver *version, err error) {
 	return
 }
 
-// applyEncoder
-func (q *QRCode) applyEncoder() error {
+// applyEncoder sets the encoder based on encoding mode, error correction level, and version.
+func (q *QRCode) applyEncoder()  {
 	q.encoder = newEncoder(q.encodingOption.EncMode, q.encodingOption.EcLevel, q.v)
-
-	return nil
 }
 
 // dataEncoding ref to:

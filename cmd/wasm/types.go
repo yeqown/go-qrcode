@@ -89,8 +89,8 @@ func (o *genOption) encodeOptions() []qrcode.EncodeOption {
 		out = append(out, qrcode.WithEncodingMode(qrcode.EncModeNumeric))
 	case uint8(qrcode.EncModeByte):
 		out = append(out, qrcode.WithEncodingMode(qrcode.EncModeByte))
-	case uint8(qrcode.EncModeJP):
-		out = append(out, qrcode.WithEncodingMode(qrcode.EncModeJP))
+	case uint8(qrcode.EncModeKanji):
+		out = append(out, qrcode.WithEncodingMode(qrcode.EncModeKanji))
 	}
 
 	switch o.encodeOption.ecLevel {

@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestVersion_Dimension(t *testing.T) {
@@ -70,7 +70,7 @@ func Test_analyzeVersion(t *testing.T) {
 	v3 := loadVersion(23, ErrorCorrectionMedium)
 
 	type args struct {
-		raw   []byte
+		raw   string
 		ecLv  ecLevel
 		eMode encMode
 	}
@@ -83,7 +83,7 @@ func Test_analyzeVersion(t *testing.T) {
 		{
 			name: "case 0",
 			args: args{
-				raw:   []byte("TEXT"),
+				raw:   "TEXT",
 				ecLv:  ErrorCorrectionMedium,
 				eMode: EncModeAlphanumeric,
 			},
@@ -93,7 +93,7 @@ func Test_analyzeVersion(t *testing.T) {
 		{
 			name: "case 1",
 			args: args{
-				raw:   []byte(strings.Repeat("TEXT", 30)),
+				raw:   strings.Repeat("TEXT", 30),
 				ecLv:  ErrorCorrectionMedium,
 				eMode: EncModeAlphanumeric,
 			},
@@ -103,7 +103,7 @@ func Test_analyzeVersion(t *testing.T) {
 		{
 			name: "case 2",
 			args: args{
-				raw:   []byte(strings.Repeat("TEXT", 300)),
+				raw:   strings.Repeat("TEXT", 300),
 				ecLv:  ErrorCorrectionMedium,
 				eMode: EncModeAlphanumeric,
 			},
@@ -282,7 +282,7 @@ func Benchmark_loadVersion_bottom(b *testing.B) {
 }
 
 func Benchmark_analyzeVersion_short(b *testing.B) {
-	source := []byte("text")
+	source := "text"
 
 	for i := 0; i < b.N; i++ {
 		_, _ = analyzeVersion(source, ErrorCorrectionMedium, EncModeByte)
@@ -290,7 +290,7 @@ func Benchmark_analyzeVersion_short(b *testing.B) {
 }
 
 func Benchmark_analyzeVersion_middle(b *testing.B) {
-	source := []byte(strings.Repeat("text", 30))
+	source := strings.Repeat("text", 30)
 
 	for i := 0; i < b.N; i++ {
 		_, _ = analyzeVersion(source, ErrorCorrectionMedium, EncModeByte)
@@ -298,7 +298,7 @@ func Benchmark_analyzeVersion_middle(b *testing.B) {
 }
 
 func Benchmark_analyzeVersion_long(b *testing.B) {
-	source := []byte(strings.Repeat("text", 300))
+	source := strings.Repeat("text", 300)
 
 	for i := 0; i < b.N; i++ {
 		_, _ = analyzeVersion(source, ErrorCorrectionMedium, EncModeByte)

@@ -7,9 +7,9 @@ Standard Writer is a writer that is used to draw QR Code image into `io.Writer`,
 ### Usage
 
 ```go
-options := []ImageOption{
-	WithBgColorRGBHex("#ffffff"),
-	WithFgColorRGBHex("#000000"),
+options := []standard.ImageOption{
+	standard.WithBgColorRGBHex("#ffffff"),
+	standard.WithFgColorRGBHex("#000000"),
 	// more ...
 }
 

@@ -6,8 +6,8 @@ use (
 	./writer/compressed
 	./writer/standard
 	./writer/terminal
-	//./writer/file
+	./writer/file
 	./cmd/qrcode
 	./cmd/wasm
-	example
+	//example
 )

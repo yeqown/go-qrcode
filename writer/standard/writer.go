@@ -193,14 +193,15 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		if !validLogoImage(w, h, logoWidth, logoHeight, opt.logoSizeMultiplier) {
 			log.Printf("w=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/%d of QRCode \n",
 				w, h, logoWidth, logoHeight, opt.logoSizeMultiplier)
-			goto done
+
+			return dc.Image()
 		}
 
 		// DONE(@yeqown): calculate the xOffset and yOffset which point(xOffset, yOffset)
 		// should icon upper-left to start
 		dc.DrawImage(opt.logoImage(), (w-logoWidth)/2, (h-logoHeight)/2)
 	}
-done:
+
 	return dc.Image()
 }
 

@@ -201,6 +201,9 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		dc.DrawImage(opt.logoImage(), (w-logoWidth)/2, (h-logoHeight)/2)
 	}
 done:
+	if opt.qrGradient != nil {
+		return opt.qrGradient.applyGradient(dc.Image(), opt.qrColor)
+	}
 	return dc.Image()
 }
 

@@ -74,6 +74,17 @@ func WithFgColorRGBHex(hex string) ImageOption {
 	})
 }
 
+// WithFgGradient QR gradient
+func WithFgGradient(g *LinearGradient) ImageOption {
+	return newFuncOption(func(oo *outputImageOptions) {
+		if g == nil || len(g.Stops) == 0 {
+			return
+		}
+
+		oo.qrGradient = g
+	})
+}
+
 // WithLogoImage image should only has 1/5 width of QRCode at most
 func WithLogoImage(img image.Image) ImageOption {
 	return newFuncOption(func(oo *outputImageOptions) {

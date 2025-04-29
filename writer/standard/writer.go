@@ -183,6 +183,12 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		// EOFn
 	})
 
+	// Gradient fill
+	if opt.qrGradient != nil {
+		img := opt.qrGradient.applyGradient(dc.Image(), opt.qrColor)
+		dc.DrawImage(img, 0, 0)
+	}
+
 	// DONE(@yeqown): add logo image
 	if opt.logoImage() != nil {
 		// Draw logo image into rgba

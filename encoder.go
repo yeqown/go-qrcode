@@ -15,15 +15,15 @@ type encMode uint
 const (
 	// a qrbool of EncModeAuto will trigger a detection of the letter set from the input data,
 	EncModeAuto = 0
-	// EncModeNone mode ...
+	// EncModeNone mode is unused.
 	EncModeNone encMode = 1 << iota
-	// EncModeNumeric mode ...
+	// EncModeNumeric mode uses numeric characters.
 	EncModeNumeric
-	// EncModeAlphanumeric mode ...
+	// EncModeAlphanumeric mode uses alpha numeric characters.
 	EncModeAlphanumeric
-	// EncModeByte mode ...
+	// EncModeByte mode byte.
 	EncModeByte
-	// EncModeJP mode ...
+	// EncModeJP mode japan.
 	EncModeJP
 )
 
@@ -80,6 +80,7 @@ type encoder struct {
 	version version // QR version ref
 }
 
+// newEncoder creates a new encoder.
 func newEncoder(m encMode, ec ecLevel, v version) *encoder {
 	return &encoder{
 		dst:     nil,
@@ -93,7 +94,6 @@ func newEncoder(m encMode, ec ecLevel, v version) *encoder {
 // Encode ...
 // 1. encode raw data into bitset
 // 2. append _defaultPadding data
-//
 func (e *encoder) Encode(byts []byte) (*binary.Binary, error) {
 	e.dst = binary.New()
 	e.data = byts
@@ -214,6 +214,7 @@ func (e *encoder) breakUpInto8bit() {
 	}
 }
 
+// charCountMap is a map of character encodings to bit counts.
 // 字符计数指示符位长字典
 var charCountMap = map[string]int{
 	"9_numeric":       10,
@@ -230,7 +231,7 @@ var charCountMap = map[string]int{
 	"40_japan":        12,
 }
 
-// charCountBits
+// charCountBits returns the number of bits for the character count.
 func (e *encoder) charCountBits() int {
 	var lv int
 	if v := e.version.Ver; v <= 9 {
@@ -281,10 +282,6 @@ func encodeAlphanumericCharacter(v byte) uint32 {
 	return 0
 }
 
-// analyzeEncFunc returns true is current byte matched in current mode,
-// otherwise means you should use a bigger character set to check.
-type analyzeEncFunc func(byte) bool
-
 // analyzeEncodeModeFromRaw try to detect letter set of input data,
 // so that encoder can determine which mode should be use.
 // reference: https://en.wikipedia.org/wiki/QR_code
@@ -293,47 +290,40 @@ type analyzeEncFunc func(byte) bool
 // case2: could not use EncModeNumeric, but you can find all of them in character mapping, use EncModeAlphanumeric.
 // case3: could not use EncModeAlphanumeric, but you can find all of them in ISO-8859-1 character set, use EncModeByte.
 // case4: could not use EncModeByte, use EncModeJP, no more choice.
-//
 func analyzeEncodeModeFromRaw(raw []byte) encMode {
-	analyzeFnMapping := map[encMode]analyzeEncFunc{
-		EncModeNumeric:      analyzeNum,
-		EncModeAlphanumeric: analyzeAlphaNum,
-		EncModeByte:         nil,
-		EncModeJP:           nil,
-	}
-
-	var (
-		f    analyzeEncFunc
-		mode = EncModeNumeric
-	)
-
-	// loop to check each character in raw data,
-	// from low mode to higher while current mode could bearing the input data.
+	mode := EncModeNumeric
 	for _, byt := range raw {
-	reAnalyze:
-		if f = analyzeFnMapping[mode]; f == nil {
-			break
+		// Start from most inclusive and work backwards
+		// Check for each kind starting with most common then expand out to least inclusive.
+		if analyzeNum(rune(byt)) {
+			continue
+		}
+		if analyzeAlphaNum(rune(byt)) {
+			mode = EncModeAlphanumeric
+		} else {
+			// If it's nothing else then it's raw byte mode
+			// TODO if it's outside of ISO-8859-1 then use [EncModeJP].
+			// It is hard to detect ISO-8859-1 though since it includes so many things.
+			// Attempt to detect japenese instead in the future.
+			return EncModeByte
 		}
 
-		// issue#28 @borislavone reports this bug.
-		// FIXED(@yeqown): next encMode analyzeVersionAuto func did not check the previous byte,
-		// add goto statement to reanalyze previous byte which can't be analyzed in last encMode.
-		if !f(byt) {
-			mode <<= 1
-			goto reAnalyze
-		}
+		// TODO add analyzers for other modes
+		// EncModeJP
+		// Do not need to explicitly check for byte since that is just the fallback mode.
 	}
 
 	return mode
+
 }
 
 // analyzeNum is byt in num encMode
-func analyzeNum(byt byte) bool {
+func analyzeNum(byt rune) bool {
 	return byt >= '0' && byt <= '9'
 }
 
 // analyzeAlphaNum is byt in alpha number
-func analyzeAlphaNum(byt byte) bool {
+func analyzeAlphaNum(byt rune) bool {
 	if (byt >= '0' && byt <= '9') || (byt >= 'A' && byt <= 'Z') {
 		return true
 	}
@@ -343,8 +333,3 @@ func analyzeAlphaNum(byt byte) bool {
 	}
 	return false
 }
-
-//// analyzeByte is byt in bytes.
-//func analyzeByte(byt byte) qrbool {
-//	return false
-//}

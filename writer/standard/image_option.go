@@ -46,6 +46,10 @@ type outputImageOptions struct {
 
 	logoSizeMultiplier int
 
+	// logoSafeZone indicates whether to reserve a clear area around the logo,
+	// preventing QR code blocks from being drawn underneath it.
+	logoSafeZone bool
+
 	// qrWidth width of each qr block
 	qrWidth int
 

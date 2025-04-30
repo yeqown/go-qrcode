@@ -237,3 +237,10 @@ func WithLogoSizeMultiplier(multiplier int) ImageOption {
 		oo.logoSizeMultiplier = multiplier
 	})
 }
+
+// WithLogoSafeZone enables the safe zone logic around the logo area.
+func WithLogoSafeZone() ImageOption {
+	return newFuncOption(func(oo *outputImageOptions) {
+		oo.logoSafeZone = true
+	})
+}

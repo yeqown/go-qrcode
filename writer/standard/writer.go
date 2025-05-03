@@ -142,8 +142,29 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		// _ = imgkit.Save(halftoneImg, "mask.jpeg")
 	}
 
+	// Check if the logo image exists and fits within the QR code bounds.
+	// If so, mark it as valid and store its dimensions for safe zone calculation.
+	var logoValid bool
+	var logoWidth, logoHeight int
+	if opt.logoImage() != nil {
+		bound := opt.logo.Bounds()
+		upperLeft, lowerRight := bound.Min, bound.Max
+		logoWidth, logoHeight = lowerRight.X-upperLeft.X, lowerRight.Y-upperLeft.Y
+
+		logoValid = validLogoImage(w, h, logoWidth, logoHeight, opt.logoSizeMultiplier)
+	}
+
 	// iterate the matrix to Draw each pixel
 	mat.Iterate(qrcode.IterDirection_ROW, func(x int, y int, v qrcode.QRValue) {
+		// Skip drawing this block if it overlaps with the logo area.
+		// This preserves logo visibility by preventing block rendering underneath it.
+		if logoValid && opt.logoSafeZone &&
+			blockOverlapsLogo(x, y, opt.qrBlockWidth(), left, top, w, h, logoWidth, logoHeight) {
+			if v.IsSet() {
+				return
+			}
+		}
+
 		// Draw the block
 		ctx.x, ctx.y = float64(x*opt.qrBlockWidth()+left), float64(y*opt.qrBlockWidth()+top)
 		ctx.w, ctx.h = opt.qrBlockWidth(), opt.qrBlockWidth()
@@ -189,23 +210,17 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		dc.DrawImage(img, 0, 0)
 	}
 
-	// DONE(@yeqown): add logo image
-	if opt.logoImage() != nil {
-		// Draw logo image into rgba
-		bound := opt.logo.Bounds()
-		upperLeft, lowerRight := bound.Min, bound.Max
-		logoWidth, logoHeight := lowerRight.X-upperLeft.X, lowerRight.Y-upperLeft.Y
-
-		if !validLogoImage(w, h, logoWidth, logoHeight, opt.logoSizeMultiplier) {
-			log.Printf("w=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/%d of QRCode \n",
-				w, h, logoWidth, logoHeight, opt.logoSizeMultiplier)
-			goto done
-		}
-
-		// DONE(@yeqown): calculate the xOffset and yOffset which point(xOffset, yOffset)
-		// should icon upper-left to start
-		dc.DrawImage(opt.logoImage(), (w-logoWidth)/2, (h-logoHeight)/2)
+	// Log a warning and skip drawing the logo if it exceeds the allowed size ratio.
+	if !logoValid {
+		log.Printf("w=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/%d of QRCode \n",
+			w, h, logoWidth, logoHeight, opt.logoSizeMultiplier)
+		goto done
 	}
+
+	// DONE(@yeqown): calculate the xOffset and yOffset which point(xOffset, yOffset)
+	// should icon upper-left to start
+	dc.DrawImage(opt.logoImage(), (w-logoWidth)/2, (h-logoHeight)/2)
+
 done:
 	return dc.Image()
 }
@@ -233,6 +248,21 @@ func halftoneColor(halftoneImage image.Image, transparent bool, x, y int) color.
 
 func validLogoImage(qrWidth, qrHeight, logoWidth, logoHeight, logoSizeMultiplier int) bool {
 	return qrWidth >= logoSizeMultiplier*logoWidth && qrHeight >= logoSizeMultiplier*logoHeight
+}
+
+func blockOverlapsLogo(x, y, blockSize, left, top, w, h, logoWidth, logoHeight int) bool {
+	blockLeft := x*blockSize + left
+	blockTop := y*blockSize + top
+	blockRight := blockLeft + blockSize
+	blockBottom := blockTop + blockSize
+
+	logoLeft := (w - logoWidth) / 2
+	logoTop := (h - logoHeight) / 2
+	logoRight := logoLeft + logoWidth
+	logoBottom := logoTop + logoHeight
+
+	return blockRight > logoLeft && blockLeft < logoRight &&
+		blockBottom > logoTop && blockTop < logoBottom
 }
 
 // Attribute contains basic information of generated image.

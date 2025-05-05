@@ -9,5 +9,5 @@ use (
 	./writer/file
 	./cmd/qrcode
 	./cmd/wasm
-	//example
+	example
 )

@@ -210,6 +210,10 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		dc.DrawImage(img, 0, 0)
 	}
 
+	if opt.logoImage() == nil {
+		goto done
+	}
+
 	// Log a warning and skip drawing the logo if it exceeds the allowed size ratio.
 	if !logoValid {
 		log.Printf("w=%d, h=%d, logoW=%d, logoH=%d, logo is over than 1/%d of QRCode \n",

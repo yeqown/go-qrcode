@@ -95,21 +95,14 @@ const (
 func WithErrorCorrectionLevel(ecLevel ecLevel) EncodeOption {}
 ```
 
-following are some shots:
+### Samples
 
-<div>
-<img src="./assets/example_fg_bg.jpeg" width="160px" align="left" title="with bg-fg color">
-<img src="./assets/example_logo.jpeg" width="160px" align="left" title="with logo image">
-<img src="./assets/example_circle.jpeg" width="160px" align="left" title="customize block shape">
-<img src="./assets/example_transparent.png" width="160px" title="with transparent bg">
-</div>
+> These samples are generated with standard writer, check out [Example](./example/example.go) for more details.
 
-<div>
-<img src="./assets/example_halftone0.jpeg" width="160px" align="left" title="halftone0">
-<img src="./assets/example_halftone1.jpeg" width="160px" align="left" title="halftone1">
-<img src="./assets/example_halftone2.png" width="160px" align="left" title="halftone2">
-<img src="./assets/example_halftone3.jpeg" width="160px" title="halftone3">
-</div>
+| A                                                                                    | B                                                                                       | C                                                                                        | D                                                                                      |
+|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| <img src="./assets/example/qrcode_with_bgfgcolor.png" width="160px"><br>bg-fg color  | <img src="./assets/example/qrcode_with_bgtransparent.png" width="160px"><br>transparent | <img src="./assets/example/qrcode_with_borderwidth.png" width="160px"><br>border padding | <img src="./assets/example/qrcode_with_circleshape.png" width="160px"><br>circle shape |
+| <img src="./assets/example/qrcode_with_fggradient.png" width="160px"><br>fg gradient | <img src="./assets/example/qrcode_with_halftone.png" width="160px"><br>using halftone   | <img src="./assets/example/qrcode_with_logo.png" width="160px"><br>set logo image        | <img src="./assets/example/qrcode_with_qrwidth.png" width="160px"><br>block width      |
 
 <br>
 

@@ -39,6 +39,9 @@ func WithFgColor(c color.Color) ImageOption {}
 // WithFgColorRGBHex Hex string to set QR Color
 func WithFgColorRGBHex(hex string) ImageOption {}
 
+// QR gradient
+func WithFgGradient(g *LinearGradient)
+
 // WithLogoImage .
 func WithLogoImage(img image.Image) ImageOption {}
 
@@ -74,6 +77,12 @@ func WithBorderWidth(widths ...int) ImageOption
 
 // WithHalftone ...
 func WithHalftone(path string) ImageOption
+
+// WithLogoSizeMultiplier used in Writer in validLogoImage method to validate logo size
+func WithLogoSizeMultiplier(multiplier int)
+
+// WithLogoSafeZone specify the safe zone of logo image
+func WithLogoSafeZone()
 ```
 
 ### extension

@@ -99,43 +99,10 @@ func WithErrorCorrectionLevel(ecLevel ecLevel) EncodeOption {}
 
 > These samples are generated with standard writer, check out [Example](./example/example.go) for more details.
 
-<div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
-    <div style="text-align: center; width: calc(25% - 20px); box-sizing: border-box;">
-        <img src="./assets/example/qrcode_with_bgfgcolor.png" width="160px">
-        <p>with bg-fg color</p>
-    </div>
-    <div style="text-align: center; width: calc(25% - 20px); box-sizing: border-box;">
-        <img src="./assets/example/qrcode_with_bgtransparent.png" width="160px">
-        <p>with logo image</p>
-    </div>
-    <div style="text-align: center; width: calc(25% - 20px); box-sizing: border-box;">
-        <img src="./assets/example/qrcode_with_borderwidth.png" width="160px">
-        <p>customize block shape</p>
-    </div>
-    <div style="text-align: center; width: calc(25% - 20px); box-sizing: border-box;">
-        <img src="./assets/example/qrcode_with_circleshape.png" width="160px">
-        <p>with transparent bg</p>
-    </div>
-</div>
-
-<div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 20px;">
-    <div style="text-align: center; width: calc(25% - 20px); box-sizing: border-box;">
-        <img src="./assets/example/qrcode_with_fggradient.png" width="160px">
-        <p>halftone0</p>
-    </div>
-    <div style="text-align: center; width: calc(25% - 20px); box-sizing: border-box;">
-        <img src="./assets/example/qrcode_with_halftone.png" width="160px">
-        <p>halftone1</p>
-    </div>
-    <div style="text-align: center; width: calc(25% - 20px); box-sizing: border-box;">
-        <img src="./assets/example/qrcode_with_logo.png" width="160px">
-        <p>halftone2</p>
-    </div>
-    <div style="text-align: center; width: calc(25% - 20px); box-sizing: border-box;">
-        <img src="./assets/example/qrcode_with_qrwidth.png" width="160px">
-        <p>halftone3</p>
-    </div>
-</div>
+| A                                                                                    | B                                                                                       | C                                                                                        | D                                                                                      |
+|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| <img src="./assets/example/qrcode_with_bgfgcolor.png" width="160px"><br>bg-fg color  | <img src="./assets/example/qrcode_with_bgtransparent.png" width="160px"><br>transparent | <img src="./assets/example/qrcode_with_borderwidth.png" width="160px"><br>border padding | <img src="./assets/example/qrcode_with_circleshape.png" width="160px"><br>circle shape |
+| <img src="./assets/example/qrcode_with_fggradient.png" width="160px"><br>fg gradient | <img src="./assets/example/qrcode_with_halftone.png" width="160px"><br>using halftone   | <img src="./assets/example/qrcode_with_logo.png" width="160px"><br>set logo image        | <img src="./assets/example/qrcode_with_qrwidth.png" width="160px"><br>block width      |
 
 <br>
 

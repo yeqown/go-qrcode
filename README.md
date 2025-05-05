@@ -99,43 +99,45 @@ func WithErrorCorrectionLevel(ecLevel ecLevel) EncodeOption {}
 
 > These samples are generated with standard writer, check out [Example](./example/example.go) for more details.
 
-<div>
-<figure style="display: inline-block; margin: 10px;">
-    <img src="./assets/example/qrcode_with_bgfgcolor.png" width="160px">
-    <figcaption style="text-align: center;">bg-fg color</figcaption>
-</figure>
-<figure style="display: inline-block; margin: 10px;">
-    <img src="./assets/example/qrcode_with_bgtransparent.png" width="160px">
-    <figcaption style="text-align: center;">transparent</figcaption>
-</figure>
-<figure style="display: inline-block; margin: 10px;">
-    <img src="./assets/example/qrcode_with_borderwidth.png" width="160px">
-    <figcaption style="text-align: center;">border width: 10</figcaption>
-</figure>
-<figure style="display: inline-block; margin: 10px;">
-    <img src="./assets/example/qrcode_with_qrwidth.png" width="160px">
-    <figcaption style="text-align: center;">block size: 8</figcaption>
-</figure>
+<div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+    <div style="text-align: center;">
+        <img src="./assets/example/qrcode_with_bgfgcolor.png" width="160px">
+        <p>with bg-fg color</p>
+    </div>
+    <div style="text-align: center;">
+        <img src="./assets/example/qrcode_with_bgtransparent.png" width="160px">
+        <p>with logo image</p>
+    </div>
+    <div style="text-align: center;">
+        <img src="./assets/example/qrcode_with_borderwidth.png" width="160px">
+        <p>customize block shape</p>
+    </div>
+    <div style="text-align: center;">
+        <img src="./assets/example/qrcode_with_circleshape.png" width="160px">
+        <p>with transparent bg</p>
+    </div>
 </div>
 
-<div>
-<figure style="display: inline-block; margin: 10px;">
-    <img src="./assets/example/qrcode_with_fggradient.png" width="160px">
-    <figcaption style="text-align: center;">fg gradient</figcaption>
-</figure>
-<figure style="display: inline-block; margin: 10px;">
-    <img src="./assets/example/qrcode_with_halftone.png" width="160px">
-    <figcaption style="text-align: center;">halftone</figcaption>
-</figure>
-<figure style="display: inline-block; margin: 10px;">
-    <img src="./assets/example/qrcode_with_logo.png" width="160px">
-    <figcaption style="text-align: center;">add logo</figcaption>
-</figure>
-<figure style="display: inline-block; margin: 10px;">
-    <img src="./assets/example/qrcode_with_circleshape.png" width="160px">
-    <figcaption style="text-align: center;">circle shape block</figcaption>
-</figure>
+<div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 20px;">
+    <div style="text-align: center;">
+        <img src="./assets/example/qrcode_with_fggradient.png" width="160px">
+        <p>halftone0</p>
+    </div>
+    <div style="text-align: center;">
+        <img src="./assets/example/qrcode_with_halftone.png" width="160px">
+        <p>halftone1</p>
+    </div>
+    <div style="text-align: center;">
+        <img src="./assets/example/qrcode_with_logo.png" width="160px">
+        <p>halftone2</p>
+    </div>
+    <div style="text-align: center;">
+        <img src="./assets/example/qrcode_with_qrwidth.png" width="160px">
+        <p>halftone3</p>
+    </div>
 </div>
+
+<br>
 
 <br>
 

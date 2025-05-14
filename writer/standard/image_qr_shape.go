@@ -26,7 +26,8 @@ type DrawContext struct {
 	x, y float64
 	w, h int
 
-	color color.Color
+	color      color.Color
+	neighbours uint16
 }
 
 // UpperLeft returns the point which indicates the upper left position.
@@ -37,6 +38,28 @@ func (dc *DrawContext) UpperLeft() (dx, dy float64) {
 // Edge returns width and height of each shape could take at most.
 func (dc *DrawContext) Edge() (width, height int) {
 	return dc.w, dc.h
+}
+
+// Bit flags for the 8 surrounding cells in a 3x3 grid around the center (x, y).
+// Layout:
+// NTopLeft		NTop 	NTopRight
+// NLeft  		NSelf	NRight
+// NBotLeft 	NBot 	NBotRight
+const (
+	NTopLeft  uint16 = 1 << iota // top-left
+	NTop                         // top
+	NTopRight                    // top-right
+	NLeft                        // left
+	NSelf                        // center (self)
+	NRight                       // right
+	NBotLeft                     // bottom-left
+	NBot                         // bottom
+	NBotRight                    // bottom-right
+)
+
+// Neighbours returns a bitmask representing the neighboring blocks of the current block
+func (dc *DrawContext) Neighbours() uint16 {
+	return dc.neighbours
 }
 
 // Color returns the color which should be fill into the shape. Note that if you're not

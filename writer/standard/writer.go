@@ -154,6 +154,17 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		logoValid = validLogoImage(w, h, logoWidth, logoHeight, opt.logoSizeMultiplier)
 	}
 
+	// bitMap stores which blocks are set (true = active block)
+	bitMap := mat.Bitmap()
+	// If the logo safe zone is enabled, clear the corresponding area in bitMap
+	if logoValid && opt.logoSafeZone {
+		mat.Iterate(qrcode.IterDirection_ROW, func(x int, y int, v qrcode.QRValue) {
+			if blockOverlapsLogo(x, y, opt.qrBlockWidth(), left, top, w, h, logoWidth, logoHeight) {
+				bitMap[x][y] = false
+			}
+		})
+	}
+
 	// iterate the matrix to Draw each pixel
 	mat.Iterate(qrcode.IterDirection_ROW, func(x int, y int, v qrcode.QRValue) {
 		// Skip drawing this block if it overlaps with the logo area.
@@ -169,6 +180,7 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 		ctx.x, ctx.y = float64(x*opt.qrBlockWidth()+left), float64(y*opt.qrBlockWidth()+top)
 		ctx.w, ctx.h = opt.qrBlockWidth(), opt.qrBlockWidth()
 		ctx.color = opt.translateToRGBA(v)
+		ctx.neighbours = getNeighbours(bitMap, x, y)
 
 		// DONE(@yeqown): make this abstract to Shapes
 		switch typ := v.Type(); typ {
@@ -227,6 +239,49 @@ func draw(mat qrcode.Matrix, opt *outputImageOptions) image.Image {
 
 done:
 	return dc.Image()
+}
+
+// getNeighbours returns a bitmask (uint16) representing the 8 neighboring cells
+// around the (x, y) position in the matrix. Each bit corresponds to a specific
+// direction and is set if the neighboring cell is within bounds and set to `true`.
+// The center cell itself (x, y) is included as NSelf if it is also `true`.
+func getNeighbours(mtx [][]bool, x, y int) uint16 {
+	dirs := []struct {
+		dx, dy int
+		flag   uint16
+	}{
+		{-1, -1, NTopLeft},
+		{0, -1, NTop},
+		{1, -1, NTopRight},
+		{-1, 0, NLeft},
+		{1, 0, NRight},
+		{-1, 1, NBotLeft},
+		{0, 1, NBot},
+		{1, 1, NBotRight},
+	}
+
+	var res uint16
+
+	rows := len(mtx)
+	if rows == 0 {
+		return res
+	}
+	cols := len(mtx[0])
+
+	// Check the center cell
+	if y >= 0 && y < rows && x >= 0 && x < cols && mtx[y][x] {
+		res |= NSelf
+	}
+
+	// Check neighbors
+	for _, d := range dirs {
+		nx, ny := x+d.dx, y+d.dy
+		if ny >= 0 && ny < rows && nx >= 0 && nx < cols && mtx[ny][nx] {
+			res |= d.flag
+		}
+	}
+
+	return res
 }
 
 // halftoneImage is an image.Gray type image, which At(x, y) return color.Gray.

@@ -146,6 +146,11 @@ func (q *QRCode) calcVersion() (ver *version, err error) {
 			return nil, err
 		}
 		opt.Version = analyzed.Ver
+
+		// Apply minimum version constraint if set
+		if opt.MinimumVersion > 0 && opt.Version < opt.MinimumVersion {
+			opt.Version = opt.MinimumVersion
+		}
 	}
 
 	q.v = loadVersion(opt.Version, opt.EcLevel)

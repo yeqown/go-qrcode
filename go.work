@@ -1,13 +1,15 @@
-go 1.19
+go 1.20
+
+toolchain go1.24.9
 
 use (
 	.
 	./.issues
-	./writer/compressed
-	./writer/standard
-	./writer/terminal
-	./writer/file
 	./cmd/qrcode
 	./cmd/wasm
+	./writer/compressed
+	./writer/file
+	./writer/standard
+	./writer/terminal
 	example
 )

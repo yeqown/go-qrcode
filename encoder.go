@@ -93,7 +93,6 @@ func newEncoder(m encMode, ec ecLevel, v version) *encoder {
 // Encode ...
 // 1. encode raw data into bitset
 // 2. append _defaultPadding data
-//
 func (e *encoder) Encode(byts []byte) (*binary.Binary, error) {
 	e.dst = binary.New()
 	e.data = byts
@@ -293,7 +292,6 @@ type analyzeEncFunc func(byte) bool
 // case2: could not use EncModeNumeric, but you can find all of them in character mapping, use EncModeAlphanumeric.
 // case3: could not use EncModeAlphanumeric, but you can find all of them in ISO-8859-1 character set, use EncModeByte.
 // case4: could not use EncModeByte, use EncModeJP, no more choice.
-//
 func analyzeEncodeModeFromRaw(raw []byte) encMode {
 	analyzeFnMapping := map[encMode]analyzeEncFunc{
 		EncModeNumeric:      analyzeNum,

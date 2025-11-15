@@ -6,7 +6,7 @@ require (
 	github.com/yeqown/go-qrcode v1.5.10
 	github.com/yeqown/go-qrcode/v2 v2.2.5
 	github.com/yeqown/go-qrcode/writer/file v0.0.0-20250211110803-2fa59f4d4375
-	github.com/yeqown/go-qrcode/writer/standard v1.2.4
+	github.com/yeqown/go-qrcode/writer/standard v1.3.0
 	github.com/yeqown/go-qrcode/writer/terminal v1.1.1
 )
 

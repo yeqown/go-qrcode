@@ -136,7 +136,6 @@ func rule3(mat *Matrix) (score int) {
 // 5. Subtract 50 from each of these multiples of five and take the absolute qrbool of the result.
 // 6. Divide each of these by five. For example, 10/5 = 2 and 5/5 = 1.
 // 7. Finally, take the smallest of the two numbers and multiply it by 10.
-//
 func rule4(mat *Matrix) int {
 	// prerequisites:
 	//

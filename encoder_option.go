@@ -16,6 +16,10 @@ type encodingOption struct {
 	// Version of target QR code.
 	Version int
 
+	// MinimumVersion specifies the minimum version of target QR code.
+	// If the automatically analyzed version is lower than this, this minimum will be used.
+	MinimumVersion int
+
 	// EncMode specifies which encMode to use
 	EncMode encMode
 
@@ -67,5 +71,18 @@ func WithVersion(version int) EncodeOption {
 		}
 
 		option.Version = version
+	})
+}
+
+// WithMinimumVersion sets the minimum version of target QR code.
+// If the automatically analyzed version is lower than this minimum,
+// the minimum version will be used instead.
+func WithMinimumVersion(version int) EncodeOption {
+	return newFnEncodingOption(func(option *encodingOption) {
+		if version < 1 || version > _VERSION_COUNT {
+			return
+		}
+
+		option.MinimumVersion = version
 	})
 }

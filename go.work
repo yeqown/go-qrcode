@@ -3,11 +3,11 @@ go 1.19
 use (
 	.
 	./.issues
-	./writer/compressed
-	./writer/standard
-	./writer/terminal
-	./writer/file
 	./cmd/qrcode
 	./cmd/wasm
+	./writer/compressed
+	./writer/file
+	./writer/standard
+	./writer/terminal
 	example
 )

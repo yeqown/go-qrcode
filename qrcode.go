@@ -11,26 +11,36 @@ import (
 )
 
 // New generate a QRCode struct to create
-func New(text string) (*QRCode, error) {
+func New[T ~string | ~[]byte](text T) (*QRCode, error) {
 	dst := DefaultEncodingOption()
-	return build(text, dst)
+	return build(toBytes(text), dst)
 }
 
 // NewWith generate a QRCode struct with
 // specified `ver`(QR version) and `ecLv`(Error Correction level)
-func NewWith(text string, opts ...EncodeOption) (*QRCode, error) {
+func NewWith[T ~string | ~[]byte](text T, opts ...EncodeOption) (*QRCode, error) {
 	dst := DefaultEncodingOption()
 	for _, opt := range opts {
 		opt.apply(dst)
 	}
 
-	return build(text, dst)
+	return build(toBytes(text), dst)
 }
 
-func build(text string, option *encodingOption) (*QRCode, error) {
+func toBytes[T ~string | ~[]byte](v T) []byte {
+	switch x := any(v).(type) {
+	case string:
+		return []byte(x)
+	case []byte:
+		return x
+	default:
+		panic("unreachable")
+	}
+}
+
+func build(raw []byte, option *encodingOption) (*QRCode, error) {
 	qrc := &QRCode{
-		sourceText:     text,
-		sourceRawBytes: []byte(text),
+		sourceRawBytes: raw,
 		dataBSet:       nil,
 		mat:            nil,
 		ecBSet:         nil,
@@ -51,7 +61,6 @@ func build(text string, option *encodingOption) (*QRCode, error) {
 // QRCode contains fields to generate QRCode matrix, outputImageOptions to Draw image,
 // etc.
 type QRCode struct {
-	sourceText     string // sourceText input text
 	sourceRawBytes []byte // raw Data to transfer
 
 	dataBSet *binary.Binary // final data bit stream of encode data
@@ -641,7 +650,11 @@ func (q *QRCode) masking() {
 
 			// calculate score and decide the lowest score and Draw
 			score := evaluation(mats[i])
-			debugLogf("cur idx: %d, score: %d, current lowest: mats[%d]:%d", i, score, markMatsIdx, lowScore)
+			debugLogf("cur idx: %d, score: %d, current lowest: mats[%d]:%d",
+				i,
+				score,
+				markMatsIdx,
+				lowScore)
 			scoreChan <- maskScore{
 				Score: score,
 				Idx:   i,

@@ -1,6 +1,6 @@
 module github.com/yeqown/go-qrcode/writer/terminal
 
-go 1.17
+go 1.19
 
 require (
 	github.com/mattn/go-runewidth v0.0.16

@@ -1,80 +1,95 @@
 package beautifier
 
 import (
-	"github.com/pkg/errors"
+	"fmt"
+	"io"
+	"os"
 
+	"github.com/pkg/errors"
 	"github.com/yeqown/go-qrcode/v2"
 )
 
-// Writer is a QArt output writer that helps to replace some fixed patterns in
-// qr matrix to customized images.
+// Writer implements qrcode.Writer interface for SVG output using Style-Shape architecture.
 type Writer struct {
-	// enabledPatterns indicate patterns that would take effect
-	// to generate QR image.
-	enabledPatterns []patternDesc
+	style  Style
+	closer io.WriteCloser
 }
 
-func New() (qrcode.Writer, error) {
-	w := Writer{}
-	err := w.preload()
+// New creates a new BeautifyWriter with the given Style.
+func New(filename string, style Style) (*Writer, error) {
+	f, err := os.Create(filename)
 	if err != nil {
-		return nil, errors.Wrap(err, "preload failed")
+		return nil, errors.Wrap(err, "create file failed")
+	}
+	return NewWithWriter(f, style), nil
+}
+
+// NewWithWriter creates a new BeautifyWriter with io.WriteCloser and Style.
+func NewWithWriter(w io.WriteCloser, style Style) *Writer {
+	return &Writer{
+		style:  style,
+		closer: w,
+	}
+}
+
+func (w *Writer) Write(mat qrcode.Matrix) error {
+	// 1. Analyze the matrix to find shapes
+	shapes := Analyze(mat)
+	
+	// 2. Draw shapes using the Style
+	ctx := &DrawContext{Matrix: mat}
+	var content string
+	
+	for _, shape := range shapes {
+		svg, handled := w.style.Draw(ctx, shape)
+		if handled {
+			content += svg
+			continue
+		}
+		
+		// Fallback: Decompose shape into smaller pieces
+		// For now, we just decompose everything into single blocks.
+		// A better approach would be to decompose Line -> Blocks, Square -> Blocks.
+		// Since our base unit is Block, we just iterate points.
+		for _, p := range shape.Points {
+			blockShape := Shape{Type: ShapeTypeBlock, Points: []Point{p}}
+			svg, handled := w.style.Draw(ctx, blockShape)
+			if handled {
+				content += svg
+			} else {
+				// Ultimate fallback: Draw a simple rect
+				content += fmt.Sprintf(`<rect x="%d" y="%d" width="1" height="1" fill="black" />`, p.X, p.Y)
+			}
+		}
 	}
 
-	return w, nil
+	// Construct the full SVG
+	width := mat.Width()
+	height := mat.Height()
+	padding := 4
+	fullWidth := width + padding*2
+	fullHeight := height + padding*2
+
+	svg := fmt.Sprintf(
+		`<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 %d %d">
+<rect width="100%%" height="100%%" fill="#ffffff"/>
+<g transform="translate(%d, %d)">
+%s
+</g>
+</svg>`,
+		fullWidth, fullHeight,
+		padding, padding,
+		content,
+	)
+
+	_, err := w.closer.Write([]byte(svg))
+	return err
 }
 
-const __OCCUPIED = uint8(0x1a) // 00011011
-
-// Write executes as following steps:
-// 1. find all available patterns and record their information, such as: position and size
-// 2. now rewrite output image with patterns.
-// 3. if one block did not matched in any of the patterns, draw with default image.
-func (w Writer) Write(mat qrcode.Matrix) error {
-	occupied := mat.Copy()
-	// occupied.
-
-	ignore := func(x, y int, s qrcode.QRValue) bool {
-		if v := occupied.Get(x, y); v == __OCCUPIED {
-			return true
-		}
-
-		// for now finder, can't be customized.
-		if s.Type() == qrcode.QRType_FINDER {
-			return true
-		}
-
-		return false
+func (w *Writer) Close() error {
+	if w.closer != nil {
+		return w.closer.Close()
 	}
-
-	mat.Iterate(qrcode.IterDirection_COLUMN, func(x, y int, s qrcode.QRValue) {
-		// if the position has been occupied, or represents special symbol such as position marks,
-		// it can't be handled, skip and handle next position.
-		if ignore(x, y, s) {
-			return
-		}
-
-		for _, pd := range w.enabledPatterns {
-			applyPattern(mat, occupied, x, y, pd)
-		}
-	})
-
-	// TODO(@yeqown): generate image file and save.
-
 	return nil
-}
-
-func (w Writer) Close() error {
-	// TODO(@yeqown): release pattern resource files.
-	return nil
-}
-
-func (w Writer) preload() error {
-	// TODO(@yeqown): load resource files
-	return nil
-}
-
-// applyPattern
-func applyPattern(mat qrcode.Matrix, occupied *qrcode.Matrix, x, y int, pattern patternDesc) bool {
-	return false
 }

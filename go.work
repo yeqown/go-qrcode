@@ -9,5 +9,6 @@ use (
 	./writer/file
 	./writer/standard
 	./writer/terminal
+	./writer/beautifier
 	example
 )

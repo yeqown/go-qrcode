@@ -1,6 +1,6 @@
 module github.com/yeqown/go-qrcode/writer/standard
 
-go 1.17
+go 1.19
 
 require (
 	github.com/fogleman/gg v1.3.0

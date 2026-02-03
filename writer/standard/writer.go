@@ -60,6 +60,23 @@ func NewWithWriter(writeCloser io.WriteCloser, opts ...ImageOption) *Writer {
 	}
 }
 
+// NewWithIOWriter wraps an io.Writer for standard output without requiring a Close implementation.
+func NewWithIOWriter(writer io.Writer, opts ...ImageOption) *Writer {
+	if writer == nil {
+		panic("writer could not be nil")
+	}
+	return NewWithWriter(nopCloser{Writer: writer}, opts...)
+}
+
+// nopCloser adapts an io.Writer to io.WriteCloser.
+type nopCloser struct {
+	io.Writer
+}
+
+func (nopCloser) Close() error {
+	return nil
+}
+
 const (
 	_defaultFilename = "default.jpeg"
 	_defaultPadding  = 40

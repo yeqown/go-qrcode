@@ -1,6 +1,7 @@
 package standard
 
 import (
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"image/png"
@@ -175,6 +176,18 @@ func Test_Attribute(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, width, attr.W)
 	assert.Equal(t, height, attr.H)
+}
+
+func Test_NewWithIOWriter(t *testing.T) {
+	buf := &bytes.Buffer{}
+	writer := NewWithIOWriter(buf)
+	require.NotNil(t, writer)
+
+	mat := qrcode.NewMatrix(21)
+	require.NoError(t, mat.Set(0, 0, true))
+	require.NoError(t, writer.Write(mat))
+
+	require.Greater(t, buf.Len(), 0)
 }
 
 //

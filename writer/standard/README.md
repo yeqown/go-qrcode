@@ -18,7 +18,13 @@ writer, err := standard.New("filename", options...)
 
 // or use io.WriteCloser
 var w io.WriterCloser
-writer2, err := standard.NewWith(w, options...)
+writer2 := standard.NewWithWriter(w, options...)
+_ = writer2
+
+// or use io.Writer (e.g. bytes.Buffer)
+buf := &bytes.Buffer{}
+writer3 := standard.NewWithIOWriter(buf, options...)
+_ = writer3
 ```
 
 ### Options

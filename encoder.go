@@ -116,7 +116,9 @@ func (e *encoder) Encode(byts []byte) (*binary.Binary, error) {
 	}
 
 	// fill and _defaultPadding bits
-	e.breakUpInto8bit()
+	if err := e.breakUpInto8bit(); err != nil {
+		return nil, err
+	}
 
 	return e.dst, nil
 }
@@ -178,7 +180,7 @@ func (e *encoder) encodeByte() {
 }
 
 // Break Up into 8-bit Codewords and Add Pad Bytes if Necessary
-func (e *encoder) breakUpInto8bit() {
+func (e *encoder) breakUpInto8bit() error {
 	// fill ending code (max 4bit)
 	// depends on max capacity of current version and EC level
 	maxCap := e.version.NumTotalCodewords() * 8
@@ -187,7 +189,7 @@ func (e *encoder) breakUpInto8bit() {
 			"wrong version(%d) cap(%d bits) and could not contain all bits: %d bits",
 			e.version.Ver, maxCap, e.dst.Len(),
 		)
-		panic(err)
+		return err
 	} else if less < 4 {
 		e.dst.AppendNumBools(less, false)
 	} else {
@@ -211,6 +213,7 @@ func (e *encoder) breakUpInto8bit() {
 			}
 		}
 	}
+	return nil
 }
 
 // 字符计数指示符位长字典

@@ -231,6 +231,14 @@ func WithHalftone(path string) ImageOption {
 	})
 }
 
+// WithHalftoneImage is identical to WithHalftone, but instead takes an image.Image as
+// input. This is useful if the image will not be saved to disk.
+func WithHalftoneImage(srcImg image.Image) ImageOption {
+	return newFuncOption(func(oo *outputImageOptions) {
+		oo.halftoneImg = srcImg
+	})
+}
+
 // WithLogoSizeMultiplier used in Writer in validLogoImage method to validate logo size
 func WithLogoSizeMultiplier(multiplier int) ImageOption {
 	return newFuncOption(func(oo *outputImageOptions) {

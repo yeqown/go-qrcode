@@ -8,7 +8,7 @@ import (
 
 func TestMask(t *testing.T) {
 	qrc := &QRCode{
-		sourceRawBytes: []byte("baidu.com google.com qq.com sina.com apple.com"),
+		sourceText:     "baidu.com google.com qq.com sina.com apple.com",
 		encodingOption: DefaultEncodingOption(),
 	}
 	err := qrc.init()

@@ -23,17 +23,12 @@ func Test_NewWith(t *testing.T) {
 	qrc.mat.print()
 }
 
-// Test_NewWithConfig_UnmatchedEncodeMode NewWith will panic while encMode is
-// not matched to Config.EncMode, for example:
-// cfg.EncMode is EncModeAlphanumeric but source text is bytes encoding.
+// Test_NewWithConfig_UnmatchedEncodeMode tests that explicit encoding mode
+// returns error when input contains characters that cannot be encoded.
 func Test_NewWithConfig_UnmatchedEncodeMode(t *testing.T) {
-	assert.Panics(t, func() {
-		_, err := NewWith("abcs", WithEncodingMode(EncModeAlphanumeric))
-		if err != nil {
-			t.Errorf("could not generate QRCode: %v", err)
-			t.Fail()
-		}
-	})
+	// Lowercase letters with Alphanumeric mode should return error
+	_, err := NewWith("abcs", WithEncodingMode(EncModeAlphanumeric))
+	assert.Error(t, err, "expected error when using lowercase letters with Alphanumeric mode")
 }
 
 func Benchmark_NewQRCode_1KB(b *testing.B) {
@@ -147,4 +142,121 @@ func Test_NewWith_MinimumVersion_WithExplicitVersion(t *testing.T) {
 	assert.NotNil(t, qrc)
 	// WithVersion takes precedence, so version should be 10
 	assert.Equal(t, 10, qrc.v.Ver)
+}
+
+// Test_NewWith_Kanji_EncMode tests Kanji mode encoding with explicit mode setting
+func Test_NewWith_Kanji_EncMode(t *testing.T) {
+	tests := []struct {
+		name string
+		text string
+	}{
+		{
+			name: "single Kanji character",
+			text: "漢",
+		},
+		{
+			name: "multiple Kanji characters",
+			text: "漢字",
+		},
+		{
+			name: "Kanji sentence",
+			text: "日本語",
+		},
+		{
+			name: "Kanji mixed characters",
+			text: "世界",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			qrc, err := NewWith(tt.text,
+				WithEncodingMode(EncModeKanji),
+				WithErrorCorrectionLevel(ErrorCorrectionLow),
+			)
+			require.NoError(t, err)
+			assert.NotNil(t, qrc)
+
+			// Verify the encoding mode is Kanji
+			assert.Equal(t, EncModeKanji, qrc.encoder.mode)
+
+			t.Logf("Kanji QR code for '%s': version=%d", tt.text, qrc.v.Ver)
+		})
+	}
+}
+
+// Test_NewWith_Kanji_AutoMode tests automatic Kanji mode detection
+func Test_NewWith_Kanji_AutoMode(t *testing.T) {
+	tests := []struct {
+		name     string
+		text     string
+		expected encMode
+	}{
+		{
+			name:     "Kanji only - auto detect",
+			text:     "漢字",
+			expected: EncModeKanji,
+		},
+		{
+			name:     "Kanji characters - auto detect",
+			text:     "世界",
+			expected: EncModeKanji,
+		},
+		{
+			name:     "Mixed ASCII and Katakana - auto detect Byte mode",
+			text:     "QRコード123",
+			expected: EncModeByte,
+		},
+		{
+			name:     "Pure Kanji text - auto detect",
+			text:     "金木水火土日月星",
+			expected: EncModeKanji,
+		},
+		{
+			name:     "Long Kanji text - auto detect",
+			text:     "東京京都大阪北海道沖縄鹿児島",
+			expected: EncModeKanji,
+		},
+		{
+			name:     "Hiragana only - auto detect Byte mode",
+			text:     "これはひらがなです",
+			expected: EncModeByte, // Hiragana is not supported in Kanji mode
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Use EncModeAuto to let the library detect the mode automatically
+			qrc, err := NewWith(tt.text,
+				WithEncodingMode(EncModeAuto),
+				WithErrorCorrectionLevel(ErrorCorrectionLow),
+			)
+			require.NoError(t, err)
+			assert.NotNil(t, qrc)
+
+			// Verify the detected mode matches expectation
+			assert.Equal(t, tt.expected, qrc.encoder.mode,
+				"Expected mode %v for text '%s', got %v", tt.expected, tt.text, qrc.encoder.mode)
+
+			t.Logf("Auto-detected mode for '%s': %v, version=%d", tt.text, getEncModeName(qrc.encoder.mode), qrc.v.Ver)
+		})
+	}
+}
+
+// Test_NewWith_Kanji_Version10 tests Kanji encoding with specific version
+func Test_NewWith_Kanji_Version10(t *testing.T) {
+	qrc, err := NewWith("漢字文字試験",
+		WithEncodingMode(EncModeKanji),
+		WithVersion(10),
+		WithErrorCorrectionLevel(ErrorCorrectionLow),
+	)
+	require.NoError(t, err)
+	assert.NotNil(t, qrc)
+
+	// Verify version is set correctly
+	assert.Equal(t, 10, qrc.v.Ver)
+	// Verify encoding mode is Kanji
+	assert.Equal(t, EncModeKanji, qrc.encoder.mode)
+
+	t.Logf("Kanji QR code with version 10: matrix dimension=%d", qrc.mat.Width())
 }

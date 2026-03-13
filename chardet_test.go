@@ -218,7 +218,7 @@ func Test_analyzeJP(t *testing.T) {
 		{
 			name: "case 8",
 			args: args{r: 'に'},
-			want: true,
+			want: false, // Hiragana is NOT supported in Kanji mode
 		},
 		{
 			name: "case 9",
@@ -319,6 +319,66 @@ func Test_analyzeMode(t *testing.T) {
 		{
 			name:    "issue#28 alphanum mode does not support lower case letter",
 			args:    args{raw: "a"},
+			want:    EncModeByte,
+			wantErr: false,
+		},
+		{
+			name:    "hiragana only - should use Byte mode",
+			args:    args{raw: "これはひらがなです"},
+			want:    EncModeByte,
+			wantErr: false,
+		},
+		{
+			name:    "katakana only - should use Byte mode",
+			args:    args{raw: "コンニチハ"},
+			want:    EncModeByte,
+			wantErr: false,
+		},
+		{
+			name:    "mixed kanji and hiragana - should use Byte mode",
+			args:    args{raw: "漢字ひらがな"},
+			want:    EncModeByte,
+			wantErr: false,
+		},
+		{
+			name:    "single kanji character",
+			args:    args{raw: "漢"},
+			want:    EncModeKanji,
+			wantErr: false,
+		},
+		{
+			name:    "kanji sentence",
+			args:    args{raw: "日本語"},
+			want:    EncModeKanji,
+			wantErr: false,
+		},
+		{
+			name:    "kanji world characters",
+			args:    args{raw: "世界"},
+			want:    EncModeKanji,
+			wantErr: false,
+		},
+		{
+			name:    "long kanji text",
+			args:    args{raw: "東京京都大阪北海道沖縄鹿児島"},
+			want:    EncModeKanji,
+			wantErr: false,
+		},
+		{
+			name:    "mixed kanji and alphanumeric - should use Byte mode",
+			args:    args{raw: "漢字ABC123"},
+			want:    EncModeByte,
+			wantErr: false,
+		},
+		{
+			name:    "CJK Extension A character - not in Shift JIS, should use Byte mode",
+			args:    args{raw: "㐀"}, // U+3400, CJK Extension A - not in Shift JIS
+			want:    EncModeByte,
+			wantErr: false,
+		},
+		{
+			name:    "CJK Compatibility Ideograph - not in Shift JIS, should use Byte mode",
+			args:    args{raw: "豈"}, // U+F900, CJK Compatibility Ideographs - not in Shift JIS
 			want:    EncModeByte,
 			wantErr: false,
 		},

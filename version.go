@@ -290,7 +290,16 @@ func analyzeVersion(raw string, ec ecLevel, mode encMode) (*version, error) {
 		return nil, errInvalidErrorCorrectionLevel
 	}
 
-	want, mark := utf8.RuneCountInString(raw), 0
+	// Byte mode capacity is measured in bytes, not characters
+	// Numeric, Alphanumeric, and Kanji modes are character-based
+	var want int
+	if mode == EncModeByte {
+		want = len(raw)
+	} else {
+		want = utf8.RuneCountInString(raw)
+	}
+
+	mark := 0
 	for ; step < 160; step += 4 {
 
 		switch mode {

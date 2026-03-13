@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"unicode/utf8"
 
 	"github.com/yeqown/reedsolomon/binary"
 	"golang.org/x/text/encoding/japanese"
@@ -126,12 +127,18 @@ func newEncoder(m encMode, ec ecLevel, v version) *encoder {
 func (e *encoder) Encode(raw string) (*binary.Binary, error) {
 	e.dst = binary.New()
 
-	var data []byte
+	var (
+		data      []byte
+		charCount = 0 // Character count for the character count indicator
+	)
 	switch e.mode {
 	case EncModeNumeric, EncModeAlphanumeric, EncModeByte:
 		data = []byte(raw)
+		charCount = len(data)
 	case EncModeKanji:
 		data = toShiftJIS(raw)
+		// For Kanji mode, charCount is the number of Kanji characters, not bytes
+		charCount = utf8.RuneCountInString(raw)
 	default:
 		log.Printf("unsupported encoding mode: %s", getEncModeName(e.mode))
 	}
@@ -140,7 +147,7 @@ func (e *encoder) Encode(raw string) (*binary.Binary, error) {
 	indicator := getEncodeModeIndicator(e.mode)
 	e.dst.Append(indicator)
 	// append chars length counter bits symbol
-	e.dst.AppendUint32(uint32(len(data)), e.charCountBits())
+	e.dst.AppendUint32(uint32(charCount), e.charCountBits())
 
 	// encode data with specified mode
 	switch e.mode {
@@ -220,10 +227,10 @@ func (e *encoder) encodeByte(data []byte) {
 	}
 }
 
-// toShiftJIS
-// https://www.thonky.com/qr-code-tutorial/kanji-mode-encoding
+// toShiftJIS converts Unicode string to Shift JIS and applies Kanji encoding.
+// Each character is encoded as 13 bits using the QR Code Kanji mode algorithm.
+// Reference: https://www.thonky.com/qr-code-tutorial/kanji-mode-encoding
 func toShiftJIS(raw string) []byte {
-	// FIXME: some character encoded into Shift JIS but not in the range of 0x8140-0x9FFC and 0xE040-0xEBBF.
 	enc := japanese.ShiftJIS.NewEncoder()
 	s2, _, err := transform.String(enc, raw)
 	if err != nil {
@@ -233,12 +240,19 @@ func toShiftJIS(raw string) []byte {
 
 	data := []byte(s2)
 	if len(data)%2 != 0 {
-		// BUG: encode bytes with Shift JIS must be times of 2, cause panic here
-		log.Panicf("shift JIS encoded []byte must be times of 2, but got %d", len(data))
+		// Kanji characters must encode to exactly 2 bytes in Shift JIS
+		log.Printf("shift JIS encoded data must be a multiple of 2, but got %d", len(data))
+		return []byte{}
 	}
 
 	for i := 0; i < len(data); i += 2 {
-		data[i], data[i+1] = encodeShiftJIS(data[i], data[i+1])
+		hi, lo := encodeShiftJIS(data[i], data[i+1])
+		if hi == 0 && lo == 0 {
+			// Invalid character encountered
+			log.Printf("invalid Kanji character at position %d", i/2)
+			return []byte{}
+		}
+		data[i], data[i+1] = hi, lo
 	}
 
 	return data
@@ -247,41 +261,45 @@ func toShiftJIS(raw string) []byte {
 func encodeShiftJIS(hi byte, lo byte) (byte, byte) {
 	r := uint16(hi)<<8 | uint16(lo)
 
-	// fmt.Printf("before: r=%x\n", r)
-	if r > 0x8140 && r < 0x9FFC {
+	// QR Code Kanji mode supports Shift JIS ranges:
+	// 0x8140-0x9FFC and 0xE040-0xEBBF
+	if r >= 0x8140 && r <= 0x9FFC {
 		r -= 0x8140
-	} else if r > 0xE040 && r < 0xEBBF {
+	} else if r >= 0xE040 && r <= 0xEBBF {
 		r -= 0xC140
 	} else {
-		// Not a Shift JIS character out of range 0x8140-0x9FFC and 0xE040-0xEBBF
-		log.Printf("'%c'(0x%x) not a Shift JIS character out of range 0x8140-0x9FFC and 0xE040-0xEBBF", r, r)
+		// Not a valid QR Code Kanji character
+		log.Printf("'%c'(0x%x) not a valid QR Code Kanji character (must be in 0x8140-0x9FFC or 0xE040-0xEBBF)", r, r)
 		return 0, 0
 	}
 
-	fmt.Printf("middle: r=%x\n", r)
 	hi = uint8(r >> 8)
 	lo = uint8(r & 0xFF)
 
-	// fmt.Printf("middle: high=%x, low=%x\n", hi, lo)
-
+	// Compress to 13-bit value: (high × 0xC0) + low
 	r = uint16(hi)*uint16(0xC0) + uint16(lo)
-	// fmt.Printf("after: r=%x\n", r)
 
 	return byte(r >> 8), byte(r & 0xFF)
 }
 
-// encodeKanji
+// encodeKanji encodes Kanji data (already processed by encodeShiftJIS).
+// Each Kanji character is encoded as 13 bits: the data contains pairs of bytes
+// where data[i] contains the high 5 bits and data[i+1] contains the low 8 bits.
 func (e *encoder) encodeKanji(data []byte) {
-	// data must be times of 2, since toShiftJIS encode 1 char to 2 bytes
+	// data must be a multiple of 2, since toShiftJIS encodes 1 char to 2 bytes
 	if len(data)%2 != 0 {
-		log.Println("data must be times of 2")
+		log.Println("data must be a multiple of 2")
+		return
 	}
 
 	for i := 0; i < len(data); i += 2 {
-		// 2 bytes to 1 kanji
-		// 2 bytes to 13 bits
-		_ = e.dst.AppendByte(data[i]<<3, 5)
-		_ = e.dst.AppendByte(data[i+1], 8)
+		// Reconstruct the 13-bit value: (high 5 bits << 8) | low 8 bits
+		// data[i] contains the high 5 bits of the 13-bit result
+		// data[i+1] contains the low 8 bits of the 13-bit result
+		value := uint32(data[i])<<8 | uint32(data[i+1])
+
+		// Append the 13-bit value to the bitstream
+		e.dst.AppendUint32(value, 13)
 	}
 }
 
@@ -327,15 +345,15 @@ var charCountMap = map[string]int{
 	"9_numeric":       10,
 	"9_alphanumeric":  9,
 	"9_byte":          8,
-	"9_japan":         8,
+	"9_kanji":         8,
 	"26_numeric":      12,
 	"26_alphanumeric": 11,
 	"26_byte":         16,
-	"26_japan":        10,
+	"26_kanji":        10,
 	"40_numeric":      14,
 	"40_alphanumeric": 13,
 	"40_byte":         16,
-	"40_japan":        12,
+	"40_kanji":        12,
 }
 
 // charCountBits

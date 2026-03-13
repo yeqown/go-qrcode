@@ -38,9 +38,38 @@ func toBytes[T ~string | ~[]byte](v T) []byte {
 	}
 }
 
+// validateEncodingMode checks if the specified encoding mode is compatible with the input text.
+// Returns an error if the text contains characters that cannot be encoded in the specified mode.
+func validateEncodingMode(mode encMode, text string) error {
+	var analyzeFn analyzeEncFunc
+
+	switch mode {
+	case EncModeNumeric:
+		analyzeFn = analyzeNum
+	case EncModeAlphanumeric:
+		analyzeFn = analyzeAlphaNum
+	case EncModeKanji:
+		analyzeFn = analyzeJP
+	case EncModeByte:
+		// Byte mode can encode any character
+		return nil
+	default:
+		return nil
+	}
+
+	for _, r := range text {
+		if !analyzeFn(r) {
+			return fmt.Errorf("character '%c' (U+%04X) cannot be encoded in %s mode",
+				r, r, getEncModeName(mode))
+		}
+	}
+
+	return nil
+}
+
 func build(raw []byte, option *encodingOption) (*QRCode, error) {
 	qrc := &QRCode{
-		sourceText:     text,
+		sourceText:     string(raw),
 		dataBSet:       nil,
 		mat:            nil,
 		ecBSet:         nil,
@@ -62,7 +91,6 @@ func build(raw []byte, option *encodingOption) (*QRCode, error) {
 // etc.
 type QRCode struct {
 	sourceText string // sourceText input text
-	// sourceRawBytes []byte // raw Data to transfer
 
 	dataBSet *binary.Binary // final data bit stream of encode data
 	mat      *Matrix        // matrix grid to store final bitmap
@@ -80,7 +108,7 @@ func (q *QRCode) Save(w Writer) error {
 
 	defer func() {
 		if err := w.Close(); err != nil {
-			log.Printf("[WARNNING] [go-qrcode] close writer failed: %v\n", err)
+			log.Printf("[WARNING] [go-qrcode] close writer failed: %v\n", err)
 		}
 	}()
 
@@ -102,6 +130,11 @@ func (q *QRCode) init() (err error) {
 		q.encodingOption.EncMode, err = analyzeEncodeModeFromRaw(q.sourceText)
 		if err != nil {
 			return fmt.Errorf("init: analyze encode mode failed: %v", err)
+		}
+	} else {
+		// Validate that the specified encoding mode is compatible with the input
+		if err = validateEncodingMode(q.encodingOption.EncMode, q.sourceText); err != nil {
+			return err
 		}
 	}
 

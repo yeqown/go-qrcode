@@ -5,26 +5,53 @@ package qrcode
 import (
 	"fmt"
 	"log"
+	"strconv"
+	"unicode/utf8"
 
 	"github.com/yeqown/reedsolomon/binary"
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/transform"
 )
 
-// encMode ...
+// encMode indicates the encoding mode of the data to be encoded.
+// The encoding mode is used to determine how the data should be encoded
+// into bits for the QR code. This repository supports the following encoding
+// modes:
+// - EncModeNone: no encoding
+// - EncModeNumeric: numeric encoding
+// - EncModeAlphanumeric: alphanumeric encoding
+// - EncModeKanji: japanese kanji encoding
+// - EncModeByte: byte encoding
+//
+// The encoding mode is determined by the data to be encoded. For example, if
+// the data to be encoded is all numeric, the encoding mode will be EncModeNumeric.
+// If the data to be encoded is alphanumeric, the encoding mode will be EncModeAlphanumeric.
+// You can also specify the encoding mode automatically by using EncModeAuto, which
+// will automatically determine the encoding mode based on the data to be encoded.
 type encMode uint
 
 const (
-	// a qrbool of EncModeAuto will trigger a detection of the letter set from the input data,
+	// EncModeAuto will trigger a detection of the letter set from the input data.
 	EncModeAuto = 0
-	// EncModeNone mode ...
-	EncModeNone encMode = 1 << iota
-	// EncModeNumeric mode ...
-	EncModeNumeric
-	// EncModeAlphanumeric mode ...
-	EncModeAlphanumeric
-	// EncModeByte mode ...
-	EncModeByte
+
+	// EncModeNone mode represents no encoding, usually used as initial value of encMode
+	EncModeNone encMode = 2
+
+	// EncModeNumeric mode support only numeric character set (0-9)
+	EncModeNumeric encMode = 4
+
+	// EncModeAlphanumeric mode support only alphanumeric character set (0-9, A-Z, SP, $%*+-./ or :)
+	EncModeAlphanumeric encMode = 8
+
 	// EncModeJP mode ...
-	EncModeJP
+	// @Deprecated use EncModeKanji instead
+	EncModeJP encMode = 16
+	// EncModeKanji mode support only Shift JIS encoding character set.
+	// From 0x8140 to 0x9FFC and 0xE040 to 0xEBBF.
+	EncModeKanji = EncModeJP
+
+	// EncModeByte mode support ISO-8859-1 character set by default, but also support UTF-8.
+	EncModeByte encMode = 32
 )
 
 var (
@@ -41,12 +68,12 @@ func getEncModeName(mode encMode) string {
 		return "numeric"
 	case EncModeAlphanumeric:
 		return "alphanumeric"
+	case EncModeKanji:
+		return "kanji"
 	case EncModeByte:
 		return "byte"
-	case EncModeJP:
-		return "japan"
 	default:
-		return "unknown"
+		return "unknown(" + strconv.Itoa(int(mode)) + ")"
 	}
 }
 
@@ -59,7 +86,7 @@ func getEncodeModeIndicator(mode encMode) *binary.Binary {
 		return binary.New(false, false, true, false)
 	case EncModeByte:
 		return binary.New(false, true, false, false)
-	case EncModeJP:
+	case EncModeKanji:
 		return binary.New(true, false, false, false)
 	default:
 		panic("no indicator")
@@ -69,8 +96,7 @@ func getEncodeModeIndicator(mode encMode) *binary.Binary {
 // encoder ... data to bit stream ...
 type encoder struct {
 	// self init
-	dst  *binary.Binary
-	data []byte // raw input data
+	dst *binary.Binary
 
 	// initial params
 	mode encMode // encode mode
@@ -81,9 +107,14 @@ type encoder struct {
 }
 
 func newEncoder(m encMode, ec ecLevel, v version) *encoder {
+	switch m {
+	case EncModeNumeric, EncModeAlphanumeric, EncModeByte, EncModeKanji:
+	default:
+		panic("unsupported data encoding mode in newEncoder()")
+	}
+
 	return &encoder{
 		dst:     nil,
-		data:    nil,
 		mode:    m,
 		ecLv:    ec,
 		version: v,
@@ -93,26 +124,43 @@ func newEncoder(m encMode, ec ecLevel, v version) *encoder {
 // Encode ...
 // 1. encode raw data into bitset
 // 2. append _defaultPadding data
-func (e *encoder) Encode(byts []byte) (*binary.Binary, error) {
+func (e *encoder) Encode(raw string) (*binary.Binary, error) {
 	e.dst = binary.New()
-	e.data = byts
+
+	var (
+		data      []byte
+		charCount = 0 // Character count for the character count indicator
+	)
+	switch e.mode {
+	case EncModeNumeric, EncModeAlphanumeric, EncModeByte:
+		data = []byte(raw)
+		charCount = len(data)
+	case EncModeKanji:
+		data = toShiftJIS(raw)
+		// For Kanji mode, charCount is the number of Kanji characters, not bytes
+		charCount = utf8.RuneCountInString(raw)
+	default:
+		log.Printf("unsupported encoding mode: %s", getEncModeName(e.mode))
+	}
 
 	// append mode indicator symbol
 	indicator := getEncodeModeIndicator(e.mode)
 	e.dst.Append(indicator)
 	// append chars length counter bits symbol
-	e.dst.AppendUint32(uint32(len(byts)), e.charCountBits())
+	e.dst.AppendUint32(uint32(charCount), e.charCountBits())
 
 	// encode data with specified mode
 	switch e.mode {
 	case EncModeNumeric:
-		e.encodeNumeric()
+		e.encodeNumeric(data)
 	case EncModeAlphanumeric:
-		e.encodeAlphanumeric()
+		e.encodeAlphanumeric(data)
+	case EncModeKanji:
+		e.encodeKanji(data)
 	case EncModeByte:
-		e.encodeByte()
-	case EncModeJP:
-		panic("this has not been finished")
+		e.encodeByte(data)
+	default:
+		log.Printf("unsupported encoding mode: %s", getEncModeName(e.mode))
 	}
 
 	// fill and _defaultPadding bits
@@ -124,20 +172,20 @@ func (e *encoder) Encode(byts []byte) (*binary.Binary, error) {
 }
 
 // 0001b mode indicator
-func (e *encoder) encodeNumeric() {
+func (e *encoder) encodeNumeric(data []byte) {
 	if e.dst == nil {
 		log.Println("e.dst is nil")
 		return
 	}
-	for i := 0; i < len(e.data); i += 3 {
-		charsRemaining := len(e.data) - i
+	for i := 0; i < len(data); i += 3 {
+		charsRemaining := len(data) - i
 
 		var value uint32
 		bitsUsed := 1
 
 		for j := 0; j < charsRemaining && j < 3; j++ {
 			value *= 10
-			value += uint32(e.data[i+j] - 0x30)
+			value += uint32(data[i+j] - 0x30)
 			bitsUsed += 3
 		}
 		e.dst.AppendUint32(value, bitsUsed)
@@ -145,18 +193,18 @@ func (e *encoder) encodeNumeric() {
 }
 
 // 0010b mode indicator
-func (e *encoder) encodeAlphanumeric() {
+func (e *encoder) encodeAlphanumeric(data []byte) {
 	if e.dst == nil {
 		log.Println("e.dst is nil")
 		return
 	}
-	for i := 0; i < len(e.data); i += 2 {
-		charsRemaining := len(e.data) - i
+	for i := 0; i < len(data); i += 2 {
+		charsRemaining := len(data) - i
 
 		var value uint32
 		for j := 0; j < charsRemaining && j < 2; j++ {
 			value *= 45
-			value += encodeAlphanumericCharacter(e.data[i+j])
+			value += encodeAlphanumericCharacter(data[i+j])
 		}
 
 		bitsUsed := 6
@@ -169,13 +217,89 @@ func (e *encoder) encodeAlphanumeric() {
 }
 
 // 0100b mode indicator
-func (e *encoder) encodeByte() {
+func (e *encoder) encodeByte(data []byte) {
 	if e.dst == nil {
 		log.Println("e.dst is nil")
 		return
 	}
-	for _, b := range e.data {
+	for _, b := range data {
 		_ = e.dst.AppendByte(b, 8)
+	}
+}
+
+// toShiftJIS converts Unicode string to Shift JIS and applies Kanji encoding.
+// Each character is encoded as 13 bits using the QR Code Kanji mode algorithm.
+// Reference: https://www.thonky.com/qr-code-tutorial/kanji-mode-encoding
+func toShiftJIS(raw string) []byte {
+	enc := japanese.ShiftJIS.NewEncoder()
+	s2, _, err := transform.String(enc, raw)
+	if err != nil {
+		log.Printf("could not encode string to Shift JIS: %v", err)
+		return []byte{}
+	}
+
+	data := []byte(s2)
+	if len(data)%2 != 0 {
+		// Kanji characters must encode to exactly 2 bytes in Shift JIS
+		log.Printf("shift JIS encoded data must be a multiple of 2, but got %d", len(data))
+		return []byte{}
+	}
+
+	for i := 0; i < len(data); i += 2 {
+		hi, lo := encodeShiftJIS(data[i], data[i+1])
+		if hi == 0 && lo == 0 {
+			// Invalid character encountered
+			log.Printf("invalid Kanji character at position %d", i/2)
+			return []byte{}
+		}
+		data[i], data[i+1] = hi, lo
+	}
+
+	return data
+}
+
+func encodeShiftJIS(hi byte, lo byte) (byte, byte) {
+	r := uint16(hi)<<8 | uint16(lo)
+
+	// QR Code Kanji mode supports Shift JIS ranges:
+	// 0x8140-0x9FFC and 0xE040-0xEBBF
+	if r >= 0x8140 && r <= 0x9FFC {
+		r -= 0x8140
+	} else if r >= 0xE040 && r <= 0xEBBF {
+		r -= 0xC140
+	} else {
+		// Not a valid QR Code Kanji character
+		log.Printf("'%c'(0x%x) not a valid QR Code Kanji character (must be in 0x8140-0x9FFC or 0xE040-0xEBBF)", r, r)
+		return 0, 0
+	}
+
+	hi = uint8(r >> 8)
+	lo = uint8(r & 0xFF)
+
+	// Compress to 13-bit value: (high × 0xC0) + low
+	r = uint16(hi)*uint16(0xC0) + uint16(lo)
+
+	return byte(r >> 8), byte(r & 0xFF)
+}
+
+// encodeKanji encodes Kanji data (already processed by encodeShiftJIS).
+// Each Kanji character is encoded as 13 bits: the data contains pairs of bytes
+// where data[i] contains the high 5 bits and data[i+1] contains the low 8 bits.
+func (e *encoder) encodeKanji(data []byte) {
+	// data must be a multiple of 2, since toShiftJIS encodes 1 char to 2 bytes
+	if len(data)%2 != 0 {
+		log.Println("data must be a multiple of 2")
+		return
+	}
+
+	for i := 0; i < len(data); i += 2 {
+		// Reconstruct the 13-bit value: (high 5 bits << 8) | low 8 bits
+		// data[i] contains the high 5 bits of the 13-bit result
+		// data[i+1] contains the low 8 bits of the 13-bit result
+		value := uint32(data[i])<<8 | uint32(data[i+1])
+
+		// Append the 13-bit value to the bitstream
+		e.dst.AppendUint32(value, 13)
 	}
 }
 
@@ -221,15 +345,15 @@ var charCountMap = map[string]int{
 	"9_numeric":       10,
 	"9_alphanumeric":  9,
 	"9_byte":          8,
-	"9_japan":         8,
+	"9_kanji":         8,
 	"26_numeric":      12,
 	"26_alphanumeric": 11,
 	"26_byte":         16,
-	"26_japan":        10,
+	"26_kanji":        10,
 	"40_numeric":      14,
 	"40_alphanumeric": 13,
 	"40_byte":         16,
-	"40_japan":        12,
+	"40_kanji":        12,
 }
 
 // charCountBits
@@ -282,70 +406,3 @@ func encodeAlphanumericCharacter(v byte) uint32 {
 
 	return 0
 }
-
-// analyzeEncFunc returns true is current byte matched in current mode,
-// otherwise means you should use a bigger character set to check.
-type analyzeEncFunc func(byte) bool
-
-// analyzeEncodeModeFromRaw try to detect letter set of input data,
-// so that encoder can determine which mode should be use.
-// reference: https://en.wikipedia.org/wiki/QR_code
-//
-// case1: only numbers, use EncModeNumeric.
-// case2: could not use EncModeNumeric, but you can find all of them in character mapping, use EncModeAlphanumeric.
-// case3: could not use EncModeAlphanumeric, but you can find all of them in ISO-8859-1 character set, use EncModeByte.
-// case4: could not use EncModeByte, use EncModeJP, no more choice.
-func analyzeEncodeModeFromRaw(raw []byte) encMode {
-	analyzeFnMapping := map[encMode]analyzeEncFunc{
-		EncModeNumeric:      analyzeNum,
-		EncModeAlphanumeric: analyzeAlphaNum,
-		EncModeByte:         nil,
-		EncModeJP:           nil,
-	}
-
-	var (
-		f    analyzeEncFunc
-		mode = EncModeNumeric
-	)
-
-	// loop to check each character in raw data,
-	// from low mode to higher while current mode could bearing the input data.
-	for _, byt := range raw {
-	reAnalyze:
-		if f = analyzeFnMapping[mode]; f == nil {
-			break
-		}
-
-		// issue#28 @borislavone reports this bug.
-		// FIXED(@yeqown): next encMode analyzeVersionAuto func did not check the previous byte,
-		// add goto statement to reanalyze previous byte which can't be analyzed in last encMode.
-		if !f(byt) {
-			mode <<= 1
-			goto reAnalyze
-		}
-	}
-
-	return mode
-}
-
-// analyzeNum is byt in num encMode
-func analyzeNum(byt byte) bool {
-	return byt >= '0' && byt <= '9'
-}
-
-// analyzeAlphaNum is byt in alpha number
-func analyzeAlphaNum(byt byte) bool {
-	if (byt >= '0' && byt <= '9') || (byt >= 'A' && byt <= 'Z') {
-		return true
-	}
-	switch byt {
-	case ' ', '$', '%', '*', '+', '-', '.', '/', ':':
-		return true
-	}
-	return false
-}
-
-//// analyzeByte is byt in bytes.
-//func analyzeByte(byt byte) qrbool {
-//	return false
-//}

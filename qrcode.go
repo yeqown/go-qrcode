@@ -38,9 +38,38 @@ func toBytes[T ~string | ~[]byte](v T) []byte {
 	}
 }
 
+// validateEncodingMode checks if the specified encoding mode is compatible with the input text.
+// Returns an error if the text contains characters that cannot be encoded in the specified mode.
+func validateEncodingMode(mode encMode, text string) error {
+	var analyzeFn analyzeEncFunc
+
+	switch mode {
+	case EncModeNumeric:
+		analyzeFn = analyzeNum
+	case EncModeAlphanumeric:
+		analyzeFn = analyzeAlphaNum
+	case EncModeKanji:
+		analyzeFn = analyzeJP
+	case EncModeByte:
+		// Byte mode can encode any character
+		return nil
+	default:
+		return nil
+	}
+
+	for _, r := range text {
+		if !analyzeFn(r) {
+			return fmt.Errorf("character '%c' (U+%04X) cannot be encoded in %s mode",
+				r, r, getEncModeName(mode))
+		}
+	}
+
+	return nil
+}
+
 func build(raw []byte, option *encodingOption) (*QRCode, error) {
 	qrc := &QRCode{
-		sourceRawBytes: raw,
+		sourceText:     string(raw),
 		dataBSet:       nil,
 		mat:            nil,
 		ecBSet:         nil,
@@ -61,7 +90,7 @@ func build(raw []byte, option *encodingOption) (*QRCode, error) {
 // QRCode contains fields to generate QRCode matrix, outputImageOptions to Draw image,
 // etc.
 type QRCode struct {
-	sourceRawBytes []byte // raw Data to transfer
+	sourceText string // sourceText input text
 
 	dataBSet *binary.Binary // final data bit stream of encode data
 	mat      *Matrix        // matrix grid to store final bitmap
@@ -79,7 +108,7 @@ func (q *QRCode) Save(w Writer) error {
 
 	defer func() {
 		if err := w.Close(); err != nil {
-			log.Printf("[WARNNING] [go-qrcode] close writer failed: %v\n", err)
+			log.Printf("[WARNING] [go-qrcode] close writer failed: %v\n", err)
 		}
 	}()
 
@@ -98,7 +127,15 @@ func (q *QRCode) Dimension() int {
 func (q *QRCode) init() (err error) {
 	// choose encode mode (num, alpha num, byte, Japanese)
 	if q.encodingOption.EncMode == EncModeAuto {
-		q.encodingOption.EncMode = analyzeEncodeModeFromRaw(q.sourceRawBytes)
+		q.encodingOption.EncMode, err = analyzeEncodeModeFromRaw(q.sourceText)
+		if err != nil {
+			return fmt.Errorf("init: analyze encode mode failed: %v", err)
+		}
+	} else {
+		// Validate that the specified encoding mode is compatible with the input
+		if err = validateEncodingMode(q.encodingOption.EncMode, q.sourceText); err != nil {
+			return err
+		}
 	}
 
 	// choose version
@@ -149,7 +186,7 @@ func (q *QRCode) calcVersion() (ver *version, err error) {
 	// automatically parse version
 	if needAnalyze {
 		// analyzeVersion the input data to choose to adapt version
-		analyzed, err2 := analyzeVersion(q.sourceRawBytes, opt.EcLevel, opt.EncMode)
+		analyzed, err2 := analyzeVersion(q.sourceText, opt.EcLevel, opt.EncMode)
 		if err2 != nil {
 			err = fmt.Errorf("calcVersion: analyzeVersionAuto failed: %v", err2)
 			return nil, err
@@ -180,7 +217,7 @@ func (q *QRCode) dataEncoding() (blocks []dataBlock, err error) {
 	var (
 		bset *binary.Binary
 	)
-	bset, err = q.encoder.Encode(q.sourceRawBytes)
+	bset, err = q.encoder.Encode(q.sourceText)
 	if err != nil {
 		err = fmt.Errorf("could not encode data: %v", err)
 		return

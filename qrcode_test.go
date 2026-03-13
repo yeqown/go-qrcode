@@ -147,24 +147,68 @@ func Test_NewWith_MinimumVersion_WithExplicitVersion(t *testing.T) {
 // Test_NewWith_Kanji_EncMode tests Kanji mode encoding with explicit mode setting
 func Test_NewWith_Kanji_EncMode(t *testing.T) {
 	tests := []struct {
-		name string
-		text string
+		name        string
+		text        string
+		wantErr     bool
+		expectedErr string
 	}{
+		// Valid Kanji input
 		{
-			name: "single Kanji character",
-			text: "漢",
+			name:    "single Kanji character",
+			text:    "漢",
+			wantErr: false,
 		},
 		{
-			name: "multiple Kanji characters",
-			text: "漢字",
+			name:    "multiple Kanji characters",
+			text:    "漢字",
+			wantErr: false,
 		},
 		{
-			name: "Kanji sentence",
-			text: "日本語",
+			name:    "Kanji sentence",
+			text:    "日本語",
+			wantErr: false,
 		},
 		{
-			name: "Kanji mixed characters",
-			text: "世界",
+			name:    "Kanji mixed characters",
+			text:    "世界",
+			wantErr: false,
+		},
+		// Invalid input for Kanji mode
+		{
+			name:        "ASCII characters",
+			text:        "https://google.com",
+			wantErr:     true,
+			expectedErr: "cannot be encoded in kanji mode",
+		},
+		{
+			name:        "numbers with Kanji mode",
+			text:        "漢字123",
+			wantErr:     true,
+			expectedErr: "cannot be encoded in kanji mode",
+		},
+		{
+			name:        "Hiragana with Kanji mode",
+			text:        "こんにちは",
+			wantErr:     true,
+			expectedErr: "cannot be encoded in kanji mode",
+		},
+		{
+			name:        "Katakana with Kanji mode",
+			text:        "コンニチハ",
+			wantErr:     true,
+			expectedErr: "cannot be encoded in kanji mode",
+		},
+		{
+			name:        "mixed Kanji and ASCII",
+			text:        "漢字test",
+			wantErr:     true,
+			expectedErr: "cannot be encoded in kanji mode",
+		},
+		{
+			name:        "CJK Extension A character",
+			text:        "㐀",
+			wantErr:     true,
+			expectedErr: "cannot be encoded in kanji mode",
 		},
 	}
 
@@ -174,12 +218,16 @@ func Test_NewWith_Kanji_EncMode(t *testing.T) {
 				WithEncodingMode(EncModeKanji),
 				WithErrorCorrectionLevel(ErrorCorrectionLow),
 			)
+
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expectedErr)
+				return
+			}
+
 			require.NoError(t, err)
 			assert.NotNil(t, qrc)
-
-			// Verify the encoding mode is Kanji
 			assert.Equal(t, EncModeKanji, qrc.encoder.mode)
-
 			t.Logf("Kanji QR code for '%s': version=%d", tt.text, qrc.v.Ver)
 		})
 	}

@@ -171,3 +171,13 @@ func Test_Matrix_RowAndCol(t *testing.T) {
 		})
 	}
 }
+
+func Test_Matrix_Row_NonSquare(t *testing.T) {
+	// a row spans the width, so its length must equal the matrix width
+	m := newMatrix(5, 3)
+	_ = m.set(4, 0, QRValue_DATA_V1)
+
+	row := m.Row(0)
+	assert.Equal(t, m.Width(), len(row))
+	assert.Equal(t, QRValue_DATA_V1, row[4])
+}

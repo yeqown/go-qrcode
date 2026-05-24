@@ -149,11 +149,11 @@ func (m *Matrix) Row(cur int) []qrvalue {
 		return nil
 	}
 
-	col := make([]qrvalue, m.height)
+	row := make([]qrvalue, m.width)
 	for w := 0; w < m.width; w++ {
-		col[w] = m.mat[w][cur]
+		row[w] = m.mat[w][cur]
 	}
-	return col
+	return row
 }
 
 // Col return a slice of column, cur should be x dimension.

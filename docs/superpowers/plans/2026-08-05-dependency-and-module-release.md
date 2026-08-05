@@ -74,26 +74,28 @@ mkdir -p writer/standard/testdata writer/terminal/testdata
 
 Expected: both directories exist and `git status --short` remains empty.
 
-- [ ] **Step 6: Run the independent-module baseline tests**
+- [ ] **Step 6: Run the local-workspace baseline tests**
 
 ```bash
-for module_dir in . .issues cmd/qrcode cmd/wasm example writer/compressed writer/standard writer/terminal; do
+for module_dir in . .issues cmd/qrcode example writer/compressed writer/file writer/standard writer/terminal; do
   (
     cd "$module_dir"
-    GOTOOLCHAIN=go1.19.13 GOWORK=off go test ./...
+    go test ./...
   )
 done
 ```
 
 ```bash
 (
-  cd writer/file
-  GOTOOLCHAIN=go1.20.14 GOWORK=off go test ./...
+  cd cmd/wasm
+  GOOS=js GOARCH=wasm go test ./...
 )
 ```
 
-Expected: every command exits 0. If a baseline test fails, stop before changing
-dependencies and report the pre-existing failure.
+Expected: every command exits 0 using local workspace resolution. The workspace
+baseline is required because `.issues` and `example` already consume APIs from
+the current checkout that do not exist in their stale published requirements,
+and nested modules intentionally do not track individual `go.sum` files.
 
 ### Task 2: Upgrade Compatible External Dependencies
 
@@ -354,7 +356,7 @@ Expected: `$go119_workspace_dir/go.work` exists with `go 1.19` and local uses.
 - [ ] **Step 2: Test and vet every Go 1.19 release consumer**
 
 ```bash
-for module_dir in . .issues cmd/qrcode cmd/wasm writer/compressed writer/standard writer/terminal; do
+for module_dir in . .issues cmd/qrcode writer/compressed writer/standard writer/terminal; do
   (
     cd "$module_dir"
     GOTOOLCHAIN=go1.19.13 GOWORK="$go119_workspace_dir/go.work" go test ./...
@@ -363,7 +365,16 @@ for module_dir in . .issues cmd/qrcode cmd/wasm writer/compressed writer/standar
 done
 ```
 
-Expected: all tests and vet commands exit 0 under Go 1.19.13.
+```bash
+(
+  cd cmd/wasm
+  GOOS=js GOARCH=wasm GOTOOLCHAIN=go1.19.13 GOWORK="$go119_workspace_dir/go.work" go test ./...
+  GOOS=js GOARCH=wasm GOTOOLCHAIN=go1.19.13 GOWORK="$go119_workspace_dir/go.work" go vet ./...
+)
+```
+
+Expected: all tests and vet commands exit 0 under Go 1.19.13, with the WASM
+module compiled and tested for its declared `js/wasm` build target.
 
 - [ ] **Step 3: Run CI-equivalent race tests under Go 1.19**
 
@@ -413,12 +424,19 @@ Expected: all commands exit 0 under Go 1.20.14.
 - [ ] **Step 6: Run combined workspace integration with the installed toolchain**
 
 ```bash
-for module_dir in . .issues cmd/qrcode cmd/wasm example writer/compressed writer/file writer/standard writer/terminal; do
+for module_dir in . .issues cmd/qrcode example writer/compressed writer/file writer/standard writer/terminal; do
   (
     cd "$module_dir"
     go test ./...
   )
 done
+```
+
+```bash
+(
+  cd cmd/wasm
+  GOOS=js GOARCH=wasm go test ./...
+)
 ```
 
 ```bash

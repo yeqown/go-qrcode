@@ -86,9 +86,12 @@ done
 ```
 
 ```bash
+installed_go_root=$(go env GOROOT)
 (
   cd cmd/wasm
-  GOOS=js GOARCH=wasm go test ./...
+  GOOS=js GOARCH=wasm go test \
+    -exec="$installed_go_root/misc/wasm/go_js_wasm_exec" \
+    ./...
 )
 ```
 
@@ -366,9 +369,12 @@ done
 ```
 
 ```bash
+go119_root=$(GOTOOLCHAIN=go1.19.13 go env GOROOT)
 (
   cd cmd/wasm
-  GOOS=js GOARCH=wasm GOTOOLCHAIN=go1.19.13 GOWORK="$go119_workspace_dir/go.work" go test ./...
+  GOOS=js GOARCH=wasm GOTOOLCHAIN=go1.19.13 GOWORK="$go119_workspace_dir/go.work" go test \
+    -exec="$go119_root/misc/wasm/go_js_wasm_exec" \
+    ./...
   GOOS=js GOARCH=wasm GOTOOLCHAIN=go1.19.13 GOWORK="$go119_workspace_dir/go.work" go vet ./...
 )
 ```
@@ -433,9 +439,12 @@ done
 ```
 
 ```bash
+installed_go_root=$(go env GOROOT)
 (
   cd cmd/wasm
-  GOOS=js GOARCH=wasm go test ./...
+  GOOS=js GOARCH=wasm go test \
+    -exec="$installed_go_root/misc/wasm/go_js_wasm_exec" \
+    ./...
 )
 ```
 

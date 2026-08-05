@@ -79,9 +79,10 @@ Verification will run in two layers:
 2. Run the full workspace build, tests, race-enabled tests where currently used
    by CI, `go vet`, and module consistency checks.
 
-The final checks must confirm that Go directives are unchanged, no dependency
-requires a newer Go version, all internal requirements match the release table,
-and the worktree contains only intended changes.
+The final checks must confirm that Go directives are unchanged, the complete
+dependency graph builds and tests with the exact baseline toolchains, all
+internal requirements match the release table, and the worktree contains only
+intended changes.
 
 ## Commit and Tag Publication
 

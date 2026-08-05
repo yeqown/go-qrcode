@@ -156,7 +156,7 @@ GOTOOLCHAIN=go1.19.13 GOWORK=off go mod tidy -go=1.19 -compat=1.19
 ```
 
 ```bash
-for module_dir in writer/standard writer/terminal cmd/qrcode; do
+for module_dir in writer/standard writer/terminal; do
   (
     cd "$module_dir"
     GOTOOLCHAIN=go1.19.13 GOWORK=off go mod tidy -go=1.19 -compat=1.19
@@ -164,7 +164,9 @@ for module_dir in writer/standard writer/terminal cmd/qrcode; do
 done
 ```
 
-Expected: all commands exit 0 and retain `go 1.19`.
+Expected: all commands exit 0 and retain `go 1.19`. Defer `cmd/qrcode` tidy
+until Task 3 because its stale published writer/core combination cannot be
+loaded consistently outside the workspace.
 
 - [ ] **Step 5: Verify the selected direct versions and unchanged image ceiling**
 
@@ -184,12 +186,19 @@ GOTOOLCHAIN=go1.19.13 GOWORK=off go test ./...
 ```
 
 ```bash
-for module_dir in writer/standard writer/terminal cmd/qrcode; do
+for module_dir in writer/standard writer/terminal; do
   (
     cd "$module_dir"
     GOTOOLCHAIN=go1.19.13 GOWORK=off go test ./...
   )
 done
+```
+
+```bash
+(
+  cd cmd/qrcode
+  GOTOOLCHAIN=go1.19.13 GOWORK=off go test -mod=mod ./...
+)
 ```
 
 Expected: every test command exits 0.
@@ -305,14 +314,20 @@ github.com/yeqown/go-qrcode/writer/compressed v1.0.2
 The only retained old-major requirement is
 `github.com/yeqown/go-qrcode v1.5.10` in `example/go.mod`.
 
-- [ ] **Step 5: Synchronize the checked-in workspace metadata**
+- [ ] **Step 5: Tidy the CLI with local modules and synchronize the workspace**
 
 ```bash
+(
+  cd cmd/qrcode
+  go mod tidy -go=1.19 -compat=1.19
+)
+
 go work sync
 ```
 
 Expected: local workspace modules satisfy the unpublished internal version
-requirements without adding permanent `replace` directives.
+requirements, CLI metadata is tidy, and no permanent `replace` directives are
+added.
 
 - [ ] **Step 6: Review and commit the internal dependency alignment**
 

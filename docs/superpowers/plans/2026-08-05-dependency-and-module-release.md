@@ -314,20 +314,25 @@ github.com/yeqown/go-qrcode/writer/compressed v1.0.2
 The only retained old-major requirement is
 `github.com/yeqown/go-qrcode v1.5.10` in `example/go.mod`.
 
-- [ ] **Step 5: Tidy the CLI with local modules and synchronize the workspace**
+- [ ] **Step 5: Tidy the CLI with temporary module-local replacements**
 
 ```bash
 (
+  set -e
   cd cmd/qrcode
-  go mod tidy -go=1.19 -compat=1.19
+  go mod edit \
+    -replace=github.com/yeqown/go-qrcode/v2@v2.3.0=../../ \
+    -replace=github.com/yeqown/go-qrcode/writer/standard@v1.4.0=../../writer/standard \
+    -replace=github.com/yeqown/go-qrcode/writer/terminal@v1.1.3=../../writer/terminal
+  trap 'go mod edit -dropreplace=github.com/yeqown/go-qrcode/v2@v2.3.0 -dropreplace=github.com/yeqown/go-qrcode/writer/standard@v1.4.0 -dropreplace=github.com/yeqown/go-qrcode/writer/terminal@v1.1.3' EXIT
+  GOTOOLCHAIN=go1.19.13 GOWORK=off go mod tidy -go=1.19 -compat=1.19
 )
-
-go work sync
 ```
 
-Expected: local workspace modules satisfy the unpublished internal version
-requirements, CLI metadata is tidy, and no permanent `replace` directives are
-added.
+Expected: CLI metadata is tidy against the unpublished local modules and
+`go mod edit -json` reports `"Replace": null` after the shell exits. Do not run
+`go work sync` before the tags exist remotely because it resolves the explicit
+versions before applying workspace source selection.
 
 - [ ] **Step 6: Review and commit the internal dependency alignment**
 
@@ -366,10 +371,16 @@ go119_workspace_dir=$(mktemp -d /private/tmp/go-qrcode-go119.XXXXXX)
     /Users/apple/projects/opensource/go-qrcode/writer/compressed \
     /Users/apple/projects/opensource/go-qrcode/writer/standard \
     /Users/apple/projects/opensource/go-qrcode/writer/terminal
+  GOTOOLCHAIN=go1.19.13 go work edit \
+    -replace=github.com/yeqown/go-qrcode/v2@v2.3.0=/Users/apple/projects/opensource/go-qrcode \
+    -replace=github.com/yeqown/go-qrcode/writer/standard@v1.4.0=/Users/apple/projects/opensource/go-qrcode/writer/standard \
+    -replace=github.com/yeqown/go-qrcode/writer/terminal@v1.1.3=/Users/apple/projects/opensource/go-qrcode/writer/terminal \
+    -replace=github.com/yeqown/go-qrcode/writer/compressed@v1.0.2=/Users/apple/projects/opensource/go-qrcode/writer/compressed
 )
 ```
 
-Expected: `$go119_workspace_dir/go.work` exists with `go 1.19` and local uses.
+Expected: `$go119_workspace_dir/go.work` exists with `go 1.19`, local uses, and
+exact replacements for every unpublished version used by these modules.
 
 - [ ] **Step 2: Test and vet every Go 1.19 release consumer**
 
@@ -422,6 +433,11 @@ go120_workspace_dir=$(mktemp -d /private/tmp/go-qrcode-go120.XXXXXX)
     /Users/apple/projects/opensource/go-qrcode/writer/file \
     /Users/apple/projects/opensource/go-qrcode/writer/standard \
     /Users/apple/projects/opensource/go-qrcode/writer/terminal
+  GOTOOLCHAIN=go1.20.14 go work edit \
+    -replace=github.com/yeqown/go-qrcode/v2@v2.3.0=/Users/apple/projects/opensource/go-qrcode \
+    -replace=github.com/yeqown/go-qrcode/writer/standard@v1.4.0=/Users/apple/projects/opensource/go-qrcode/writer/standard \
+    -replace=github.com/yeqown/go-qrcode/writer/terminal@v1.1.3=/Users/apple/projects/opensource/go-qrcode/writer/terminal \
+    -replace=github.com/yeqown/go-qrcode/writer/file@v1.0.1=/Users/apple/projects/opensource/go-qrcode/writer/file
 )
 ```
 
@@ -445,10 +461,31 @@ Expected: all commands exit 0 under Go 1.20.14.
 - [ ] **Step 6: Run combined workspace integration with the installed toolchain**
 
 ```bash
+integration_workspace_dir=$(mktemp -d /private/tmp/go-qrcode-integration.XXXXXX)
+(
+  cd "$integration_workspace_dir"
+  go work init \
+    /Users/apple/projects/opensource/go-qrcode \
+    /Users/apple/projects/opensource/go-qrcode/.issues \
+    /Users/apple/projects/opensource/go-qrcode/cmd/qrcode \
+    /Users/apple/projects/opensource/go-qrcode/cmd/wasm \
+    /Users/apple/projects/opensource/go-qrcode/example \
+    /Users/apple/projects/opensource/go-qrcode/writer/compressed \
+    /Users/apple/projects/opensource/go-qrcode/writer/file \
+    /Users/apple/projects/opensource/go-qrcode/writer/standard \
+    /Users/apple/projects/opensource/go-qrcode/writer/terminal
+  go work edit \
+    -replace=github.com/yeqown/go-qrcode/v2@v2.3.0=/Users/apple/projects/opensource/go-qrcode \
+    -replace=github.com/yeqown/go-qrcode/writer/standard@v1.4.0=/Users/apple/projects/opensource/go-qrcode/writer/standard \
+    -replace=github.com/yeqown/go-qrcode/writer/terminal@v1.1.3=/Users/apple/projects/opensource/go-qrcode/writer/terminal \
+    -replace=github.com/yeqown/go-qrcode/writer/file@v1.0.1=/Users/apple/projects/opensource/go-qrcode/writer/file \
+    -replace=github.com/yeqown/go-qrcode/writer/compressed@v1.0.2=/Users/apple/projects/opensource/go-qrcode/writer/compressed
+)
+
 for module_dir in . .issues cmd/qrcode example writer/compressed writer/file writer/standard writer/terminal; do
   (
     cd "$module_dir"
-    go test ./...
+    GOWORK="$integration_workspace_dir/go.work" go test ./...
   )
 done
 ```
@@ -457,14 +494,14 @@ done
 installed_go_root=$(go env GOROOT)
 (
   cd cmd/wasm
-  GOOS=js GOARCH=wasm go test \
+  GOOS=js GOARCH=wasm GOWORK="$integration_workspace_dir/go.work" go test \
     -exec="$installed_go_root/misc/wasm/go_js_wasm_exec" \
     ./...
 )
 ```
 
 ```bash
-go build -race ./...
+GOWORK="$integration_workspace_dir/go.work" go build -race ./...
 ```
 
 Expected: every module test and the root race build exit 0.

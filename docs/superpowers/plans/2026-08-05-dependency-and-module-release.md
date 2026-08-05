@@ -385,7 +385,7 @@ exact replacements for every unpublished version used by these modules.
 - [ ] **Step 2: Test and vet every Go 1.19 release consumer**
 
 ```bash
-for module_dir in . .issues cmd/qrcode writer/compressed writer/standard writer/terminal; do
+for module_dir in . cmd/qrcode writer/compressed writer/standard writer/terminal; do
   (
     cd "$module_dir"
     GOTOOLCHAIN=go1.19.13 GOWORK="$go119_workspace_dir/go.work" go test ./...
@@ -395,18 +395,42 @@ done
 ```
 
 ```bash
-go119_root=$(GOTOOLCHAIN=go1.19.13 go env GOROOT)
+issues_go119_dir=$(mktemp -d /private/tmp/issues-go119.XXXXXX)
+cp -R .issues/. "$issues_go119_dir"
 (
-  cd cmd/wasm
-  GOOS=js GOARCH=wasm GOTOOLCHAIN=go1.19.13 GOWORK="$go119_workspace_dir/go.work" go test \
-    -exec="$go119_root/misc/wasm/go_js_wasm_exec" \
-    ./...
-  GOOS=js GOARCH=wasm GOTOOLCHAIN=go1.19.13 GOWORK="$go119_workspace_dir/go.work" go vet ./...
+  cd "$issues_go119_dir"
+  GOTOOLCHAIN=go1.19.13 GOWORK=off go mod edit \
+    -module=example.com/issues \
+    -replace=github.com/yeqown/go-qrcode/v2@v2.3.0=/Users/apple/projects/opensource/go-qrcode \
+    -replace=github.com/yeqown/go-qrcode/writer/compressed@v1.0.2=/Users/apple/projects/opensource/go-qrcode/writer/compressed
+  GOTOOLCHAIN=go1.19.13 GOWORK=off go mod tidy -go=1.19 -compat=1.19
+  GOTOOLCHAIN=go1.19.13 GOWORK=off go test ./...
+  GOTOOLCHAIN=go1.19.13 GOWORK=off go vet ./...
 )
 ```
 
-Expected: all tests and vet commands exit 0 under Go 1.19.13, with the WASM
-module compiled and tested for its declared `js/wasm` build target.
+```bash
+wasm_go119_dir=$(mktemp -d /private/tmp/wasm-go119.XXXXXX)
+cp -R cmd/wasm/. "$wasm_go119_dir"
+(
+  cd "$wasm_go119_dir"
+  GOTOOLCHAIN=go1.19.13 GOWORK=off go mod edit \
+    -module=example.com/wasm \
+    -replace=github.com/yeqown/go-qrcode/v2@v2.3.0=/Users/apple/projects/opensource/go-qrcode \
+    -replace=github.com/yeqown/go-qrcode/writer/standard@v1.4.0=/Users/apple/projects/opensource/go-qrcode/writer/standard
+  GOTOOLCHAIN=go1.19.13 GOWORK=off go mod tidy -go=1.19 -compat=1.19
+  GOOS=js GOARCH=wasm GOTOOLCHAIN=go1.19.13 GOWORK=off go test \
+    -c -o /private/tmp/go-qrcode-wasm-go119.test
+  GOOS=js GOARCH=wasm GOTOOLCHAIN=go1.19.13 GOWORK=off go vet ./...
+)
+```
+
+Expected: all native tests and vet commands exit 0 under Go 1.19.13, and the
+WASM test binary compiles for `js/wasm`. Go 1.19 rejects the repository's
+unqualified `module issues` and `module wasm` paths, so those consumers are
+verified from temporary qualified copies. The downloadable Go 1.19 toolchain
+does not include its matching WASM runner; Step 6 executes the WASM tests with
+the installed toolchain and its matching runner.
 
 - [ ] **Step 3: Run CI-equivalent race tests under Go 1.19**
 

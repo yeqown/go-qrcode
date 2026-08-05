@@ -3,7 +3,7 @@ module github.com/yeqown/go-qrcode/writer/terminal
 go 1.19
 
 require (
-	github.com/mattn/go-runewidth v0.0.16
+	github.com/mattn/go-runewidth v0.0.17
 	github.com/nsf/termbox-go v1.1.1
 	github.com/yeqown/go-qrcode/v2 v2.2.5
 )

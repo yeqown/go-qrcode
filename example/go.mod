@@ -1,6 +1,6 @@
 module example
 
-go 1.19
+go 1.25.0
 
 require (
 	github.com/yeqown/go-qrcode v1.5.10
@@ -18,5 +18,5 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/yeqown/reedsolomon v1.0.0 // indirect
-	golang.org/x/image v0.24.0 // indirect
+	golang.org/x/image v0.38.0 // indirect
 )

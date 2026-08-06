@@ -4,8 +4,8 @@ go 1.19
 
 require (
 	github.com/pkg/errors v0.9.1
-	github.com/yeqown/go-qrcode/v2 v2.0.2
-	github.com/yeqown/go-qrcode/writer/standard v1.1.1
+	github.com/yeqown/go-qrcode/v2 v2.3.0
+	github.com/yeqown/go-qrcode/writer/standard v1.4.0
 )
 
 require (
